@@ -1,6 +1,7 @@
 # stream-chat-go 
 
 [![Build Status](https://travis-ci.com/GetStream/stream-chat-go.svg?branch=master)](https://travis-ci.com/GetStream/stream-chat-go)
+
 the official Golang API client for [Stream chat](https://getstream.io/chat/) a service for building chat applications.
 
 You can sign up for a Stream account at https://getstream.io/chat/get_started/.
