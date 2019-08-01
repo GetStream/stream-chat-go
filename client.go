@@ -2,10 +2,10 @@ package stream_chat
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -34,23 +34,23 @@ func (c *client) setHeaders(r *http.Request) {
 	r.Header.Set("stream-auth-type", "jwt")
 }
 
-func (c *client) parseResponse(resp *http.Response) (result interface{}, err error) {
-	defer resp.Body.Close()
-	if resp.StatusCode >= 399 {
-		err = fmt.Errorf("response code: %d; %s", resp.StatusCode, bufio.NewScanner(resp.Body).Text())
-		return nil, err
+func (c *client) parseResponse(resp *http.Response, result interface{}) error {
+	if resp.Body != nil {
+		defer resp.Body.Close()
 	}
 
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(&result)
-	return
+	if resp.StatusCode >= 399 {
+		msg := bufio.NewScanner(resp.Body).Text()
+		return fmt.Errorf("response code: %d; %s", resp.StatusCode, msg)
+	}
+
+	return json.NewDecoder(resp.Body).Decode(result)
 }
 
-func (c *client) makeRequest(method string, path string, params map[string][]string, data io.Reader) (interface{}, error) {
-
+func (c *client) requestURL(path string, params map[string][]string) (string, error) {
 	_url, err := url.Parse(c.baseURL + path)
 	if err != nil {
-		return nil, errors.New("url.Parse:" + err.Error())
+		return "", errors.New("url.Parse:" + err.Error())
 	}
 
 	// set request params to url
@@ -61,40 +61,49 @@ func (c *client) makeRequest(method string, path string, params map[string][]str
 	}
 
 	_url.Query().Set("api_key", c.apiKey)
+	return _url.String(), nil
+}
 
-	r, err := http.NewRequest(method, _url.String(), data)
+func (c *client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
+	path, err := c.requestURL(path, params)
 	if err != nil {
-		return nil, err
+		return err
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	r, err := http.NewRequest(method, path, bytes.NewReader(body))
+	if err != nil {
+		return err
 	}
 
 	c.setHeaders(r)
 
 	resp, err := c.http.Do(r)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.parseResponse(resp)
+	return c.parseResponse(resp, result)
 }
 
-func (c *client) Get(path string, params map[string][]string) (interface{}, error) {
-	return c.makeRequest(http.MethodGet, path, params, nil)
+func (*client) AddChannelType(data interface{}) error {
+	panic("implement me")
 }
 
-func (c *client) Post(path string, params map[string][]string, data io.Reader) (interface{}, error) {
-	return c.makeRequest(http.MethodPost, path, params, data)
+func (*client) GetChannelType(chanType channelType) {
+	panic("implement me")
 }
 
-func (c *client) Put(path string, params map[string][]string, data io.Reader) (interface{}, error) {
-	return c.makeRequest(http.MethodPut, path, params, data)
+func (*client) ListChannelTypes() {
+	panic("implement me")
 }
 
-func (c *client) Patch(path string, params map[string][]string, data io.Reader) (interface{}, error) {
-	return c.makeRequest(http.MethodPatch, path, params, data)
-}
-
-func (c *client) Delete(path string, params map[string][]string) (interface{}, error) {
-	return c.makeRequest(http.MethodDelete, path, params, nil)
+func (c *client) NewChannel(chanType channelType, chanId string, data map[string]interface{}) {
+	panic("implement me")
 }
 
 // NewStreamChat creates new stream chat api client
