@@ -15,11 +15,9 @@ type params interface {
 	toHash() map[string]interface{}
 }
 
-type channelType string
-
 type Channel struct {
 	id         string
-	_type      channelType
+	_type      string
 	client     *client
 	customData map[string]interface{}
 }
@@ -42,10 +40,10 @@ func addUserID(hash map[string]interface{}, userID UserID) map[string]interface{
 // SendMessage sends a message to this channel
 //
 // message: the Message object
-// user_id: the ID of the user that created the message
-func (ch *Channel) SendMessage(message params, userId UserID) error {
+// userID: the ID of the user that created the message
+func (ch *Channel) SendMessage(message Message, userID UserID) error {
 	data := map[string]interface{}{
-		"message": addUserID(message.toHash(), userId),
+		"message": addUserID(message.toHash(), userID),
 	}
 
 	return ch.client.makeRequest(http.MethodPost, ch.formatPath(messagePathFmt), nil, data, nil)
@@ -54,10 +52,10 @@ func (ch *Channel) SendMessage(message params, userId UserID) error {
 // SendEvent sends an event on this channel
 //
 // event: event data, ie {type: 'message.read'}
-// user_id: the ID of the user sending the event
-func (ch *Channel) SendEvent(event params, userId UserID) error {
+// userID: the ID of the user sending the event
+func (ch *Channel) SendEvent(event Event, userID UserID) error {
 	data := map[string]interface{}{
-		"event": addUserID(event.toHash(), userId),
+		"event": addUserID(event.toHash(), userID),
 	}
 
 	path := ch.formatPath(eventPathFmt)
@@ -66,9 +64,9 @@ func (ch *Channel) SendEvent(event params, userId UserID) error {
 
 // SendReaction sends a reaction about a message
 //
-// message_id: the message id
+// messageID: the message id
 // reaction: the reaction object, ie {type: 'love'}
-// user_id: the ID of the user that created the reaction
+// userID: the ID of the user that created the reaction
 func (ch *Channel) SendReaction(messageID string, reaction params, userID UserID) error {
 	data := map[string]interface{}{
 		"reaction": addUserID(reaction.toHash(), userID),
@@ -80,9 +78,9 @@ func (ch *Channel) SendReaction(messageID string, reaction params, userID UserID
 
 // DeleteReaction removes a reaction by user and type
 //
-// message_id: the id of the message from which te remove the reaction
+// messageID: the id of the message from which te remove the reaction
 // reaction_type: the type of reaction that should be removed
-// user_id: the id of the user
+// userID: the id of the user
 func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID UserID) error {
 
 	path := "messages/" + messageID + "/reaction/" + reactionType
@@ -92,21 +90,23 @@ func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID 
 
 // Create creates the channel
 //
-// user_id: the ID of the user creating this channel
-func (ch *Channel) Create(userID UserID) {
+// userID: the ID of the user creating this channel
+func (ch *Channel) Create(userID UserID) (map[string]interface{}, error) {
 	ch.customData["created_by"] = map[string]interface{}{"id": userID}
 
-	payload := map[string]interface{}{
-		"state": true,
-		"data":  ch.customData,
+	options := map[string]interface{}{
+		"watch":    false,
+		"state":    false,
+		"presence": false,
 	}
+
+	return ch.Query(options)
 }
 
 // Query queries the API for this channel, get messages, members or other channel fields
 //
 // options: the query options, check docs on https://getstream.io/chat/docs/
-// TODO: add return
-func (ch *Channel) Query(options map[string]interface{}) error {
+func (ch *Channel) Query(options map[string]interface{}) (result map[string]interface{}, err error) {
 	payload := map[string]interface{}{
 		"state": true,
 		"data":  ch.customData,
@@ -116,22 +116,17 @@ func (ch *Channel) Query(options map[string]interface{}) error {
 		payload[k] = v
 	}
 
-	path := "channels/" + string(ch._type)
+	path := "channels/" + ch._type
 	if ch.id != "" {
 		path += "/" + ch.id
 	}
 	path += "/query"
 
-	//TODO: fix result types
-	var result = map[string]map[string]interface{}{}
-	err := ch.client.makeRequest(http.MethodPost, path, nil, payload, &result)
-	if err != nil {
-		return err
-	}
-	//TODO: may panic
-	ch.id = result["channel"]["id"].(string)
+	err = ch.client.makeRequest(http.MethodPost, path, nil, payload, &result)
 
-	return nil
+	// TODO: set ch.id from result
+
+	return result, err
 }
 
 // Update edits the channel's custom properties
@@ -204,7 +199,7 @@ func (ch *Channel) DemoteModerators(users []UserID) error {
 //  MarkRead send the mark read event for this user, only works if the `read_events` setting is enabled
 //
 //  userID: the user ID for the event
-//  options: additional data, ie {"message_id": last_message_id}
+//  options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID UserID, options map[string]interface{}) error {
 	path := ch.formatPath(channelPathFmt) + "/read"
 
@@ -216,21 +211,23 @@ func (ch *Channel) MarkRead(userID UserID, options map[string]interface{}) error
 //
 // parenID: The message parent id, ie the top of the thread
 // options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string]interface{}) (map[string]interface{}, error) {
+func (ch *Channel) GetReplies(parentID string, options map[string][]string) (resp map[string]interface{}, err error) {
 	path := "messages/" + parentID + "/replies"
-	resp := map[string]interface{}{}
-	err := ch.client.makeRequest(http.MethodGet, path, options, nil, &resp)
+
+	err = ch.client.makeRequest(http.MethodGet, path, options, nil, &resp)
+
 	return resp, err
 }
 
 // GetReactions returns list of the reactions, supports pagination
 //
-// message_id: The message id
+// messageID: The message id
 // options: Pagination params, ie {"limit":10, "idlte": 10}
-func (ch *Channel) GetReactions(messageID string, options map[string]interface{}) (map[string]interface{}, error) {
+func (ch *Channel) GetReactions(messageID string, options map[string][]string) (resp []Reaction, err error) {
 	path := "messages/" + messageID + "/reactions"
-	resp := map[string]interface{}{}
-	err := ch.client.makeRequest(http.MethodGet, path, options, nil, &resp)
+
+	err = ch.client.makeRequest(http.MethodGet, path, options, nil, &resp)
+
 	return resp, err
 }
 
@@ -253,4 +250,13 @@ func (ch *Channel) UnBanUser(targetID UserID, options map[string]interface{}) er
 	options["id"] = ch.id
 
 	return ch.client.UnBanUser(targetID)
+}
+
+// NewChannel returns new channel struct
+func (c *client) NewChannel(chanType string, chanID string, data map[string]interface{}) Channel {
+	return Channel{
+		_type:      chanType,
+		client:     c,
+		customData: data,
+	}
 }

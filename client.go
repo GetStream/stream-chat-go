@@ -90,24 +90,8 @@ func (c *client) makeRequest(method string, path string, params map[string][]str
 	return c.parseResponse(resp, result)
 }
 
-func (*client) AddChannelType(data interface{}) error {
-	panic("implement me")
-}
-
-func (*client) GetChannelType(chanType channelType) {
-	panic("implement me")
-}
-
-func (*client) ListChannelTypes() {
-	panic("implement me")
-}
-
-func (c *client) NewChannel(chanType channelType, chanId string, data map[string]interface{}) {
-	panic("implement me")
-}
-
-// NewStreamChat creates new stream chat api client
-func NewStreamChat(apiKey string, apiSecret []byte, options ...func(*client)) (interface{}, error) {
+// NewClient creates new stream chat api client
+func NewClient(apiKey string, apiSecret []byte, options ...func(*client)) (interface{}, error) {
 	var claims jwt.Claims
 	claims.Set["server"] = true
 	token, err := claims.HMACSign(jwt.ES256, apiSecret)

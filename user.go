@@ -1,6 +1,35 @@
 package stream_chat
 
+import "time"
+
 type UserID string
+
+type User struct {
+	ID    UserID `json:"id"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
+	Role  string `json:"role"`
+
+	Online    bool `json:"online"`
+	Invisible bool `json:"invisible"`
+
+	LastActive time.Time `json:"last_active"`
+
+	Mutes []*Mute `json:"mutes"`
+
+	ExtraData map[string]interface{}
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (u *User) toHash() map[string]interface{} {
+	return nil
+}
+
+func (u *User) MarshalJSON() (data []byte, err error) {
+	return
+}
 
 type UserAPI interface {
 	MuteUser(userID UserID, targetID UserID) error

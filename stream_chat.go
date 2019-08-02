@@ -11,11 +11,11 @@ type ChannelAPI interface {
 	// Creates channel type
 	AddChannelType(data interface{}) error
 	// Get channel type
-	GetChannelType(chanType channelType)
+	GetChannelType(chanType string) (map[string]interface{}, error)
 	// List all channel types
-	ListChannelTypes()
+	ListChannelTypes() (map[string]interface{}, error)
 	// Creates channel object
-	NewChannel(chanType channelType, chanId string, data map[string]interface{})
+	NewChannel(chanType string, chanId string, data map[string]interface{})
 	//TODO: Search for a channel
 	// QueryChannels()
 }
