@@ -4,7 +4,7 @@ import "net/http"
 
 const (
 	PushProviderAPNS     = pushProvider("apns")
-	PushPrivoderFirebase = pushProvider("firebase")
+	PushProviderFirebase = pushProvider("firebase")
 )
 
 type (
