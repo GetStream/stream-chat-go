@@ -26,8 +26,8 @@ go get github.com/GetStream/stream-chat-go
 - [ ] Chat channel types 
 - [ ] User management 
 - [ ] Moderation API 
-- [ ] Push configuration 
-- [ ] User devices 
+- [x] Push configuration 
+- [x] User devices 
 - [ ] User search
 - [ ] Channel search
 
