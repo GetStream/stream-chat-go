@@ -249,8 +249,8 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 }
 
 // NewChannel returns new channel struct
-func (c *Client) NewChannel(chanType string, chanID string, data map[string]interface{}) Channel {
-	return Channel{
+func (c *Client) NewChannel(chanType string, chanID string, data map[string]interface{}) *Channel {
+	return &Channel{
 		_type:      chanType,
 		client:     c,
 		customData: data,

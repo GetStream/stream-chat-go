@@ -9,6 +9,7 @@ import (
 func WithTimeout(t time.Duration) func(*Client) {
 	return func(c *Client) {
 		c.timeout = t
+		c.http.Timeout = t
 	}
 }
 

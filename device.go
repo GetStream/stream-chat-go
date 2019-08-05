@@ -1,9 +1,11 @@
 package stream_chat
 
-import "net/http"
+import (
+	"net/http"
+)
 
 const (
-	PushProviderAPNS     = pushProvider("apns")
+	PushProviderAPNS     = pushProvider("apn")
 	PushProviderFirebase = pushProvider("firebase")
 )
 
@@ -23,25 +25,25 @@ type DeviceAPI interface {
 }
 
 type Device struct {
-	//The user ID for this device.
-	UserID string
 	//The device ID.
-	DeviceID string
+	ID string `json:"id"`
+	//The user ID for this device.
+	UserID string `json:"user_id"`
 	//The push provider for this device. One of constants PushProvider*
-	Provider pushProvider
+	PushProvider pushProvider `json:"push_provider"`
 }
 
 func (d *Device) fromHash(hash map[string]string) {
 	d.UserID = hash["user_id"]
-	d.DeviceID = hash["id"]
-	d.Provider = pushProvider(hash["provider"])
+	d.ID = hash["id"]
+	d.PushProvider = pushProvider(hash["provider"])
 }
 
 func (d *Device) toHash() map[string]interface{} {
 	return map[string]interface{}{
 		"user_id":  d.UserID,
-		"id":       d.DeviceID,
-		"provider": d.Provider,
+		"id":       d.ID,
+		"provider": d.PushProvider,
 	}
 }
 
@@ -51,21 +53,13 @@ func (c *Client) GetDevices(userId string) (devices []Device, err error) {
 		"user_id": {userId},
 	}
 
-	var resp map[string][]map[string]string
+	var resp struct {
+		Devices []Device `json:"devices"`
+	}
+
 	err = c.makeRequest(http.MethodGet, "devices", params, nil, &resp)
 
-	if err != nil {
-		return nil, err
-	}
-
-	if devs := resp["devices"]; devs != nil {
-		devices = make([]Device, len(devs))
-		for i := range devices {
-			devices[i].fromHash(devs[i])
-		}
-	}
-
-	return devices, err
+	return resp.Devices, err
 }
 
 // Add device to a user. Provider should be one of PushProvider* constant

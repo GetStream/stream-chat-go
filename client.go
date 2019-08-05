@@ -72,7 +72,7 @@ func (c *Client) requestURL(path string, params map[string][]string) (string, er
 }
 
 func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
-	path, err := c.requestURL(path, params)
+	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 		return err
 	}
 
-	r, err := http.NewRequest(method, path, bytes.NewReader(body))
+	r, err := http.NewRequest(method, _url, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
