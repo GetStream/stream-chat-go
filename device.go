@@ -46,7 +46,7 @@ func (d *Device) toHash() map[string]interface{} {
 }
 
 // Get list of devices for user
-func (c *client) GetDevices(userId string) (devices []Device, err error) {
+func (c *Client) GetDevices(userId string) (devices []Device, err error) {
 	params := map[string][]string{
 		"user_id": {userId},
 	}
@@ -69,12 +69,12 @@ func (c *client) GetDevices(userId string) (devices []Device, err error) {
 }
 
 // Add device to a user. Provider should be one of PushProvider* constant
-func (c *client) AddDevice(device Device) error {
+func (c *Client) AddDevice(device Device) error {
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
 // Delete a device for a user
-func (c *client) DeleteDevice(userId string, deviceID string) error {
+func (c *Client) DeleteDevice(userId string, deviceID string) error {
 	params := map[string][]string{
 		"id":      {deviceID},
 		"user_id": {userId},

@@ -18,7 +18,7 @@ const (
 	defaultTimeout = 6 * time.Second
 )
 
-type client struct {
+type Client struct {
 	baseURL   string
 	apiKey    string
 	apiSecret []byte
@@ -27,14 +27,14 @@ type client struct {
 	http      *http.Client
 }
 
-func (c *client) setHeaders(r *http.Request) {
+func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("X-Stream-Client", "stream-go-client")
 	r.Header.Set("Authorization", c.authToken)
 	r.Header.Set("stream-auth-type", "jwt")
 }
 
-func (c *client) parseResponse(resp *http.Response, result interface{}) error {
+func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -50,7 +50,7 @@ func (c *client) parseResponse(resp *http.Response, result interface{}) error {
 	return nil
 }
 
-func (c *client) requestURL(path string, params map[string][]string) (string, error) {
+func (c *Client) requestURL(path string, params map[string][]string) (string, error) {
 	_url, err := url.Parse(c.baseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
@@ -71,7 +71,7 @@ func (c *client) requestURL(path string, params map[string][]string) (string, er
 	return _url.String(), nil
 }
 
-func (c *client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
+func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
 	path, err := c.requestURL(path, params)
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (c *client) makeRequest(method string, path string, params map[string][]str
 }
 
 // CreateToken creates new token for user with optional expire time
-func (c *client) CreateToken(userID string, expire *time.Time) ([]byte, error) {
+func (c *Client) CreateToken(userID string, expire *time.Time) ([]byte, error) {
 	params := map[string]interface{}{
 		"user_id": userID,
 	}
@@ -106,7 +106,7 @@ func (c *client) CreateToken(userID string, expire *time.Time) ([]byte, error) {
 	return c.createToken(params, expire)
 }
 
-func (c *client) createToken(params map[string]interface{}, expire *time.Time) ([]byte, error) {
+func (c *Client) createToken(params map[string]interface{}, expire *time.Time) ([]byte, error) {
 	var claims = jwt.Claims{
 		Set: params,
 	}
@@ -119,8 +119,8 @@ func (c *client) createToken(params map[string]interface{}, expire *time.Time) (
 }
 
 // NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte, options ...func(*client)) (*client, error) {
-	client := &client{
+func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Client, error) {
+	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
 		timeout:   defaultTimeout,

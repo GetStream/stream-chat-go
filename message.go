@@ -63,7 +63,7 @@ type Attachment struct {
 }
 
 // MarkAllRead marks all messages as read for userID
-func (c *client) MarkAllRead(userID string) error {
+func (c *Client) MarkAllRead(userID string) error {
 	data := map[string]interface{}{
 		"user": map[string]string{
 			"id": userID,
@@ -73,7 +73,7 @@ func (c *client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
-func (c *client) UpdateMessage(msg Message) error {
+func (c *Client) UpdateMessage(msg Message) error {
 	if msg.ID == "" {
 		return errors.New("message ID must be not empty")
 	}
@@ -85,6 +85,6 @@ func (c *client) UpdateMessage(msg Message) error {
 	return c.makeRequest(http.MethodPost, "messages/"+msg.ID, nil, data, nil)
 }
 
-func (c *client) DeleteMessage(msgID string) error {
+func (c *Client) DeleteMessage(msgID string) error {
 	return c.makeRequest(http.MethodDelete, "messages/"+msgID, nil, nil, nil)
 }
