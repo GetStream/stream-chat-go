@@ -1,11 +1,13 @@
 package stream_chat
 
-import "time"
-
-type UserID string
+import (
+	"errors"
+	"net/http"
+	"time"
+)
 
 type User struct {
-	ID    UserID `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Image string `json:"image"`
 	Role  string `json:"role"`
@@ -32,55 +34,118 @@ func (u *User) MarshalJSON() (data []byte, err error) {
 }
 
 type UserAPI interface {
-	MuteUser(userID UserID, targetID UserID) error
-	UnmuteUser(userID UserID, targetID UserID) error
-	FlagUser(userID UserID, options ...interface{}) error
-	UnFlagUser(userID UserID, options ...interface{}) error
-	BanUser(id UserID, options map[string]interface{}) error
-	UnBanUser(id UserID) error
-	ExportUser(id UserID, options ...interface{}) (user interface{}, err error)
-	DeactivateUser(id UserID, options ...interface{}) error
-	DeleteUser(id UserID, options ...interface{}) error
-	UpdateUser(id UserID, options ...interface{}) error
+	MuteUser(userID string, targetID string) error
+	UnmuteUser(userID string, targetID string) error
+	FlagUser(userID string, options ...interface{}) error
+	UnFlagUser(userID string, options ...interface{}) error
+	BanUser(id string, options map[string]interface{}) error
+	UnBanUser(id string) error
+	ExportUser(id string, options ...interface{}) (user interface{}, err error)
+	DeactivateUser(id string, options ...interface{}) error
+	DeleteUser(id string, options ...interface{}) error
+	UpdateUser(id string, options ...interface{}) error
 	// TODO: QueryUsers()
 }
 
-func (*client) MuteUser(userID UserID, targetID UserID) error {
-	panic("implement me")
+// Create a mute
+// targetID: the user getting muted
+// userID: the user muting the target
+func (c *client) MuteUser(targetID string, userID string) error {
+	data := map[string]interface{}{
+		"target_id": targetID,
+		"user_id":   userID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
-func (*client) UnmuteUser(userID UserID, targetID UserID) error {
-	panic("implement me")
+// Removes a mute
+// targetID: the user getting un-muted
+// userID: the user muting the target
+func (c *client) UnmuteUser(targetID string, userID string) error {
+	data := map[string]interface{}{
+		"target_id": targetID,
+		"user_id":   userID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
-func (*client) FlagUser(userID UserID, options ...interface{}) error {
-	panic("implement me")
+func (c *client) FlagUser(targetID string, options map[string]interface{}) error {
+	if options == nil {
+		return errors.New("flag user: options are nil")
+	}
+
+	options["target_user_id"] = targetID
+
+	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
 }
 
-func (*client) UnFlagUser(userID UserID, options ...interface{}) error {
-	panic("implement me")
+func (c *client) UnFlagUser(targetID string, options map[string]interface{}) error {
+	if options == nil {
+		return errors.New("flag user: options are nil")
+	}
+
+	options["target_user_id"] = targetID
+
+	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (*client) BanUser(id UserID, options map[string]interface{}) error {
-	panic("implement me")
+func (c *client) BanUser(targetID string, options map[string]interface{}) error {
+	if options == nil {
+		options = map[string]interface{}{}
+	}
+
+	options["target_user_id"] = targetID
+
+	return c.makeRequest(http.MethodPost, "moderation/ban", nil, options, nil)
 }
 
-func (*client) UnBanUser(id UserID) error {
-	panic("implement me")
+func (c *client) UnBanUser(targetID string, options map[string]string) error {
+	var params = map[string][]string{}
+
+	for k, v := range options {
+		params[k] = []string{v}
+	}
+
+	params["target_user_id"] = []string{targetID}
+
+	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
 }
 
-func (*client) ExportUser(id UserID, options ...interface{}) (user interface{}, err error) {
-	panic("implement me")
+func (c *client) ExportUser(targetID string, options map[string][]string) (user User, err error) {
+	path := "users/" + targetID + "/export"
+
+	err = c.makeRequest(http.MethodGet, path, options, nil, &user)
+
+	return user, err
 }
 
-func (*client) DeactivateUser(id UserID, options ...interface{}) error {
-	panic("implement me")
+func (c *client) DeactivateUser(targetID string, options map[string]interface{}) error {
+	path := "users/" + targetID + "/deactivate"
+
+	return c.makeRequest(http.MethodPost, path, nil, options, nil)
 }
 
-func (*client) DeleteUser(id UserID, options ...interface{}) error {
-	panic("implement me")
+func (c *client) DeleteUser(targetID string, options map[string][]string) error {
+	path := "users/" + targetID
+
+	return c.makeRequest(http.MethodDelete, path, options, nil, nil)
 }
 
-func (*client) UpdateUser(id UserID, options ...interface{}) error {
-	panic("implement me")
+func (c *client) UpdateUsers(users ...User) error {
+	if len(users) == 0 {
+		return errors.New("users are not set")
+	}
+
+	usersMap := make(map[string]User, len(users))
+	for _, u := range users {
+		usersMap[u.ID] = u
+	}
+
+	data := map[string]interface{}{
+		"users": usersMap,
+	}
+
+	return c.makeRequest(http.MethodPost, "users", nil, data, nil)
 }

@@ -31,8 +31,7 @@ type Message struct {
 }
 
 func (m *Message) MarshallJSON() ([]byte, error) {
-	hash := m.toHash()
-	return json.Marshal(&hash)
+	return json.Marshal(m.toHash())
 }
 
 func (m *Message) toHash() map[string]interface{} {

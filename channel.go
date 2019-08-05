@@ -32,7 +32,7 @@ func (ch Channel) formatPath(path string, params ...interface{}) string {
 	return fmt.Sprintf(path, params)
 }
 
-func addUserID(hash map[string]interface{}, userID UserID) map[string]interface{} {
+func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
 	hash["user"] = userID
 	return hash
 }
@@ -41,7 +41,7 @@ func addUserID(hash map[string]interface{}, userID UserID) map[string]interface{
 //
 // message: the Message object
 // userID: the ID of the user that created the message
-func (ch *Channel) SendMessage(message Message, userID UserID) error {
+func (ch *Channel) SendMessage(message Message, userID string) error {
 	data := map[string]interface{}{
 		"message": addUserID(message.toHash(), userID),
 	}
@@ -53,7 +53,7 @@ func (ch *Channel) SendMessage(message Message, userID UserID) error {
 //
 // event: event data, ie {type: 'message.read'}
 // userID: the ID of the user sending the event
-func (ch *Channel) SendEvent(event Event, userID UserID) error {
+func (ch *Channel) SendEvent(event Event, userID string) error {
 	data := map[string]interface{}{
 		"event": addUserID(event.toHash(), userID),
 	}
@@ -67,7 +67,7 @@ func (ch *Channel) SendEvent(event Event, userID UserID) error {
 // messageID: the message id
 // reaction: the reaction object, ie {type: 'love'}
 // userID: the ID of the user that created the reaction
-func (ch *Channel) SendReaction(messageID string, reaction params, userID UserID) error {
+func (ch *Channel) SendReaction(messageID string, reaction params, userID string) error {
 	data := map[string]interface{}{
 		"reaction": addUserID(reaction.toHash(), userID),
 	}
@@ -81,7 +81,7 @@ func (ch *Channel) SendReaction(messageID string, reaction params, userID UserID
 // messageID: the id of the message from which te remove the reaction
 // reaction_type: the type of reaction that should be removed
 // userID: the id of the user
-func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID UserID) error {
+func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID string) error {
 
 	path := "messages/" + messageID + "/reaction/" + reactionType
 
@@ -91,7 +91,7 @@ func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID 
 // Create creates the channel
 //
 // userID: the ID of the user creating this channel
-func (ch *Channel) Create(userID UserID) (map[string]interface{}, error) {
+func (ch *Channel) Create(userID string) (map[string]interface{}, error) {
 	ch.customData["created_by"] = map[string]interface{}{"id": userID}
 
 	options := map[string]interface{}{
@@ -155,7 +155,7 @@ func (ch *Channel) Truncate() error {
 // Adds members to the channel
 //
 // users: user IDs to add as members
-func (ch *Channel) AddMembers(users []UserID) error {
+func (ch *Channel) AddMembers(users []string) error {
 	data := map[string]interface{}{
 		"add_members": users,
 	}
@@ -166,7 +166,7 @@ func (ch *Channel) AddMembers(users []UserID) error {
 //  RemoveMembers deletes members from the channel
 //
 //  users: user IDs to remove from the member list
-func (ch *Channel) RemoveMembers(users []UserID) error {
+func (ch *Channel) RemoveMembers(users []string) error {
 	data := map[string]interface{}{
 		"remove_members": users,
 	}
@@ -177,7 +177,7 @@ func (ch *Channel) RemoveMembers(users []UserID) error {
 // AddModerators adds moderators to the channel
 //
 // users: user IDs to add as moderators
-func (ch *Channel) AddModerators(users []UserID) error {
+func (ch *Channel) AddModerators(users []string) error {
 	data := map[string]interface{}{
 		"add_moderators": users,
 	}
@@ -188,7 +188,7 @@ func (ch *Channel) AddModerators(users []UserID) error {
 // DemoteModerators moderators from the channel
 //
 // users: user IDs to demote
-func (ch *Channel) DemoteModerators(users []UserID) error {
+func (ch *Channel) DemoteModerators(users []string) error {
 	data := map[string]interface{}{
 		"demote_moderators": users,
 	}
@@ -200,7 +200,7 @@ func (ch *Channel) DemoteModerators(users []UserID) error {
 //
 //  userID: the user ID for the event
 //  options: additional data, ie {"messageID": last_messageID}
-func (ch *Channel) MarkRead(userID UserID, options map[string]interface{}) error {
+func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
 	path := ch.formatPath(channelPathFmt) + "/read"
 
 	options = addUserID(options, userID)
@@ -235,7 +235,7 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 //
 // targetID: the ID of the user to ban
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
-func (ch *Channel) BanUser(targetID UserID, options map[string]interface{}) error {
+func (ch *Channel) BanUser(targetID string, options map[string]interface{}) error {
 	options["type"] = ch._type
 	options["id"] = ch.id
 
@@ -245,11 +245,11 @@ func (ch *Channel) BanUser(targetID UserID, options map[string]interface{}) erro
 // UnBanUser removes the ban for a user on this channel
 //
 // targetID: the ID of the user to unban
-func (ch *Channel) UnBanUser(targetID UserID, options map[string]interface{}) error {
+func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	options["type"] = ch._type
 	options["id"] = ch.id
 
-	return ch.client.UnBanUser(targetID)
+	return ch.client.UnBanUser(targetID, options)
 }
 
 // NewChannel returns new channel struct
