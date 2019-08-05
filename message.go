@@ -2,6 +2,8 @@ package stream_chat
 
 import (
 	"encoding/json"
+	"errors"
+	"net/http"
 	"time"
 )
 
@@ -58,4 +60,31 @@ func (m *Message) toHash() map[string]interface{} {
 }
 
 type Attachment struct {
+}
+
+// MarkAllRead marks all messages as read for userID
+func (c *client) MarkAllRead(userID string) error {
+	data := map[string]interface{}{
+		"user": map[string]string{
+			"id": userID,
+		},
+	}
+
+	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
+}
+
+func (c *client) UpdateMessage(msg Message) error {
+	if msg.ID == "" {
+		return errors.New("message ID must be not empty")
+	}
+
+	data := map[string]interface{}{
+		"message": msg.toHash(),
+	}
+
+	return c.makeRequest(http.MethodPost, "messages/"+msg.ID, nil, data, nil)
+}
+
+func (c *client) DeleteMessage(msgID string) error {
+	return c.makeRequest(http.MethodDelete, "messages/"+msgID, nil, nil, nil)
 }
