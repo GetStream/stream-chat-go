@@ -41,26 +41,33 @@ func (c *client) parseResponse(resp *http.Response, result interface{}) error {
 
 	if resp.StatusCode >= 399 {
 		msg := bufio.NewScanner(resp.Body).Text()
-		return fmt.Errorf("response code: %d; %s", resp.StatusCode, msg)
+		return fmt.Errorf("response code: %s; %s", resp.Status, msg)
 	}
 
-	return json.NewDecoder(resp.Body).Decode(result)
+	if result != nil {
+		return json.NewDecoder(resp.Body).Decode(result)
+	}
+	return nil
 }
 
 func (c *client) requestURL(path string, params map[string][]string) (string, error) {
-	_url, err := url.Parse(c.baseURL + path)
+	_url, err := url.Parse(c.baseURL + "/" + path)
 	if err != nil {
-		return "", errors.New("url.Parse:" + err.Error())
+		return "", errors.New("url.Parse: " + err.Error())
 	}
 
+	values := url.Values{}
 	// set request params to url
 	for key, vv := range params {
 		for _, v := range vv {
-			_url.Query().Add(key, v)
+			values.Add(key, v)
 		}
 	}
 
-	_url.Query().Set("api_key", c.apiKey)
+	values.Add("api_key", c.apiKey)
+
+	_url.RawQuery = values.Encode()
+
 	return _url.String(), nil
 }
 
@@ -90,24 +97,43 @@ func (c *client) makeRequest(method string, path string, params map[string][]str
 	return c.parseResponse(resp, result)
 }
 
-// NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte, options ...func(*client)) (interface{}, error) {
-	var claims jwt.Claims
-	claims.Set["server"] = true
-	token, err := claims.HMACSign(jwt.ES256, apiSecret)
-	if err != nil {
-		return nil, err
+// CreateToken creates new token for user with optional expire time
+func (c *client) CreateToken(userID string, expire *time.Time) ([]byte, error) {
+	params := map[string]interface{}{
+		"user_id": userID,
 	}
 
+	return c.createToken(params, expire)
+}
+
+func (c *client) createToken(params map[string]interface{}, expire *time.Time) ([]byte, error) {
+	var claims = jwt.Claims{
+		Set: params,
+	}
+
+	if expire != nil {
+		claims.Expires = jwt.NewNumericTime(*expire)
+	}
+
+	return claims.HMACSign(jwt.HS256, c.apiSecret)
+}
+
+// NewClient creates new stream chat api client
+func NewClient(apiKey string, apiSecret []byte, options ...func(*client)) (*client, error) {
 	client := &client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
-		authToken: string(token),
 		timeout:   defaultTimeout,
 		baseURL:   defaultBaseURL,
 		http:      http.DefaultClient,
 	}
 
+	token, err := client.createToken(map[string]interface{}{"server": true}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client.authToken = string(token)
 	for _, opt := range options {
 		opt(client)
 	}
