@@ -11,10 +11,6 @@ const (
 	eventPathFmt   = "channels/%s/%s/event"
 )
 
-type params interface {
-	toHash() map[string]interface{}
-}
-
 type Channel struct {
 	id         string
 	_type      string
@@ -67,7 +63,7 @@ func (ch *Channel) SendEvent(event Event, userID string) error {
 // messageID: the message id
 // reaction: the reaction object, ie {type: 'love'}
 // userID: the ID of the user that created the reaction
-func (ch *Channel) SendReaction(messageID string, reaction params, userID string) error {
+func (ch *Channel) SendReaction(messageID string, reaction Reaction, userID string) error {
 	data := map[string]interface{}{
 		"reaction": addUserID(reaction.toHash(), userID),
 	}
