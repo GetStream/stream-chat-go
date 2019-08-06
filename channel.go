@@ -25,7 +25,7 @@ func (ch Channel) formatPath(path string, params ...interface{}) string {
 
 	params = append([]interface{}{ch._type, ch.id}, params...)
 
-	return fmt.Sprintf(path, params)
+	return fmt.Sprintf(path, params...)
 }
 
 func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
@@ -112,13 +112,9 @@ func (ch *Channel) Query(options map[string]interface{}) (result map[string]inte
 		payload[k] = v
 	}
 
-	path := "channels/" + ch._type
-	if ch.id != "" {
-		path += "/" + ch.id
-	}
-	path += "/query"
+	p := path.Join("channels", ch._type, ch.id, "query")
 
-	err = ch.client.makeRequest(http.MethodPost, path, nil, payload, &result)
+	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &result)
 
 	// TODO: set ch.id from result
 
