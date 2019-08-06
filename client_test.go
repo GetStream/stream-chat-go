@@ -22,11 +22,10 @@ func initClient(t *testing.T) (c *Client, ch *Channel) {
 		members = append(members, testUsers[i].ID)
 	}
 
-	ch = c.NewChannel("team", "fellowship-of-the-ring", map[string]interface{}{
+	ch, err = c.CreateChannel("team", "fellowship-of-the-ring", "gandalf", map[string]interface{}{
 		"members": members,
 	})
 
-	_, err = ch.Create("gendalf")
 	mustNoError(t, err)
 
 	return c, ch
@@ -38,10 +37,10 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.authToken)
-	assert.Equal(t, c.timeout, defaultTimeout)
-	//	assert.Equal(t, c.baseURL, defaultBaseURL)
+	assert.Equal(t, defaultTimeout, c.timeout)
+	//	assert.Equal(t, defaultBaseURL, c.baseURL, )
 	assert.Equal(t, c.http, http.DefaultClient)
-	assert.Equal(t, c.http.Timeout, defaultTimeout)
+	assert.Equal(t, defaultTimeout, c.http.Timeout)
 }
 
 func Test_client_CreateToken(t *testing.T) {
@@ -50,10 +49,10 @@ func Test_client_CreateToken(t *testing.T) {
 	var expire = time.Now().Add(time.Hour)
 	tt := []struct {
 		name   string
-		expire *time.Time
+		expire time.Time
 	}{
-		{"token without expire", nil},
-		{"token with expire", &expire},
+		{"token without expire", time.Time{}},
+		{"token with expire", expire},
 	}
 
 	for _, test := range tt {
@@ -66,8 +65,8 @@ func Test_client_CreateToken(t *testing.T) {
 			mustNoError(t, err)
 
 			var expiresIn *jwt.NumericTime
-			if test.expire != nil {
-				expiresIn = jwt.NewNumericTime(*test.expire)
+			if !test.expire.IsZero() {
+				expiresIn = jwt.NewNumericTime(test.expire)
 			}
 
 			assert.Equal(t, expiresIn, claims.Expires)

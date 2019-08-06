@@ -17,7 +17,7 @@ type User struct {
 
 	LastActive time.Time `json:"last_active"`
 
-	Mutes []*Mute `json:"mutes"`
+	Mutes []Mute `json:"mutes"`
 
 	ExtraData map[string]interface{}
 

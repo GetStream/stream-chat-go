@@ -41,7 +41,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 
 	if resp.StatusCode >= 399 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("HTTP client %s; details: %s", resp.Status, string(msg))
+		return fmt.Errorf("chat-client: HTTP %s %s status %s: %s", resp.Request.Method, resp.Request.URL, resp.Status, string(msg))
 	}
 
 	if result != nil {
@@ -98,21 +98,21 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 }
 
 // CreateToken creates new token for user with optional expire time
-func (c *Client) CreateToken(userID string, expire *time.Time) ([]byte, error) {
+func (c *Client) CreateToken(userID string, expire ...time.Time) ([]byte, error) {
 	params := map[string]interface{}{
 		"user_id": userID,
 	}
 
-	return c.createToken(params, expire)
+	return c.createToken(params, expire...)
 }
 
-func (c *Client) createToken(params map[string]interface{}, expire *time.Time) ([]byte, error) {
+func (c *Client) createToken(params map[string]interface{}, expire ...time.Time) ([]byte, error) {
 	var claims = jwt.Claims{
 		Set: params,
 	}
 
-	if expire != nil {
-		claims.Expires = jwt.NewNumericTime(*expire)
+	if len(expire) > 0 {
+		claims.Expires = jwt.NewNumericTime(expire[0])
 	}
 
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
@@ -128,7 +128,7 @@ func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Clie
 		http:      http.DefaultClient,
 	}
 
-	token, err := client.createToken(map[string]interface{}{"server": true}, nil)
+	token, err := client.createToken(map[string]interface{}{"server": true})
 	if err != nil {
 		return nil, err
 	}

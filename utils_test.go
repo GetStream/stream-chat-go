@@ -37,3 +37,9 @@ func mustNoError(t *testing.T, err error) {
 		t.FailNow()
 	}
 }
+
+func mustError(t *testing.T, err error) {
+	if !assert.Error(t, err) {
+		t.FailNow()
+	}
+}
