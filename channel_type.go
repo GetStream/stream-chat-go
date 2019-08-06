@@ -24,15 +24,20 @@ type ChannelType struct {
 	UpdatedAt        time.Time
 }
 
+// TODO:
+func (c ChannelType) toMap() map[string]interface{} {
+	return nil
+}
+
 // CreateChannelType adds new channel type
 func (c *Client) CreateChannelType(chType ChannelType) (err error) {
 	if len(chType.Commands) == 0 {
 		chType.Commands = []interface{}{"all"}
 	}
 
-	err = c.makeRequest(http.MethodPost, "channeltypes", nil, data, nil)
+	err = c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toMap(), nil)
 
-	return
+	return err
 }
 
 // GetChannelType returns information about channel type

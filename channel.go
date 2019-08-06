@@ -23,18 +23,21 @@ type ChannelMember struct {
 }
 
 type Channel struct {
-	ID          string
-	Type        string
+	ID   string
+	Type string
+	// full id in format channel_type:channel_ID
 	CID         string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	CreatedBy   User
 	Frozen      bool
 	MemberCount int
-	Config      map[string]interface{}
 	Messages    []Message
 	Members     []ChannelMember
-	client      *Client
+
+	Config map[string]interface{}
+
+	client *Client
 }
 
 func (ch *Channel) fromMap(hmap map[string]interface{}) {
