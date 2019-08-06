@@ -72,8 +72,8 @@ func (c *Client) UnmuteUser(targetID string, userID string) error {
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
-	if options == nil {
-		return errors.New("flag user: options are nil")
+	if options == nil || len(options) == 0 {
+		return errors.New("flag user: options must be not empty")
 	}
 
 	options["target_user_id"] = targetID

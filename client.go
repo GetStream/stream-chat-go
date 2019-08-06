@@ -1,11 +1,11 @@
 package stream_chat
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -31,7 +31,7 @@ func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("X-Stream-Client", "stream-go-client")
 	r.Header.Set("Authorization", c.authToken)
-	r.Header.Set("stream-auth-type", "jwt")
+	r.Header.Set("Stream-Auth-Type", "jwt")
 }
 
 func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
@@ -40,8 +40,8 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	}
 
 	if resp.StatusCode >= 399 {
-		msg := bufio.NewScanner(resp.Body).Text()
-		return fmt.Errorf("response code: %s; %s", resp.Status, msg)
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("HTTP client %s; details: %s", resp.Status, string(msg))
 	}
 
 	if result != nil {
