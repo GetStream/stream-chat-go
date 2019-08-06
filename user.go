@@ -91,12 +91,13 @@ func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) err
 	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (c *Client) BanUser(targetID string, options map[string]interface{}) error {
+func (c *Client) BanUser(targetID string, userID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
 
 	options["target_user_id"] = targetID
+	options["user_id"] = userID
 
 	return c.makeRequest(http.MethodPost, "moderation/ban", nil, options, nil)
 }

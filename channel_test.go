@@ -12,7 +12,7 @@ func TestClient_CreateChannel(t *testing.T) {
 
 	t.Run("get existing channel", func(t *testing.T) {
 		ch := initChannel(t, c)
-		got, err := c.CreateChannel(ch.Type, ch.ID, "gandalf", nil)
+		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
 		mustNoError(t, err)
 
 		assert.Equal(t, c, got.client)
@@ -29,7 +29,7 @@ func TestClient_CreateChannel(t *testing.T) {
 		data    map[string]interface{}
 		wantErr bool
 	}{
-		{"messaging", "mates", "gandalf", nil, false},
+		{"messaging", "mates", serverUser.ID, nil, false},
 	}
 
 	for _, tt := range tests {
@@ -49,29 +49,86 @@ func TestClient_CreateChannel(t *testing.T) {
 }
 
 func TestChannel_AddMembers(t *testing.T) {
+	c := initClient(t)
+
+	chanID := randomString(12)
+
+	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	mustNoError(t, err)
+	defer ch.Delete()
+
+	assert.Empty(t, ch.Members)
+
+	user := randomUser()
+
+	err = ch.AddMembers([]string{user.ID})
+	mustNoError(t, err)
+
+	// refresh channel state
+	mustNoError(t, ch.refresh())
+
+	assert.Equal(t, user.ID, ch.Members[0].User.ID)
 }
 
-func TestChannel_AddModerators(t *testing.T) {
+func TestChannel_Moderation(t *testing.T) {
+	c := initClient(t)
 
+	// init random channel
+	chanID := randomString(12)
+	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	mustNoError(t, err)
+	defer ch.Delete()
+
+	assert.Empty(t, ch.Members)
+
+	user := randomUser()
+
+	err = ch.AddModerators([]string{user.ID})
+	mustNoError(t, err)
+
+	// refresh channel state
+	mustNoError(t, ch.refresh())
+
+	assert.Equal(t, user.ID, ch.Members[0].User.ID)
+	assert.Equal(t, "moderator", ch.Members[0].Role)
+
+	err = ch.DemoteModerators([]string{user.ID})
+	// refresh channel state
+	mustNoError(t, ch.refresh())
+
+	assert.Equal(t, user.ID, ch.Members[0].User.ID)
+	assert.Equal(t, "member", ch.Members[0].Role)
 }
 
 func TestChannel_BanUser(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	defer ch.Delete()
 
-}
+	user := randomUser()
 
-func TestChannel_Create(t *testing.T) {
+	err := ch.BanUser(user.ID, serverUser.ID, nil)
+	mustNoError(t, err)
 
+	err = ch.BanUser(user.ID, serverUser.ID, map[string]interface{}{
+		"timeout": 3600,
+		"reason":  "offensive language is not allowed here",
+	})
+	mustNoError(t, err)
+
+	err = ch.UnBanUser(user.ID, nil)
+	mustNoError(t, err)
 }
 
 func TestChannel_Delete(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
 
+	err := ch.Delete()
+	mustNoError(t, err)
 }
 
 func TestChannel_DeleteReaction(t *testing.T) {
-
-}
-
-func TestChannel_DemoteModerators(t *testing.T) {
 
 }
 
@@ -84,10 +141,6 @@ func TestChannel_GetReplies(t *testing.T) {
 }
 
 func TestChannel_MarkRead(t *testing.T) {
-
-}
-
-func TestChannel_Query(t *testing.T) {
 
 }
 
@@ -108,10 +161,6 @@ func TestChannel_SendReaction(t *testing.T) {
 }
 
 func TestChannel_Truncate(t *testing.T) {
-
-}
-
-func TestChannel_UnBanUser(t *testing.T) {
 
 }
 

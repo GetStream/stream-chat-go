@@ -304,22 +304,29 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 }
 
 // BanUser bans target user ID from this channel
+// userID: user who bans target
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
-func (ch *Channel) BanUser(targetID string, options map[string]interface{}) error {
+func (ch *Channel) BanUser(targetID string, userID string, options map[string]interface{}) error {
 	if targetID == "" {
 		return errors.New("targetID must be not empty")
+	}
+	if options == nil {
+		options = map[string]interface{}{}
 	}
 
 	options["type"] = ch.Type
 	options["id"] = ch.ID
 
-	return ch.client.BanUser(targetID, options)
+	return ch.client.BanUser(targetID, userID, options)
 }
 
 // UnBanUser removes the ban for target user ID on this channel
 func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	if targetID == "" {
 		return errors.New("target ID must be not empty")
+	}
+	if options == nil {
+		options = map[string]string{}
 	}
 
 	options["type"] = ch.Type
@@ -346,4 +353,14 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 	err := ch.query(options, data)
 
 	return ch, err
+}
+
+// todo: cleanup this
+func (ch *Channel) refresh() error {
+	res, err := ch.client.CreateChannel(ch.Type, ch.ID, ch.CreatedBy.ID, nil)
+	if res != nil {
+		*ch = *res
+	}
+
+	return err
 }
