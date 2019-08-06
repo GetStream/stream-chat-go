@@ -8,9 +8,10 @@ import (
 )
 
 func TestClient_CreateChannel(t *testing.T) {
-	c, ch := initClient(t)
+	c := initClient(t)
 
 	t.Run("get existing channel", func(t *testing.T) {
+		ch := initChannel(t, c)
 		got, err := c.CreateChannel(ch.Type, ch.ID, "gandalf", nil)
 		mustNoError(t, err)
 

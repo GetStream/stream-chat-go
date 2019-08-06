@@ -10,11 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func initClient(t *testing.T) (c *Client, ch *Channel) {
-	c, err := NewClient(APIKey, []byte(APISecret), WithBaseURL("http://localhost:3030"))
+func initClient(t *testing.T) *Client {
+	c, err := NewClient(APIKey, []byte(APISecret))
 	mustNoError(t, err)
 
-	err = c.UpdateUsers(testUsers...)
+	// set hostname to client from env if present
+	if StreamHost != "" {
+		WithBaseURL(StreamHost)(c)
+	}
+
+	return c
+}
+
+func initChannel(t *testing.T, c *Client) *Channel {
+	err := c.UpdateUsers(testUsers...)
 	mustNoError(t, err)
 
 	members := make([]string, 0, len(testUsers))
@@ -22,17 +31,16 @@ func initClient(t *testing.T) (c *Client, ch *Channel) {
 		members = append(members, testUsers[i].ID)
 	}
 
-	ch, err = c.CreateChannel("team", "fellowship-of-the-ring", "gandalf", map[string]interface{}{
+	ch, err := c.CreateChannel("team", "fellowship-of-the-ring", "gandalf", map[string]interface{}{
 		"members": members,
 	})
 
 	mustNoError(t, err)
-
-	return c, ch
+	return ch
 }
 
 func TestNewClient(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
@@ -44,7 +52,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func Test_client_CreateToken(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	var expire = time.Now().Add(time.Hour)
 	tt := []struct {
@@ -76,7 +84,7 @@ func Test_client_CreateToken(t *testing.T) {
 }
 
 func TestWithBaseURL(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	u := "http://test:3030"
 	WithBaseURL(u)(c)
@@ -84,7 +92,7 @@ func TestWithBaseURL(t *testing.T) {
 }
 
 func TestWithTimeout(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	timeout := time.Hour
 
@@ -95,7 +103,7 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestWithHTTPTransport(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	tr := &http.Transport{}
 

@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	APIKey    = os.Getenv("STREAM_API_KEY")
-	APISecret = os.Getenv("STREAM_API_SECRET")
+	APIKey     = os.Getenv("STREAM_API_KEY")
+	APISecret  = os.Getenv("STREAM_API_SECRET")
+	StreamHost = os.Getenv("STREAM_HOST")
 
 	testUsers = []User{
 		{ID: "frodo-baggins", Name: "Frodo Baggins", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 50}},
