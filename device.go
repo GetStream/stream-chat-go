@@ -9,20 +9,7 @@ const (
 	PushProviderFirebase = pushProvider("firebase")
 )
 
-type (
-	DeviceID string
-
-	pushProvider string
-)
-
-type DeviceAPI interface {
-	// Get list of devices for user
-	GetDevices(userId string) ([]Device, error)
-	// Add device to a user. Provider should be one of PushProvider* constant
-	AddDevice(userId string, deviceID DeviceID, provider pushProvider) error
-	// Delete a device for a user
-	DeleteDevice(userId string, deviceID DeviceID) error
-}
+type pushProvider string
 
 type Device struct {
 	//The device ID.
