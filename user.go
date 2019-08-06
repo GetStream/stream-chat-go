@@ -25,28 +25,6 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (u *User) toHash() map[string]interface{} {
-	return nil
-}
-
-func (u *User) MarshalJSON() (data []byte, err error) {
-	return
-}
-
-type UserAPI interface {
-	MuteUser(userID string, targetID string) error
-	UnmuteUser(userID string, targetID string) error
-	FlagUser(userID string, options ...interface{}) error
-	UnFlagUser(userID string, options ...interface{}) error
-	BanUser(id string, options map[string]interface{}) error
-	UnBanUser(id string) error
-	ExportUser(id string, options ...interface{}) (user interface{}, err error)
-	DeactivateUser(id string, options ...interface{}) error
-	DeleteUser(id string, options ...interface{}) error
-	UpdateUser(id string, options ...interface{}) error
-	// TODO: QueryUsers()
-}
-
 // Create a mute
 // targetID: the user getting muted
 // userID: the user muting the target
