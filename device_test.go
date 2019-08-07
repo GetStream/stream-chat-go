@@ -7,7 +7,7 @@ import (
 )
 
 func TestClient_Devices(t *testing.T) {
-	c, _ := initClient(t)
+	c := initClient(t)
 
 	user := randomUser()
 

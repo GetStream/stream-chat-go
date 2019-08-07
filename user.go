@@ -17,34 +17,12 @@ type User struct {
 
 	LastActive time.Time `json:"last_active"`
 
-	Mutes []*Mute `json:"mutes"`
+	Mutes []Mute `json:"mutes"`
 
 	ExtraData map[string]interface{}
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func (u *User) toHash() map[string]interface{} {
-	return nil
-}
-
-func (u *User) MarshalJSON() (data []byte, err error) {
-	return
-}
-
-type UserAPI interface {
-	MuteUser(userID string, targetID string) error
-	UnmuteUser(userID string, targetID string) error
-	FlagUser(userID string, options ...interface{}) error
-	UnFlagUser(userID string, options ...interface{}) error
-	BanUser(id string, options map[string]interface{}) error
-	UnBanUser(id string) error
-	ExportUser(id string, options ...interface{}) (user interface{}, err error)
-	DeactivateUser(id string, options ...interface{}) error
-	DeleteUser(id string, options ...interface{}) error
-	UpdateUser(id string, options ...interface{}) error
-	// TODO: QueryUsers()
 }
 
 // Create a mute
@@ -72,8 +50,8 @@ func (c *Client) UnmuteUser(targetID string, userID string) error {
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
-	if options == nil {
-		return errors.New("flag user: options are nil")
+	if options == nil || len(options) == 0 {
+		return errors.New("flag user: options must be not empty")
 	}
 
 	options["target_user_id"] = targetID
@@ -91,12 +69,13 @@ func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) err
 	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (c *Client) BanUser(targetID string, options map[string]interface{}) error {
+func (c *Client) BanUser(targetID string, userID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
 
 	options["target_user_id"] = targetID
+	options["user_id"] = userID
 
 	return c.makeRequest(http.MethodPost, "moderation/ban", nil, options, nil)
 }

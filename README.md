@@ -21,11 +21,11 @@ go get github.com/GetStream/stream-chat-go
 
 ### Supported features
 
-- [ ] Chat channels 
-- [ ] Messages
+- [x] Chat channels 
+- [x] Messages
 - [ ] Chat channel types 
-- [ ] User management 
-- [ ] Moderation API 
+- [x] User management 
+- [x] Moderation API 
 - [x] Push configuration 
 - [x] User devices 
 - [ ] User search

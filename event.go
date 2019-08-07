@@ -2,83 +2,39 @@ package stream_chat
 
 import "time"
 
-type EventType int
+type EventType string
 
 const (
-	UserPresenceChanged EventType = iota + 1
-	UserWatchingStart
-	UserWatchingStop
-	UserUpdated
-	TypingStart
-	TypingStop
-	MessageNew
-	MessageUpdated
-	MessageDeleted
-	MessageRead
-	ReactionNew
-	ReactionDeleted
-	MemberAdded
-	MemberUpdated
-	MemberRemoved
-	ChannelUpdated
-	HealthCheck
-	NotificationNewMessage
-	NotificationMarkRead
-	NotificationInvited
-	NotificationInviteAccepted
-	NotificationAddedToChannel
-	NotificationRemovedFromChannel
-	NotificationMutesUpdated
-	ChannelDeleted
+	EventUserPresenceChanged            EventType = "user.presence.changed"
+	EventUserWatchingStart              EventType = "user.watching.start"
+	EventUserWatchingStop               EventType = "user.watching.stop"
+	EventUserUpdated                    EventType = "user.updated"
+	EventTypingStart                    EventType = "typing.start"
+	EventTypingStop                     EventType = "typing.stop"
+	EventMessageNew                     EventType = "message.new"
+	EventMessageUpdated                 EventType = "message.updated"
+	EventMessageDeleted                 EventType = "message.deleted"
+	EventMessageRead                    EventType = "message.read"
+	EventReactionNew                    EventType = "reaction.new"
+	EventReactionDeleted                EventType = "reaction.deleted"
+	EventMemberAdded                    EventType = "member.added"
+	EventMemberUpdated                  EventType = "member.updated"
+	EventMemberRemoved                  EventType = "member.removed"
+	EventChannelUpdated                 EventType = "channel.updated"
+	EventChannelDeleted                 EventType = "channel.deleted"
+	EventHealthCheck                    EventType = "health.check"
+	EventNotificationNewMessage         EventType = "notification.message_new"
+	EventNotificationMarkRead           EventType = "notification.mark_read"
+	EventNotificationInvited            EventType = "notification.invited"
+	EventNotificationInviteAccepted     EventType = "notification.invite_accepted"
+	EventNotificationAddedToChannel     EventType = "notification.added_to_channel"
+	EventNotificationRemovedFromChannel EventType = "notification.removed_from_channel"
+	EventNotificationMutesUpdated       EventType = "notification.mutes_updated"
+
 	// local events
-	ConnectionChanged
-	ConnectionRecovered
+	EventConnectionChanged   EventType = "connection.changed"
+	EventConnectionRecovered EventType = "connection.recovered"
 )
-
-func (t EventType) String() string {
-	return EventTypeMap[t]
-}
-
-var EventTypeMap = map[EventType]string{
-	UserPresenceChanged:            "user.presence.changed",
-	UserWatchingStart:              "user.watching.start",
-	UserWatchingStop:               "user.watching.stop",
-	UserUpdated:                    "user.updated",
-	TypingStart:                    "typing.start",
-	TypingStop:                     "typing.stop",
-	MessageNew:                     "message.new",
-	MessageUpdated:                 "message.updated",
-	MessageDeleted:                 "message.deleted",
-	MessageRead:                    "message.read",
-	ReactionNew:                    "reaction.new",
-	ReactionDeleted:                "reaction.deleted",
-	MemberAdded:                    "member.added",
-	MemberUpdated:                  "member.updated",
-	MemberRemoved:                  "member.removed",
-	ChannelUpdated:                 "channel.updated",
-	ChannelDeleted:                 "channel.deleted",
-	HealthCheck:                    "health.check",
-	NotificationNewMessage:         "notification.message_new",
-	NotificationMarkRead:           "notification.mark_read",
-	NotificationInvited:            "notification.invited",
-	NotificationInviteAccepted:     "notification.invite_accepted",
-	NotificationAddedToChannel:     "notification.added_to_channel",
-	NotificationRemovedFromChannel: "notification.removed_from_channel",
-	NotificationMutesUpdated:       "notification.mutes_updated",
-
-	// local events
-	ConnectionChanged:   "connection.changed",
-	ConnectionRecovered: "connection.recovered",
-}
-
-//var StringToEventType map[string]EventType
-//
-//func init() {
-//	StringToEventType = make(map[string]EventType, len(EventTypeMap))
-//	for k, v := range EventTypeMap {
-//		StringToEventType[v] = k
-//	}
-//}
 
 type Event struct {
 	// Channel ID
