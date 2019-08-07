@@ -93,6 +93,8 @@ func TestChannel_Moderation(t *testing.T) {
 	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
 	err = ch.DemoteModerators([]string{user.ID})
+	mustNoError(t, err)
+
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
@@ -243,6 +245,7 @@ func TestChannel_GetReactions(t *testing.T) {
 	mustNoError(t, err)
 
 	reactions, err = ch.GetReactions(msg.ID, nil)
+	mustNoError(t, err)
 
 	assert.Contains(t, reactions, reaction, "reaction exists")
 }
