@@ -8,12 +8,20 @@ import (
 )
 
 const (
-	AutomodDisabled autoMod = "disabled"
-	AutomodSimple   autoMod = "simple"
-	AutomodAI       autoMod = "AI"
+	AutoModDisabled modType = "disabled"
+	AutoModSimple   modType = "simple"
+	AutoModAI       modType = "AI"
+
+	ModBehaviourFlag  modBehaviour = "flag"
+	ModBehaviourBlock modBehaviour = "block"
+
+	defaultMessageLength = 5000
+
+	MessageRetentionForever = "infinite"
 )
 
-type autoMod string
+type modType string
+type modBehaviour string
 
 type Permission struct {
 	// required
@@ -29,31 +37,28 @@ type Permission struct {
 }
 
 type ChannelType struct {
-	// required fields
-	Name string `json:"name"`
-	// one of Automod* constant. Required
-	Automod autoMod `json:"auto_mod"`
-
-	// one of: flag block
-	AutomodBehaviour string `json:"automod_behaviour,omitempty"`
-
-	TypingEvents  bool `json:"typing_events"`
-	ReadEvents    bool `json:"read_events"`
-	ConnectEvents bool `json:"connect_events"`
-	Search        bool `json:"search"`
-	Reactions     bool `json:"reactions"`
-	Replies       bool `json:"replies"`
-	Mutes         bool `json:"mutes"`
-
-	// one of: infinite numeric
-	MessageRetention string `json:"message_retention,omitempty"`
-	MaxMessageLength int    `json:"max_message_length,omitempty"`
+	ChannelConfig
 
 	Commands    Commands     `json:"commands"`
 	Permissions []Permission `json:"permissions"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// NewChannelType returns initialized ChannelType with default values
+func NewChannelType(name string) ChannelType {
+	ct := ChannelType{
+		ChannelConfig: ChannelConfig{
+			Name:             name,
+			Automod:          AutoModDisabled,
+			ModBehavior:      ModBehaviourFlag,
+			MaxMessageLength: defaultMessageLength,
+			MessageRetention: MessageRetentionForever,
+		},
+	}
+
+	return ct
 }
 
 // CreateChannelType adds new channel type

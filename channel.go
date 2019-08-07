@@ -37,7 +37,7 @@ type Channel struct {
 	Messages []Message
 	Read     []User
 
-	Config map[string]interface{}
+	Config ChannelConfig
 
 	CreatedAt     time.Time
 	UpdatedAt     time.Time

@@ -7,15 +7,12 @@ import (
 )
 
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
-	ct := &ChannelType{
-		Name:    randomString(10),
-		Automod: AutomodDisabled,
-	}
+	ct := NewChannelType(randomString(10))
 
-	err := c.CreateChannelType(ct)
+	err := c.CreateChannelType(&ct)
 	mustNoError(t, err)
 
-	return ct
+	return &ct
 }
 
 func TestClient_GetChannelType(t *testing.T) {
