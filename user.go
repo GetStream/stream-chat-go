@@ -7,22 +7,21 @@ import (
 )
 
 type User struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Image string `json:"image"`
-	Role  string `json:"role"`
+	ID    string
+	Name  string
+	Image string
+	Role  string
 
-	Online    bool `json:"online"`
-	Invisible bool `json:"invisible"`
+	Online    bool
+	Invisible bool
 
-	LastActive time.Time `json:"last_active"`
-
-	Mutes []Mute `json:"mutes"`
+	Mutes Mutes
 
 	ExtraData map[string]interface{}
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	LastActive time.Time
 }
 
 // Create a mute
@@ -50,7 +49,7 @@ func (c *Client) UnmuteUser(targetID string, userID string) error {
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
-	if options == nil || len(options) == 0 {
+	if len(options) == 0 {
 		return errors.New("flag user: options must be not empty")
 	}
 
@@ -61,7 +60,7 @@ func (c *Client) FlagUser(targetID string, options map[string]interface{}) error
 
 func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) error {
 	if options == nil {
-		return errors.New("flag user: options are nil")
+		options = map[string]interface{}{}
 	}
 
 	options["target_user_id"] = targetID
@@ -112,19 +111,40 @@ func (c *Client) DeleteUser(targetID string, options map[string][]string) error 
 	return c.makeRequest(http.MethodDelete, path, options, nil, nil)
 }
 
-func (c *Client) UpdateUsers(users ...User) error {
+// UpdateUsers send update users request; each user will be updated from response
+func (c *Client) UpdateUsers(users ...*User) error {
 	if len(users) == 0 {
 		return errors.New("users are not set")
 	}
 
-	usersMap := make(map[string]User, len(users))
+	// users search table for unmarshal
+	usersMap := map[string]*User{}
+
+	payload := map[string]map[string]interface{}{
+		"users": {},
+	}
+
+	// marshal users
 	for _, u := range users {
 		usersMap[u.ID] = u
+		payload["users"][u.ID] = u.marshalMap()
 	}
 
-	data := map[string]interface{}{
-		"users": usersMap,
+	var resp struct{ Users map[string]interface{} }
+
+	err := c.makeRequest(http.MethodPost, "users", nil, payload, &resp)
+	if err != nil {
+		return err
 	}
 
-	return c.makeRequest(http.MethodPost, "users", nil, data, nil)
+	for k, v := range resp.Users {
+		switch val := v.(type) {
+		case map[string]interface{}:
+			usersMap[k].unmarshalMap(val)
+		default:
+			// TODO: logging
+		}
+	}
+
+	return err
 }

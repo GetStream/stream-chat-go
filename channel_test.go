@@ -163,7 +163,7 @@ func TestChannel_SendMessage(t *testing.T) {
 	user := randomUser()
 	msg := Message{
 		Text: "test message",
-		User: &user,
+		User: user,
 	}
 
 	err := ch.SendMessage(&msg, serverUser.ID)
@@ -181,7 +181,7 @@ func TestChannel_SendReaction(t *testing.T) {
 	user := randomUser()
 	msg := Message{
 		Text: "test message",
-		User: &user,
+		User: user,
 	}
 	err := ch.SendMessage(&msg, serverUser.ID)
 	mustNoError(t, err)
@@ -203,7 +203,7 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	user := randomUser()
 	msg := Message{
 		Text: "test message",
-		User: &user,
+		User: user,
 	}
 	err := ch.SendMessage(&msg, serverUser.ID)
 	mustNoError(t, err)
@@ -228,7 +228,7 @@ func TestChannel_GetReactions(t *testing.T) {
 	user := randomUser()
 	msg := Message{
 		Text: "test message",
-		User: &user,
+		User: user,
 	}
 	err := ch.SendMessage(&msg, serverUser.ID)
 	mustNoError(t, err)
@@ -255,7 +255,7 @@ func TestChannel_Truncate(t *testing.T) {
 	user := randomUser()
 	msg := Message{
 		Text: "test message",
-		User: &user,
+		User: user,
 	}
 	err := ch.SendMessage(&msg, serverUser.ID)
 	mustNoError(t, err)
