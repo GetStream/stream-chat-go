@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"path"
 	"time"
 )
@@ -46,7 +47,7 @@ type Channel struct {
 	client *Client
 }
 
-func (ch *Channel) fromMap(hmap map[string]interface{}) {
+func (ch *Channel) unmarshalMap(hmap map[string]interface{}) {
 	if id, ok := hmap["id"].(string); ok {
 		ch.ID = id
 	}
@@ -84,7 +85,7 @@ func (ch *Channel) SendMessage(message *Message, userID string) error {
 		"message": addUserID(message.toHash(), userID),
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID, "message")
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
 
 	var resp struct {
 		Message Message `json:"message"`
@@ -109,7 +110,7 @@ func (ch *Channel) SendEvent(event Event, userID string) error {
 		"event": addUserID(event.toHash(), userID),
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID, "event")
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
@@ -124,7 +125,7 @@ func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string)
 		"reaction": addUserID(reaction.toHash(), userID),
 	}
 
-	p := path.Join("messages", msg.ID, "reaction")
+	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
 
 	var resp struct {
 		Message  Message
@@ -152,7 +153,7 @@ func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID 
 		return errors.New("reaction type must be not empty")
 	}
 
-	p := path.Join("messages", message.ID, "reaction", reactionType)
+	p := path.Join("messages", url.PathEscape(message.ID), "reaction", url.PathEscape(reactionType))
 
 	params := map[string][]string{
 		"user_id": {userID},
@@ -191,7 +192,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 
 	payload["data"] = data
 
-	p := path.Join("channels", ch.Type, ch.ID, "query")
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
 	var resp struct {
 		Channel  map[string]interface{}
@@ -205,7 +206,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 		return err
 	}
 
-	ch.fromMap(resp.Channel)
+	ch.unmarshalMap(resp.Channel)
 	ch.Members = resp.Members
 	ch.Messages = resp.Messages
 	ch.Read = resp.Read
@@ -223,21 +224,21 @@ func (ch *Channel) Update(options map[string]interface{}, message string) error 
 		"message": message,
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, payload, nil)
 }
 
 // Delete removes the channel. Messages are permanently removed.
 func (ch *Channel) Delete() error {
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
 
 // Truncate removes all messages from the channel
 func (ch *Channel) Truncate() error {
-	p := path.Join("channels", ch.Type, ch.ID, "truncate")
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
 }
@@ -250,7 +251,7 @@ func (ch *Channel) AddMembers(users []string) error {
 		"add_members": users,
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
@@ -261,7 +262,7 @@ func (ch *Channel) RemoveMembers(userIDs []string) error {
 		"remove_members": userIDs,
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	var resp struct {
 		Channel map[string]interface{}
@@ -272,7 +273,7 @@ func (ch *Channel) RemoveMembers(userIDs []string) error {
 		return err
 	}
 
-	ch.fromMap(resp.Channel)
+	ch.unmarshalMap(resp.Channel)
 	ch.Members = resp.Members
 
 	return nil
@@ -284,7 +285,7 @@ func (ch *Channel) AddModerators(userIDs []string) error {
 		"add_moderators": userIDs,
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
@@ -295,7 +296,7 @@ func (ch *Channel) DemoteModerators(userIDs []string) error {
 		"demote_moderators": userIDs,
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID)
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
@@ -309,7 +310,7 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 		return errors.New("user ID must be not empty")
 	}
 
-	p := path.Join("channels", ch.Type, ch.ID, "read")
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
 	options = addUserID(options, userID)
 
@@ -325,7 +326,7 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) (rep
 		return nil, errors.New("parent ID must be not empty")
 	}
 
-	p := path.Join("messages", parentID, "replies")
+	p := path.Join("messages", url.PathEscape(parentID), "replies")
 
 	var resp json.RawMessage
 
@@ -343,7 +344,7 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 		return nil, errors.New("messageID must be not empty")
 	}
 
-	p := path.Join("messages", messageID, "reactions")
+	p := path.Join("messages", url.PathEscape(messageID), "reactions")
 
 	var resp struct {
 		Reactions []Reaction `json:"reactions"`
