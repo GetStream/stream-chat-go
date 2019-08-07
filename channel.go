@@ -47,28 +47,28 @@ type Channel struct {
 	client *Client
 }
 
-func (ch *Channel) unmarshalMap(hmap map[string]interface{}) {
-	if id, ok := hmap["id"].(string); ok {
+func (ch *Channel) unmarshalMap(data map[string]interface{}) {
+	if id, ok := data["id"].(string); ok {
 		ch.ID = id
 	}
-	if _type, ok := hmap["type"].(string); ok {
+	if _type, ok := data["type"].(string); ok {
 		ch.Type = _type
 	}
-	if cid, ok := hmap["cid"].(string); ok {
+	if cid, ok := data["cid"].(string); ok {
 		ch.CID = cid
 	}
-	if created, ok := hmap["cid"].(time.Time); ok {
+	if created, ok := data["cid"].(time.Time); ok {
 		ch.CreatedAt = created
 	}
-	if updated, ok := hmap["cid"].(time.Time); ok {
+	if updated, ok := data["cid"].(time.Time); ok {
 		ch.UpdatedAt = updated
 	}
 	// todo: user
-	if frozen, ok := hmap["frozen"].(bool); ok {
+	if frozen, ok := data["frozen"].(bool); ok {
 		ch.Frozen = frozen
 	}
 
-	if count, ok := hmap["member_count"].(float64); ok {
+	if count, ok := data["member_count"].(float64); ok {
 		ch.MemberCount = int(count)
 	}
 }

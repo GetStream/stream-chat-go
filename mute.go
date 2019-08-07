@@ -40,11 +40,11 @@ func (m *Mute) structMap() map[string]unmarshalMap {
 	}
 }
 
-func (m *Mute) unmarshalMap(hmap map[string]interface{}) {
+func (m *Mute) unmarshalMap(data map[string]interface{}) {
 	structMap := m.structMap()
 	timeMap := m.timeMap()
 
-	for k, v := range hmap {
+	for k, v := range data {
 		switch val := v.(type) {
 		case string:
 			if p, ok := timeMap[k]; ok {

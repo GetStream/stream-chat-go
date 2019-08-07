@@ -4,14 +4,6 @@ import (
 	"time"
 )
 
-type unmarshalMap interface {
-	unmarshalMap(map[string]interface{})
-}
-
-type unmarshalSlice interface {
-	unmarshalSlice([]interface{})
-}
-
 func (u *User) stringFieldsMap() map[string]*string {
 	return map[string]*string{
 		"id":    &u.ID,
@@ -42,13 +34,13 @@ func (u *User) boolFieldsMap() map[string]*bool {
 	}
 }
 
-func (u *User) unmarshalMap(hmap map[string]interface{}) {
+func (u *User) unmarshalMap(data map[string]interface{}) {
 	strMap := u.stringFieldsMap()
 	timeMap := u.timeFieldsMap()
 	slicesMap := u.sliceFieldsMap()
 	boolMap := u.boolFieldsMap()
 
-	for key, v := range hmap {
+	for key, v := range data {
 		switch val := v.(type) {
 		case string:
 			// try to parse time first from string
