@@ -9,29 +9,12 @@ const (
 	PushProviderFirebase = pushProvider("firebase")
 )
 
-type pushProvider string
+type pushProvider = string
 
 type Device struct {
-	//The device ID.
-	ID string `json:"id"`
-	//The user ID for this device.
-	UserID string `json:"user_id"`
-	//The push provider for this device. One of constants PushProvider*
-	PushProvider pushProvider `json:"push_provider"`
-}
-
-func (d *Device) fromHash(hash map[string]string) {
-	d.UserID = hash["user_id"]
-	d.ID = hash["id"]
-	d.PushProvider = pushProvider(hash["provider"])
-}
-
-func (d *Device) toHash() map[string]interface{} {
-	return map[string]interface{}{
-		"user_id":  d.UserID,
-		"id":       d.ID,
-		"provider": d.PushProvider,
-	}
+	ID           string       //The device ID.
+	UserID       string       //The user ID for this device.
+	PushProvider pushProvider //The push provider for this device. One of constants PushProvider*
 }
 
 // Get list of devices for user

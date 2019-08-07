@@ -122,7 +122,7 @@ func (ch *Channel) SendEvent(event Event, userID string) error {
 // userID: the ID of the user that created the reaction
 func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
 	data := map[string]interface{}{
-		"reaction": addUserID(reaction.toHash(), userID),
+		"reaction": addUserID(reaction.marshalMap(), userID),
 	}
 
 	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
