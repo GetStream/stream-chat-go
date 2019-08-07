@@ -98,22 +98,19 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 }
 
 // CreateToken creates new token for user with optional expire time
-func (c *Client) CreateToken(userID string, expire ...time.Time) ([]byte, error) {
+func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
 	params := map[string]interface{}{
 		"user_id": userID,
 	}
 
-	return c.createToken(params, expire...)
+	return c.createToken(params, expire)
 }
 
-func (c *Client) createToken(params map[string]interface{}, expire ...time.Time) ([]byte, error) {
+func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([]byte, error) {
 	var claims = jwt.Claims{
 		Set: params,
 	}
-
-	if len(expire) > 0 {
-		claims.Expires = jwt.NewNumericTime(expire[0])
-	}
+	claims.Expires = jwt.NewNumericTime(expire)
 
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
 }
@@ -128,7 +125,7 @@ func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Clie
 		http:      http.DefaultClient,
 	}
 
-	token, err := client.createToken(map[string]interface{}{"server": true})
+	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
 	if err != nil {
 		return nil, err
 	}
