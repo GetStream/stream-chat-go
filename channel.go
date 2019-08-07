@@ -26,16 +26,22 @@ type Channel struct {
 	ID   string
 	Type string
 	// full id in format channel_type:channel_ID
-	CID         string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	CreatedBy   User
-	Frozen      bool
+	CID string
+
+	CreatedBy User
+	Frozen    bool
+
 	MemberCount int
-	Messages    []Message
 	Members     []ChannelMember
 
+	Messages []Message
+	Read     []User
+
 	Config map[string]interface{}
+
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	LastMessageAt time.Time
 
 	client *Client
 }
@@ -67,22 +73,31 @@ func (ch *Channel) fromMap(hmap map[string]interface{}) {
 }
 
 func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
-	hash["user"] = userID
+	hash["user"] = map[string]interface{}{"id": userID}
 	return hash
 }
 
-// SendMessage sends a message to this channel
-//
-// message: the Message object
-// userID: the ID of the user that created the message
-func (ch *Channel) SendMessage(message Message, userID string) error {
+// SendMessage sends a message to this channel.
+// *Message will be updated from response body
+func (ch *Channel) SendMessage(message *Message, userID string) error {
 	data := map[string]interface{}{
 		"message": addUserID(message.toHash(), userID),
 	}
 
 	p := path.Join("channels", ch.Type, ch.ID, "message")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp struct {
+		Message Message `json:"message"`
+	}
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	if err != nil {
+		return err
+	}
+
+	*message = resp.Message
+
+	return nil
 }
 
 // SendEvent sends an event on this channel
@@ -101,39 +116,61 @@ func (ch *Channel) SendEvent(event Event, userID string) error {
 
 // SendReaction sends a reaction about a message
 //
-// messageID: the message id
+// message: pointer to the message struct
 // reaction: the reaction object, ie {type: 'love'}
 // userID: the ID of the user that created the reaction
-func (ch *Channel) SendReaction(messageID string, reaction Reaction, userID string) error {
+func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
 	data := map[string]interface{}{
 		"reaction": addUserID(reaction.toHash(), userID),
 	}
 
-	p := path.Join("messages", messageID, "reaction")
+	p := path.Join("messages", msg.ID, "reaction")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp struct {
+		Message  Message
+		Reaction Reaction
+	}
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+
+	*msg = resp.Message
+	*reaction = resp.Reaction
+
+	return err
 }
 
 // DeleteReaction removes a reaction by user and type
 //
-// messageID: the id of the message from which te remove the reaction
+// message:  pointer to the message from which we remove the reaction. Message will be updated from response body
 // reaction_type: the type of reaction that should be removed
 // userID: the id of the user
-func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID string) error {
-	if messageID == "" {
+func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID string) error {
+	if message.ID == "" {
 		return errors.New("message ID must be not empty")
 	}
 	if reactionType == "" {
 		return errors.New("reaction type must be not empty")
 	}
 
-	p := path.Join("messages", messageID, "reaction", reactionType)
+	p := path.Join("messages", message.ID, "reaction", reactionType)
 
 	params := map[string][]string{
 		"user_id": {userID},
 	}
 
-	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+	var resp struct {
+		Message  Message
+		Reaction Reaction
+	}
+
+	err := ch.client.makeRequest(http.MethodDelete, p, params, nil, &resp)
+	if err != nil {
+		return err
+	}
+
+	*message = resp.Message
+
+	return nil
 }
 
 // query makes request to channel api and updates channel internal state
@@ -160,6 +197,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 		Channel  map[string]interface{}
 		Messages []Message
 		Members  []ChannelMember
+		Read     []User
 	}
 
 	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
@@ -170,6 +208,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 	ch.fromMap(resp.Channel)
 	ch.Members = resp.Members
 	ch.Messages = resp.Messages
+	ch.Read = resp.Read
 
 	return nil
 }
@@ -224,7 +263,19 @@ func (ch *Channel) RemoveMembers(userIDs []string) error {
 
 	p := path.Join("channels", ch.Type, ch.ID)
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp struct {
+		Channel map[string]interface{}
+		Members []ChannelMember
+	}
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	if err != nil {
+		return err
+	}
+
+	ch.fromMap(resp.Channel)
+	ch.Members = resp.Members
+
+	return nil
 }
 
 // AddModerators adds moderators with given IDs to the channel
@@ -346,7 +397,7 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 
 	options := map[string]interface{}{
 		"watch":    false,
-		"state":    false,
+		"state":    true,
 		"presence": false,
 	}
 
@@ -357,10 +408,13 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 
 // todo: cleanup this
 func (ch *Channel) refresh() error {
-	res, err := ch.client.CreateChannel(ch.Type, ch.ID, ch.CreatedBy.ID, nil)
-	if res != nil {
-		*ch = *res
+	options := map[string]interface{}{
+		"watch":    false,
+		"state":    true,
+		"presence": false,
 	}
+
+	err := ch.query(options, nil)
 
 	return err
 }

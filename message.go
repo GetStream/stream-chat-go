@@ -48,6 +48,8 @@ func (m *Message) toHash() map[string]interface{} {
 		data["attachments"] = m.Attachments
 	}
 
+	data["user"] = map[string]interface{}{}
+
 	if m.User != nil {
 		data["user"] = m.User
 	}
