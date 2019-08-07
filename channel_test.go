@@ -15,11 +15,11 @@ func TestClient_CreateChannel(t *testing.T) {
 		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
 		mustNoError(t, err)
 
-		assert.Equal(t, c, got.client)
-		assert.Equal(t, ch.Type, got.Type)
-		assert.Equal(t, ch.ID, got.ID)
-		assert.Equal(t, got.MemberCount, ch.MemberCount)
-		assert.Len(t, got.Members, got.MemberCount)
+		assert.Equal(t, c, got.client, "client link")
+		assert.Equal(t, ch.Type, got.Type, "channel type")
+		assert.Equal(t, ch.ID, got.ID, "channel id")
+		assert.Equal(t, got.MemberCount, ch.MemberCount, "member count")
+		assert.Len(t, got.Members, got.MemberCount, "members length")
 	})
 
 	tests := []struct {
@@ -41,9 +41,9 @@ func TestClient_CreateChannel(t *testing.T) {
 				mustNoError(t, err)
 			}
 
-			assert.Equal(t, tt._type, got.Type)
-			assert.Equal(t, tt.id, got.ID)
-			assert.Equal(t, tt.userID, got.CreatedBy.ID)
+			assert.Equal(t, tt._type, got.Type, "channel type")
+			assert.Equal(t, tt.id, got.ID, "channel id")
+			assert.Equal(t, tt.userID, got.CreatedBy.ID, "channel created by")
 		})
 	}
 }
@@ -57,7 +57,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	mustNoError(t, err)
 	defer ch.Delete()
 
-	assert.Empty(t, ch.Members)
+	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser()
 
@@ -67,7 +67,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID)
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
 func TestChannel_Moderation(t *testing.T) {
@@ -79,7 +79,7 @@ func TestChannel_Moderation(t *testing.T) {
 	mustNoError(t, err)
 	defer ch.Delete()
 
-	assert.Empty(t, ch.Members)
+	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser()
 
@@ -89,15 +89,15 @@ func TestChannel_Moderation(t *testing.T) {
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID)
-	assert.Equal(t, "moderator", ch.Members[0].Role)
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
+	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
 	err = ch.DemoteModerators([]string{user.ID})
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID)
-	assert.Equal(t, "member", ch.Members[0].Role)
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
+	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
 }
 
 func TestChannel_BanUser(t *testing.T) {
@@ -147,7 +147,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	mustNoError(t, err)
 
 	for _, member := range ch.Members {
-		assert.NotEqual(t, member.User.ID, user.ID)
+		assert.NotEqual(t, member.User.ID, user.ID, "member is not present")
 	}
 }
 
@@ -169,8 +169,8 @@ func TestChannel_SendMessage(t *testing.T) {
 	err := ch.SendMessage(&msg, serverUser.ID)
 	mustNoError(t, err)
 	// check that message was updated
-	assert.NotEmpty(t, msg.ID)
-	assert.NotEmpty(t, msg.HTML)
+	assert.NotEmpty(t, msg.ID, "message has ID")
+	assert.NotEmpty(t, msg.HTML, "message has HTML body")
 }
 
 func TestChannel_SendReaction(t *testing.T) {
@@ -191,8 +191,8 @@ func TestChannel_SendReaction(t *testing.T) {
 	err = ch.SendReaction(&msg, &reaction, serverUser.ID)
 	mustNoError(t, err)
 
-	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type])
-	assert.Contains(t, msg.LatestReactions, reaction)
+	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count")
+	assert.Contains(t, msg.LatestReactions, reaction, "latest reactions exists")
 }
 
 func TestChannel_DeleteReaction(t *testing.T) {
@@ -216,8 +216,8 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	err = ch.DeleteReaction(&msg, reaction.Type, serverUser.ID)
 	mustNoError(t, err)
 
-	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type])
-	assert.Empty(t, msg.LatestReactions)
+	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
+	assert.Empty(t, msg.LatestReactions, "latest reactions empty")
 }
 
 func TestChannel_GetReactions(t *testing.T) {
@@ -235,7 +235,7 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	reactions, err := ch.GetReactions(msg.ID, nil)
 	mustNoError(t, err)
-	assert.Empty(t, reactions)
+	assert.Empty(t, reactions, "reactions empty")
 
 	reaction := Reaction{Type: "love"}
 
@@ -244,7 +244,7 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	reactions, err = ch.GetReactions(msg.ID, nil)
 
-	assert.Contains(t, reactions, reaction)
+	assert.Contains(t, reactions, reaction, "reaction exists")
 }
 
 func TestChannel_Truncate(t *testing.T) {
@@ -263,7 +263,7 @@ func TestChannel_Truncate(t *testing.T) {
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
-	assert.Equal(t, ch.Messages[0].ID, msg.ID)
+	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
 
 	err = ch.Truncate()
 	mustNoError(t, err)
@@ -271,7 +271,7 @@ func TestChannel_Truncate(t *testing.T) {
 	// refresh channel state
 	mustNoError(t, ch.refresh())
 
-	assert.Empty(t, ch.Messages)
+	assert.Empty(t, ch.Messages, "message not exists")
 }
 
 func TestChannel_Update(t *testing.T) {
@@ -287,5 +287,5 @@ func Test_addUserID(t *testing.T) {
 
 	addUserID(params, id)
 
-	assert.Equal(t, map[string]interface{}{"id": id}, params["user"])
+	assert.Equal(t, map[string]interface{}{"id": id}, params["user"], "user id present")
 }
