@@ -77,7 +77,13 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 		return err
 	}
 
-	body, err := json.Marshal(data)
+	var body []byte
+	if m, ok := data.(marshalMap); ok {
+		body, err = json.Marshal(m.marshalMap())
+	} else {
+		body, err = json.Marshal(data)
+	}
+
 	if err != nil {
 		return err
 	}

@@ -26,10 +26,10 @@ func (d *Device) unmarshalMap(data map[string]interface{}) {
 	}
 }
 
-func (d *Device) marshalMap() map[string]interface{} {
+func (d Device) marshalMap() map[string]interface{} {
 	return map[string]interface{}{
-		"user_id":  d.UserID,
-		"id":       d.ID,
-		"provider": d.PushProvider,
+		"user_id":       d.UserID,
+		"id":            d.ID,
+		"push_provider": d.PushProvider,
 	}
 }
