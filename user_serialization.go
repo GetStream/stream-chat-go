@@ -40,6 +40,8 @@ func (u *User) unmarshalMap(data map[string]interface{}) {
 	slicesMap := u.sliceFieldsMap()
 	boolMap := u.boolFieldsMap()
 
+	u.ExtraData = map[string]interface{}{}
+
 	for key, v := range data {
 		switch val := v.(type) {
 		case string:
