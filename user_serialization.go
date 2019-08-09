@@ -2,79 +2,53 @@ package stream_chat
 
 import (
 	"time"
+
+	"github.com/francoispqt/gojay"
 )
 
-func (u *User) stringFieldsMap() map[string]*string {
-	return map[string]*string{
-		"id":    &u.ID,
-		"name":  &u.Name,
-		"image": &u.Image,
-		"role":  &u.Role,
+func (u *User) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	if u.ExtraData == nil {
+		u.ExtraData = map[string]interface{}{}
+	}
+
+	switch key {
+	// strings
+	case "id":
+		return dec.String(&u.ID)
+	case "name":
+		return dec.String(&u.Name)
+	case "image":
+		return dec.String(&u.Image)
+	case "role":
+		return dec.String(&u.Role)
+
+		//time
+	case "last_active":
+		return dec.Time(&u.LastActive, time.RFC3339)
+	case "created_at":
+		return dec.Time(&u.CreatedAt, time.RFC3339)
+	case "updated_at":
+		return dec.Time(&u.UpdatedAt, time.RFC3339)
+
+		// bool
+	case "online":
+		return dec.Bool(&u.Online)
+	case "invisible":
+		return dec.Bool(&u.Invisible)
+	case "mutes":
+		return dec.DecodeArray(&u.Mutes)
+
+	// extra fields
+	default:
+		var i interface{}
+		err := dec.Interface(&i)
+		u.ExtraData[key] = i
+		return err
 	}
 }
 
-func (u *User) timeFieldsMap() map[string]*time.Time {
-	return map[string]*time.Time{
-		"last_active": &u.LastActive,
-		"created_at":  &u.CreatedAt,
-		"updated_at":  &u.UpdatedAt,
-	}
-}
-
-func (u *User) sliceFieldsMap() map[string]unmarshalSlice {
-	return map[string]unmarshalSlice{
-		"mutes": &u.Mutes,
-	}
-}
-
-func (u *User) boolFieldsMap() map[string]*bool {
-	return map[string]*bool{
-		"online":    &u.Online,
-		"invisible": &u.Invisible,
-	}
-}
-
-func (u *User) unmarshalMap(data map[string]interface{}) {
-	strMap := u.stringFieldsMap()
-	timeMap := u.timeFieldsMap()
-	slicesMap := u.sliceFieldsMap()
-	boolMap := u.boolFieldsMap()
-
-	u.ExtraData = map[string]interface{}{}
-
-	for key, v := range data {
-		switch val := v.(type) {
-		case string:
-			// try to parse time first from string
-			if p, ok := timeMap[key]; ok {
-				// todo handle error
-				t, _ := time.Parse(time.RFC3339, val)
-				*p = t
-
-			} else if p, ok := strMap[key]; ok {
-				*p = val
-			} else {
-				u.ExtraData[key] = val
-			}
-
-		case bool:
-			if p, ok := boolMap[key]; ok {
-				*p = val
-			} else {
-				u.ExtraData[key] = val
-			}
-
-		case []interface{}:
-			if p, found := slicesMap[key]; found {
-				p.unmarshalSlice(val)
-			} else {
-				u.ExtraData[key] = val
-			}
-
-		default:
-			u.ExtraData[key] = val
-		}
-	}
+func (u *User) NKeys() int {
+	return 0
 }
 
 func (u *User) marshalMap() map[string]interface{} {

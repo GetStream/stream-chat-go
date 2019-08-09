@@ -1,6 +1,10 @@
 package stream_chat
 
-import "time"
+import (
+	"time"
+
+	"github.com/francoispqt/gojay"
+)
 
 type Mute struct {
 	User      User
@@ -9,61 +13,35 @@ type Mute struct {
 	UpdatedAt time.Time
 }
 
+func (m *Mute) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	switch key {
+	case "user":
+		return dec.Object(&m.User)
+	case "target":
+		return dec.Object(&m.Target)
+	case "created_at":
+		return dec.Time(&m.CreatedAt, time.RFC3339)
+	case "updated_at":
+		return dec.Time(&m.UpdatedAt, time.RFC3339)
+	default:
+		// just skip unknown fields
+	}
+
+	return nil
+}
+
+func (m *Mute) NKeys() int {
+	return 0
+}
+
 type Mutes []Mute
 
-func (m *Mutes) unmarshalSlice(slice []interface{}) {
-	*m = make([]Mute, 0, len(slice))
-	for _, v := range slice {
-		switch val := v.(type) {
-		case map[string]interface{}:
-			var mut Mute
-			mut.unmarshalMap(val)
-			*m = append(*m, mut)
-
-		default:
-			//TODO: error
-		}
+func (m *Mutes) UnmarshalJSONArray(dec *gojay.Decoder) error {
+	var mut Mute
+	err := dec.Object(&mut)
+	if err != nil {
+		return err
 	}
-}
-
-func (m *Mute) timeMap() map[string]*time.Time {
-	return map[string]*time.Time{
-		"created_at": &m.CreatedAt,
-		"updated_at": &m.UpdatedAt,
-	}
-}
-
-func (m *Mute) structMap() map[string]unmarshalMap {
-	return map[string]unmarshalMap{
-		"user":   &m.User,
-		"target": &m.Target,
-	}
-}
-
-func (m *Mute) unmarshalMap(data map[string]interface{}) {
-	structMap := m.structMap()
-	timeMap := m.timeMap()
-
-	for k, v := range data {
-		switch val := v.(type) {
-		case string:
-			if p, ok := timeMap[k]; ok {
-				// todo: error handling
-				t, _ := time.Parse(time.RFC3339, val)
-				*p = t
-			} else {
-				// TODO: logging
-			}
-
-		case map[string]interface{}:
-			if p, ok := structMap[k]; ok {
-				p.unmarshalMap(val)
-			} else {
-				// TODO: logging
-			}
-
-		default:
-			// TODO: logging
-		}
-	}
+	*m = append(*m, mut)
+	return nil
 }

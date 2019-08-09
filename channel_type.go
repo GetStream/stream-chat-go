@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"path"
 	"time"
+
+	"github.com/francoispqt/gojay"
 )
 
 const (
@@ -83,11 +85,40 @@ func (c *Client) GetChannelType(chanType string) (ct ChannelType, err error) {
 	return ct, err
 }
 
+type channelTypes map[string]ChannelType
+
+func (c *channelTypes) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	var ct ChannelType
+	if err := dec.Object(&ct); err != nil {
+		return err
+	}
+	(*c)[key] = ct
+	return nil
+}
+
+func (c *channelTypes) NKeys() int {
+	return 0
+}
+
+type channelTypeResponse struct {
+	ChannelTypes channelTypes `json:"channel_types"`
+}
+
+func (c *channelTypeResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	if key == "channel_types" {
+		c.ChannelTypes = channelTypes{}
+		return dec.Object(&c.ChannelTypes)
+	}
+	return nil
+}
+
+func (c *channelTypeResponse) NKeys() int {
+	return 1
+}
+
 // ListChannelTypes returns all channel types
 func (c *Client) ListChannelTypes() (map[string]ChannelType, error) {
-	var resp struct {
-		ChannelTypes map[string]ChannelType `json:"channel_types"`
-	}
+	var resp channelTypeResponse
 
 	err := c.makeRequest(http.MethodGet, "channeltypes", nil, nil, &resp)
 

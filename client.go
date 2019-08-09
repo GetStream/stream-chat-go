@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/francoispqt/gojay"
+
 	"github.com/pascaldekloe/jwt"
 )
 
@@ -34,7 +36,7 @@ func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Stream-Auth-Type", "jwt")
 }
 
-func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
+func (c *Client) parseResponse(resp *http.Response, result gojay.UnmarshalerJSONObject) error {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -45,7 +47,9 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	}
 
 	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
+		return gojay.NewDecoder(resp.Body).Object(result)
+
+		//		return json.NewDecoder(resp.Body).Decode(result)
 	}
 	return nil
 }
@@ -71,7 +75,7 @@ func (c *Client) requestURL(path string, params map[string][]string) (string, er
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
+func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result gojay.UnmarshalerJSONObject) error {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err

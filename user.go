@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
+	"github.com/francoispqt/gojay"
 )
 
 type User struct {
@@ -111,6 +113,37 @@ func (c *Client) DeleteUser(targetID string, options map[string][]string) error 
 	return c.makeRequest(http.MethodDelete, path, options, nil, nil)
 }
 
+type usersMap map[string]User
+
+func (u usersMap) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	var us User
+	if err := dec.Object(&us); err != nil {
+		return err
+	}
+	u[key] = us
+	return nil
+}
+
+func (u *usersMap) NKeys() int {
+	return 0
+}
+
+type usersResponse struct {
+	Users usersMap
+}
+
+func (u *usersResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	if key == "users" {
+		u.Users = usersMap{}
+		return dec.Object(&u.Users)
+	}
+	return nil
+}
+
+func (u *usersResponse) NKeys() int {
+	return 1
+}
+
 // UpdateUsers send update users request; each user will be updated from response
 func (c *Client) UpdateUsers(users ...*User) error {
 	if len(users) == 0 {
@@ -130,7 +163,7 @@ func (c *Client) UpdateUsers(users ...*User) error {
 		payload["users"][u.ID] = u.marshalMap()
 	}
 
-	var resp struct{ Users map[string]interface{} }
+	var resp usersResponse
 
 	err := c.makeRequest(http.MethodPost, "users", nil, payload, &resp)
 	if err != nil {
@@ -138,12 +171,7 @@ func (c *Client) UpdateUsers(users ...*User) error {
 	}
 
 	for k, v := range resp.Users {
-		switch val := v.(type) {
-		case map[string]interface{}:
-			usersMap[k].unmarshalMap(val)
-		default:
-			// TODO: logging
-		}
+		*usersMap[k] = v
 	}
 
 	return err

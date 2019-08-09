@@ -1,11 +1,33 @@
 package stream_chat
 
-func (r *Reaction) stringsMap() map[string]*string {
-	return map[string]*string{
-		"message_id": &r.MessageID,
-		"user_id":    &r.UserID,
-		"type":       &r.Type,
+import "github.com/francoispqt/gojay"
+
+func (r *Reaction) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	if r.ExtraData == nil {
+		r.ExtraData = map[string]interface{}{}
 	}
+
+	switch key {
+	// strings
+	case "message_id":
+		return dec.String(&r.MessageID)
+	case "user_id":
+		return dec.String(&r.UserID)
+	case "type":
+		return dec.String(&r.Type)
+	default:
+		var i interface{}
+		if err := dec.Interface(&i); err != nil {
+			return err
+		}
+		r.ExtraData[key] = i
+	}
+
+	return nil
+}
+
+func (r Reaction) NKeys() int {
+	return 0
 }
 
 func (r *Reaction) marshalMap() map[string]interface{} {
@@ -22,22 +44,4 @@ func (r *Reaction) marshalMap() map[string]interface{} {
 		resp["user_id"] = r.UserID
 	}
 	return resp
-}
-
-func (r *Reaction) unmarshalMap(data map[string]interface{}) {
-	stringsMap := r.stringsMap()
-
-	for k, v := range data {
-		switch val := v.(type) {
-		case string:
-			if p, ok := stringsMap[k]; ok {
-				*p = val
-			} else {
-				r.ExtraData[k] = val
-			}
-
-		default:
-			r.ExtraData[k] = val
-		}
-	}
 }

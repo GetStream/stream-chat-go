@@ -1,5 +1,9 @@
 package stream_chat
 
+import (
+	"github.com/francoispqt/gojay"
+)
+
 type ChannelConfig struct {
 	Name string `json:"name"`
 
@@ -17,4 +21,49 @@ type ChannelConfig struct {
 
 	Automod     modType      `json:"automod"` // disabled, simple or AI
 	ModBehavior modBehaviour `json:"automod_behavior"`
+}
+
+func (c *ChannelConfig) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
+	switch key {
+	case "name":
+		return dec.String(&c.Name)
+
+	case "typing_events":
+		return dec.Bool(&c.TypingEvents)
+	case "read_events":
+		return dec.Bool(&c.ReadEvents)
+	case "connect_events":
+		return dec.Bool(&c.ConnectEvents)
+	case "search":
+		return dec.Bool(&c.Search)
+	case "reactions":
+		return dec.Bool(&c.Reactions)
+	case "replies":
+		return dec.Bool(&c.Replies)
+	case "mutes":
+		return dec.Bool(&c.Mutes)
+	case "message_retention":
+		return dec.String(&c.MessageRetention)
+	case "max_message_length":
+		return dec.Int(&c.MaxMessageLength)
+	case "automod":
+		var mod string
+		if err := dec.String(&mod); err != nil {
+			return err
+		}
+		c.Automod = modType(mod)
+
+	case "automod_behaviour":
+		var mod string
+		if err := dec.String(&mod); err != nil {
+			return err
+		}
+		c.ModBehavior = modBehaviour(mod)
+	}
+
+	return nil
+}
+
+func (c *ChannelConfig) NKeys() int {
+	return 0
 }
