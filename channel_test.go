@@ -13,7 +13,7 @@ func TestClient_CreateChannel(t *testing.T) {
 	t.Run("get existing channel", func(t *testing.T) {
 		ch := initChannel(t, c)
 		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
-		mustNoError(t, err)
+		mustNoError(t, err, ch)
 
 		assert.Equal(t, c, got.client, "client link")
 		assert.Equal(t, ch.Type, got.Type, "channel type")
@@ -193,7 +193,7 @@ func TestChannel_SendReaction(t *testing.T) {
 	err = ch.SendReaction(&msg, &reaction, serverUser.ID)
 	mustNoError(t, err)
 
-	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count")
+	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
 	assert.Contains(t, msg.LatestReactions, reaction, "latest reactions exists")
 }
 

@@ -35,14 +35,14 @@ func randomString(len int) string {
 	return string(bytes)
 }
 
-func mustNoError(t *testing.T, err error) {
-	if !assert.NoError(t, err) {
+func mustNoError(t *testing.T, err error, msgAndArgs ...interface{}) {
+	if !assert.NoError(t, err, msgAndArgs...) {
 		t.FailNow()
 	}
 }
 
-func mustError(t *testing.T, err error) {
-	if !assert.Error(t, err) {
+func mustError(t *testing.T, err error, msgAndArgs ...interface{}) {
+	if !assert.Error(t, err, msgAndArgs) {
 		t.FailNow()
 	}
 }

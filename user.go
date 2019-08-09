@@ -9,21 +9,21 @@ import (
 )
 
 type User struct {
-	ID    string
-	Name  string
-	Image string
-	Role  string
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
+	Role  string `json:"role"`
 
-	Online    bool
-	Invisible bool
+	Online    bool `json:"online"`
+	Invisible bool `json:"invisible"`
 
-	Mutes Mutes
+	Mutes Mutes `json:"mutes"`
 
-	ExtraData map[string]interface{}
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	LastActive time.Time `json:"last_active"`
 
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	LastActive time.Time
+	ExtraData map[string]interface{} `json:"-,extra"`
 }
 
 // Create a mute
@@ -129,7 +129,7 @@ func (u *usersMap) NKeys() int {
 }
 
 type usersResponse struct {
-	Users usersMap
+	Users usersMap `json:"users"`
 }
 
 func (u *usersResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
@@ -171,7 +171,9 @@ func (c *Client) UpdateUsers(users ...*User) error {
 	}
 
 	for k, v := range resp.Users {
-		*usersMap[k] = v
+		if u, ok := usersMap[k]; ok {
+			*u = v
+		}
 	}
 
 	return err

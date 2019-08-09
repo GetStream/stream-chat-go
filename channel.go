@@ -62,25 +62,25 @@ func (c *ChannelMember) NKeys() int {
 }
 
 type Channel struct {
-	ID   string
-	Type string
+	ID   string `json:"id"`
+	Type string `json:"type"`
 	// full id in format channel_type:channel_ID
-	CID string
+	CID string `json:"cid"`
 
-	CreatedBy User
-	Frozen    bool
+	CreatedBy User `json:"created_by"`
+	Frozen    bool `json:"frozen"`
 
-	MemberCount int
-	Members     []ChannelMember
+	MemberCount int             `json:"member_count"`
+	Members     []ChannelMember `json:"members"`
 
-	Messages []Message
-	Read     []User
+	Messages []Message `json:"messages"`
+	Read     []User    `json:"read"`
 
-	Config ChannelConfig
+	Config ChannelConfig `json:"config"`
 
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	LastMessageAt time.Time
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	LastMessageAt time.Time `json:"last_message_at"`
 
 	client *Client
 }
@@ -128,7 +128,8 @@ func addUserID(hash map[string]interface{}, userID string) map[string]interface{
 }
 
 type messageResponse struct {
-	Message Message
+	Message  Message `json:"message"`
+	duration string
 }
 
 func (m *messageResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
@@ -178,8 +179,8 @@ func (ch *Channel) SendEvent(event Event, userID string) error {
 }
 
 type reactionResponse struct {
-	Message  Message
-	Reaction Reaction
+	Message  Message  `json:"message"`
+	Reaction Reaction `json:"reaction"`
 }
 
 func (r *reactionResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
@@ -250,10 +251,10 @@ func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID 
 }
 
 type queryResponse struct {
-	Channel  Channel
-	Messages messages
-	Members  members
-	Read     users
+	Channel  *Channel  `json:"channel,omitempty"`
+	Messages *messages `json:"messages,omitempty"`
+	Members  *members  `json:"members,omitempty"`
+	Read     *users    `json:"read,omitempty"`
 }
 
 type messages []Message
@@ -290,31 +291,34 @@ func (m *members) UnmarshalJSONArray(dec *gojay.Decoder) error {
 }
 
 func (q queryResponse) updateChannel(ch *Channel) {
-	// save client pointer but update channel information
-	client := ch.client
-	*ch = q.Channel
-	ch.client = client
+	if q.Channel != nil {
+		// save client pointer but update channel information
+		client := ch.client
+		*ch = *q.Channel
+		ch.client = client
+	}
+
 	if q.Members != nil {
-		ch.Members = q.Members
+		ch.Members = *q.Members
 	}
 	if q.Messages != nil {
-		ch.Messages = q.Messages
+		ch.Messages = *q.Messages
 	}
 	if q.Read != nil {
-		ch.Read = q.Read
+		ch.Read = *q.Read
 	}
 }
 
 func (q *queryResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
 	switch key {
 	case "channel":
-		return dec.Object(&q.Channel)
+		return dec.ObjectNull(&q.Channel)
 	case "messages":
-		return dec.Array(&q.Messages)
+		return dec.ArrayNull(&q.Messages)
 	case "members":
-		return dec.Array(&q.Members)
+		return dec.ArrayNull(&q.Members)
 	case "read":
-		return dec.Array(&q.Read)
+		return dec.ArrayNull(&q.Read)
 	}
 	return nil
 }

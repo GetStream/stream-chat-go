@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/francoispqt/gojay"
+	"github.com/mailru/easyjson"
 
 	"github.com/pascaldekloe/jwt"
 )
@@ -36,7 +36,7 @@ func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Stream-Auth-Type", "jwt")
 }
 
-func (c *Client) parseResponse(resp *http.Response, result gojay.UnmarshalerJSONObject) error {
+func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler) error {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -47,10 +47,9 @@ func (c *Client) parseResponse(resp *http.Response, result gojay.UnmarshalerJSON
 	}
 
 	if result != nil {
-		return gojay.NewDecoder(resp.Body).Object(result)
-
-		//		return json.NewDecoder(resp.Body).Decode(result)
+		return easyjson.UnmarshalFromReader(resp.Body, result)
 	}
+
 	return nil
 }
 
@@ -75,7 +74,7 @@ func (c *Client) requestURL(path string, params map[string][]string) (string, er
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result gojay.UnmarshalerJSONObject) error {
+func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result easyjson.Unmarshaler) error {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err
