@@ -8,13 +8,23 @@ import (
 	"time"
 )
 
+type messageType string
+
+const (
+	MessageTypeRegular   messageType = "regular"
+	MessageTypeError     messageType = "error"
+	MessageTypeReply     messageType = "reply"
+	MessageTypeSystem    messageType = "system"
+	MessageTypeEphemeral messageType = "ephemeral"
+)
+
 type Message struct {
 	ID string `json:"id"`
 
 	Text string `json:"text"`
 	HTML string `json:"html"`
 
-	Type messageType `json:"type"`
+	Type messageType `json:"type"` // one of MessageType* constants
 
 	User            *User          `json:"user"`
 	Attachments     []Attachment   `json:"attachments"`
@@ -119,6 +129,7 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
+// UpdateMessage updates message with given msgID
 func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 	if msgID == "" {
 		return errors.New("message ID must be not empty")
@@ -126,7 +137,9 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 
 	var resp messageResponse
 
-	err := c.makeRequest(http.MethodPost, "messages/"+msgID, nil, msg.toRequest(), &resp)
+	p := path.Join("messages", url.PathEscape(msgID))
+
+	err := c.makeRequest(http.MethodPost, p, nil, msg.toRequest(), &resp)
 	if err != nil {
 		return err
 	}
@@ -137,5 +150,7 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
-	return c.makeRequest(http.MethodDelete, "messages/"+msgID, nil, nil, nil)
+	p := path.Join("messages", url.PathEscape(msgID))
+
+	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }

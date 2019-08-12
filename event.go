@@ -35,10 +35,6 @@ const (
 	EventNotificationAddedToChannel     EventType = "notification.added_to_channel"
 	EventNotificationRemovedFromChannel EventType = "notification.removed_from_channel"
 	EventNotificationMutesUpdated       EventType = "notification.mutes_updated"
-
-	// local events
-	EventConnectionChanged   EventType = "connection.changed"
-	EventConnectionRecovered EventType = "connection.recovered"
 )
 
 type Event struct {
@@ -55,7 +51,7 @@ type Event struct {
 
 	ExtraData map[string]interface{} `json:"-"`
 
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
 type eventRequest struct {

@@ -124,6 +124,29 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
 }
 
+// WithTimeout sets http requests timeout to the client
+func WithTimeout(t time.Duration) func(*Client) {
+	return func(c *Client) {
+		c.timeout = t
+		c.http.Timeout = t
+	}
+}
+
+// WithBaseURL sets base url to the client
+func WithBaseURL(url string) func(*Client) {
+	return func(c *Client) {
+		c.baseURL = url
+	}
+}
+
+// WithHTTPTransport sets custom transport for http client.
+// Useful to set proxy, timeouts, tests etc.
+func WithHTTPTransport(tr *http.Transport) func(*Client) {
+	return func(c *Client) {
+		c.http.Transport = tr
+	}
+}
+
 // NewClient creates new stream chat api client
 func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Client, error) {
 	client := &Client{
