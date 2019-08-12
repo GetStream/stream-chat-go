@@ -46,41 +46,6 @@ type Channel struct {
 	client *Client
 }
 
-func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
-	hash["user"] = map[string]interface{}{"id": userID}
-	return hash
-}
-
-type messageResponse struct {
-	Message  Message `json:"message"`
-	duration string
-}
-
-type messageRequest struct {
-	Message Message `json:"message"`
-}
-
-// SendMessage sends a message to this channel.
-// *Message will be updated from response body
-func (ch *Channel) SendMessage(message *Message, userID string) error {
-	var resp messageResponse
-
-	message.ExtraData["user"] = map[string]interface{}{"id": userID}
-
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
-
-	req := messageRequest{Message: *message}
-
-	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
-	if err != nil {
-		return err
-	}
-
-	*message = resp.Message
-
-	return nil
-}
-
 type eventRequest struct {
 	Event Event `json:"event"`
 }
@@ -117,7 +82,7 @@ type reactionRequest struct {
 func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
 	var resp reactionResponse
 
-	reaction.ExtraData["user"] = map[string]interface{}{"id": userID}
+	reaction.UserID = userID
 
 	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
 
@@ -162,17 +127,11 @@ func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID 
 }
 
 type queryResponse struct {
-	Channel  *Channel  `json:"channel,omitempty"`
-	Messages *messages `json:"messages,omitempty"`
-	Members  *members  `json:"members,omitempty"`
-	Read     *users    `json:"read,omitempty"`
+	Channel  *Channel        `json:"channel,omitempty"`
+	Messages []Message       `json:"messages,omitempty"`
+	Members  []ChannelMember `json:"members,omitempty"`
+	Read     []User          `json:"read,omitempty"`
 }
-
-type messages []Message
-
-type users []User
-
-type members []ChannelMember
 
 func (q queryResponse) updateChannel(ch *Channel) {
 	if q.Channel != nil {
@@ -183,13 +142,13 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 
 	if q.Members != nil {
-		ch.Members = *q.Members
+		ch.Members = q.Members
 	}
 	if q.Messages != nil {
-		ch.Messages = *q.Messages
+		ch.Messages = q.Messages
 	}
 	if q.Read != nil {
-		ch.Read = *q.Read
+		ch.Read = q.Read
 	}
 }
 
@@ -320,7 +279,7 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
-	options = addUserID(options, userID)
+	options["user"] = map[string]interface{}{"id": userID}
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
 }

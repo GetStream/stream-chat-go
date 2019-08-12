@@ -3,6 +3,8 @@ package stream_chat
 import (
 	"errors"
 	"net/http"
+	"net/url"
+	"path"
 	"time"
 )
 
@@ -30,10 +32,70 @@ type Message struct {
 	// any other fields the user wants to attach a message
 	ExtraData map[string]interface{}
 
-	MentionedUsers users `json:"mentioned_users"`
+	MentionedUsers []User `json:"mentioned_users"`
+}
+
+func (m Message) toRequest() messageRequest {
+	var req messageRequest
+
+	req.Message = messageRequestMessage{
+		Text:        m.Text,
+		Attachments: m.Attachments,
+		User:        messageRequestUser{ID: m.User.ID},
+		ExtraData:   m.ExtraData,
+	}
+
+	if len(m.MentionedUsers) > 0 {
+		req.Message.MentionedUsers = make([]string, 0, len(m.MentionedUsers))
+		for _, u := range m.MentionedUsers {
+			req.Message.MentionedUsers = append(req.Message.MentionedUsers, u.ID)
+		}
+	}
+
+	return req
 }
 
 type Attachment struct {
+}
+
+type messageResponse struct {
+	Message  Message `json:"message"`
+	duration string
+}
+
+type messageRequest struct {
+	Message messageRequestMessage `json:"message"`
+}
+
+type messageRequestUser struct {
+	ID string `json:"id"`
+}
+
+type messageRequestMessage struct {
+	Text           string                 `json:"text"`
+	Attachments    []Attachment           `json:"attachments"`
+	User           messageRequestUser     `json:"user"`
+	MentionedUsers []string               `json:"mentioned_users"`
+	ExtraData      map[string]interface{} `json:"-,extra"`
+}
+
+// SendMessage sends a message to the channel.
+// *Message will be updated from response body
+func (ch *Channel) SendMessage(message *Message, userID string) error {
+	var resp messageResponse
+
+	message.User = &User{ID: userID}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, message.toRequest(), &resp)
+	if err != nil {
+		return err
+	}
+
+	*message = resp.Message
+
+	return nil
 }
 
 // MarkAllRead marks all messages as read for userID
@@ -47,14 +109,12 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
-func (c *Client) UpdateMessage(msg Message) error {
-	if msg.ID == "" {
+func (c *Client) UpdateMessage(msg Message, msgID string) error {
+	if msgID == "" {
 		return errors.New("message ID must be not empty")
 	}
 
-	req := messageRequest{Message: msg}
-
-	return c.makeRequest(http.MethodPost, "messages/"+msg.ID, nil, req, nil)
+	return c.makeRequest(http.MethodPost, "messages/"+msgID, nil, msg.toRequest(), nil)
 }
 
 func (c *Client) DeleteMessage(msgID string) error {

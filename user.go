@@ -116,7 +116,15 @@ type usersResponse struct {
 }
 
 type usersRequest struct {
-	Users map[string]User `json:"Users"`
+	Users map[string]userRequest `json:"Users"`
+}
+
+type userRequest struct {
+	*User
+	// readonly fields
+	CreatedAt  time.Time `json:"-"`
+	UpdatedAt  time.Time `json:"-"`
+	LastActive time.Time `json:"-"`
 }
 
 // UpdateUsers send update users request; each user will be updated from response
@@ -125,9 +133,9 @@ func (c *Client) UpdateUsers(users ...*User) error {
 		return errors.New("users are not set")
 	}
 
-	req := usersRequest{Users: make(map[string]User, len(users))}
+	req := usersRequest{Users: make(map[string]userRequest, len(users))}
 	for _, u := range users {
-		req.Users[u.ID] = *u
+		req.Users[u.ID] = userRequest{User: u}
 	}
 
 	var resp usersResponse
