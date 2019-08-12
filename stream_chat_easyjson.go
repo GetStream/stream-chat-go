@@ -4,9 +4,9 @@ package stream_chat
 
 import (
 	json "encoding/json"
-	easyjson "github.com/Bogdan-D/easyjson"
-	jlexer "github.com/Bogdan-D/easyjson/jlexer"
-	jwriter "github.com/Bogdan-D/easyjson/jwriter"
+	easyjson "github.com/getstream/easyjson"
+	jlexer "github.com/getstream/easyjson/jlexer"
+	jwriter "github.com/getstream/easyjson/jwriter"
 	time "time"
 )
 

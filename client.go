@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/Bogdan-D/easyjson"
+	"github.com/getstream/easyjson"
 
 	"github.com/pascaldekloe/jwt"
 )
