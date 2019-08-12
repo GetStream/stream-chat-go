@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type Mute struct {
+	User      User
+	Target    User
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

@@ -1,6 +1,6 @@
 package stream_chat
 
-type messageType = string
+type messageType string
 
 const (
 	MessageTypeRegular   messageType = "regular"

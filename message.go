@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-type attachments []Attachment
-
 type Message struct {
 	ID string `json:"id"`
 
@@ -19,7 +17,7 @@ type Message struct {
 	Type messageType `json:"type"`
 
 	User            *User          `json:"user"`
-	Attachments     attachments    `json:"attachments"`
+	Attachments     []Attachment   `json:"attachments"`
 	LatestReactions []Reaction     `json:"latest_reactions"` // last reactions
 	OwnReactions    []Reaction     `json:"own_reactions"`
 	ReactionCounts  map[string]int `json:"reaction_counts"`
@@ -55,20 +53,8 @@ func (m Message) toRequest() messageRequest {
 	return req
 }
 
-type Attachment struct {
-}
-
-type messageResponse struct {
-	Message  Message `json:"message"`
-	duration string
-}
-
 type messageRequest struct {
 	Message messageRequestMessage `json:"message"`
-}
-
-type messageRequestUser struct {
-	ID string `json:"id"`
 }
 
 type messageRequestMessage struct {
@@ -77,6 +63,30 @@ type messageRequestMessage struct {
 	User           messageRequestUser     `json:"user"`
 	MentionedUsers []string               `json:"mentioned_users"`
 	ExtraData      map[string]interface{} `json:"-,extra"`
+}
+
+type messageRequestUser struct {
+	ID string `json:"id"`
+}
+
+type messageResponse struct {
+	Message Message `json:"message"`
+}
+
+type Attachment struct {
+	Type string `json:"type,omitempty"` // text, image, audio, video
+
+	AuthorName string `json:"author_name,omitempty"`
+	Title      string `json:"title,omitempty"`
+	TitleLink  string `json:"title_link,omitempty"`
+	Text       string `json:"text,omitempty"`
+
+	ImageURL    string `json:"image_url,omitempty"`
+	ThumbURL    string `json:"thumb_url,omitempty"`
+	AssetURL    string `json:"asset_url,omitempty"`
+	OGScrapeURL string `json:"og_scrape_url,omitempty"`
+
+	ExtraData map[string]interface{} `json:"-,extra"`
 }
 
 // SendMessage sends a message to the channel.
@@ -109,12 +119,21 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
-func (c *Client) UpdateMessage(msg Message, msgID string) error {
+func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 	if msgID == "" {
 		return errors.New("message ID must be not empty")
 	}
 
-	return c.makeRequest(http.MethodPost, "messages/"+msgID, nil, msg.toRequest(), nil)
+	var resp messageResponse
+
+	err := c.makeRequest(http.MethodPost, "messages/"+msgID, nil, msg.toRequest(), &resp)
+	if err != nil {
+		return err
+	}
+
+	*msg = resp.Message
+
+	return nil
 }
 
 func (c *Client) DeleteMessage(msgID string) error {

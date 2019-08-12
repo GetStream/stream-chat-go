@@ -24,16 +24,13 @@ type modType string
 type modBehaviour string
 
 type Permission struct {
-	// required
-	Name string `json:"name"`
-	// one of: Deny Allow
-	Action string `json:"action"`
-	// required
-	Resources []string `json:"resources"`
+	Name   string `json:"name"`   // required
+	Action string `json:"action"` // one of: Deny Allow
+
+	Resources []string `json:"resources"` // required
 	Roles     []string `json:"roles"`
 	Owner     bool     `json:"owner"`
-	// required
-	Priority int `json:"priority"`
+	Priority  int      `json:"priority"` // required
 }
 
 type ChannelType struct {
@@ -48,15 +45,8 @@ type ChannelType struct {
 
 // NewChannelType returns initialized ChannelType with default values
 func NewChannelType(name string) ChannelType {
-	ct := ChannelType{
-		ChannelConfig: ChannelConfig{
-			Name:             name,
-			Automod:          AutoModDisabled,
-			ModBehavior:      ModBehaviourFlag,
-			MaxMessageLength: defaultMessageLength,
-			MessageRetention: MessageRetentionForever,
-		},
-	}
+	ct := ChannelType{ChannelConfig: DefaultChannelConfig}
+	ct.Name = name
 
 	return ct
 }

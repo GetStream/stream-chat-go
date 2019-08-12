@@ -18,15 +18,16 @@ type ChannelMember struct {
 	InviteRejectedAt *time.Time `json:"invite_rejected_at,omitempty"`
 	Role             string     `json:"role,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 type Channel struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
-	// full id in format channel_type:channel_ID
-	CID string `json:"cid"`
+	CID  string `json:"cid"` // full id in format channel_type:channel_ID
+
+	Config ChannelConfig `json:"config"`
 
 	CreatedBy User `json:"created_by"`
 	Frozen    bool `json:"frozen"`
@@ -37,93 +38,11 @@ type Channel struct {
 	Messages []Message `json:"messages"`
 	Read     []User    `json:"read"`
 
-	Config ChannelConfig `json:"config"`
-
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
 	client *Client
-}
-
-type eventRequest struct {
-	Event Event `json:"event"`
-}
-
-// SendEvent sends an event on this channel
-//
-// event: event data, ie {type: 'message.read'}
-// userID: the ID of the user sending the event
-func (ch *Channel) SendEvent(event Event, userID string) error {
-	if event.User == nil {
-		event.User = &User{ID: userID}
-	}
-
-	req := eventRequest{Event: event}
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
-
-	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
-}
-
-type reactionResponse struct {
-	Message  Message  `json:"message"`
-	Reaction Reaction `json:"reaction"`
-}
-
-type reactionRequest struct {
-	Reaction *Reaction `json:"reaction"`
-}
-
-// SendReaction sends a reaction about a message
-//
-// message: pointer to the message struct
-// reaction: the reaction object, ie {type: 'love'}
-// userID: the ID of the user that created the reaction
-func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
-	var resp reactionResponse
-
-	reaction.UserID = userID
-
-	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
-
-	req := reactionRequest{Reaction: reaction}
-	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
-
-	*msg = resp.Message
-	*reaction = resp.Reaction
-
-	return err
-}
-
-// DeleteReaction removes a reaction by user and type
-//
-// message:  pointer to the message from which we remove the reaction. Message will be updated from response body
-// reaction_type: the type of reaction that should be removed
-// userID: the id of the user
-func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID string) error {
-	if message.ID == "" {
-		return errors.New("message ID must be not empty")
-	}
-	if reactionType == "" {
-		return errors.New("reaction type must be not empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(message.ID), "reaction", url.PathEscape(reactionType))
-
-	params := map[string][]string{
-		"user_id": {userID},
-	}
-
-	var resp reactionResponse
-
-	err := ch.client.makeRequest(http.MethodDelete, p, params, nil, &resp)
-	if err != nil {
-		return err
-	}
-
-	*message = resp.Message
-
-	return nil
 }
 
 type queryResponse struct {

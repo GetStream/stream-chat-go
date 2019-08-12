@@ -1,6 +1,11 @@
 package stream_chat
 
-import "time"
+import (
+	"net/http"
+	"net/url"
+	"path"
+	"time"
+)
 
 type EventType string
 
@@ -37,9 +42,8 @@ const (
 )
 
 type Event struct {
-	// Channel ID
-	CID          string         `json:"cid,omitempty"`
-	Type         EventType      `json:"type"`
+	CID          string         `json:"cid,omitempty"` // Channel ID
+	Type         EventType      `json:"type"`          // Event type, one of Event* constants
 	Message      *Message       `json:"message,omitempty"`
 	Reaction     *Reaction      `json:"reaction,omitempty"`
 	Channel      *Channel       `json:"channel,omitempty"`
@@ -52,4 +56,23 @@ type Event struct {
 	ExtraData map[string]interface{} `json:"-"`
 
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type eventRequest struct {
+	Event Event `json:"event"`
+}
+
+// SendEvent sends an event on this channel
+//
+// event: event data, ie {type: 'message.read'}
+// userID: the ID of the user sending the event
+func (ch *Channel) SendEvent(event Event, userID string) error {
+	if event.User == nil {
+		event.User = &User{ID: userID}
+	}
+
+	req := eventRequest{Event: event}
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
 }

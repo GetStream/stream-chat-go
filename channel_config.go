@@ -18,3 +18,10 @@ type ChannelConfig struct {
 	Automod     modType      `json:"automod"` // disabled, simple or AI
 	ModBehavior modBehaviour `json:"automod_behavior"`
 }
+
+var DefaultChannelConfig = ChannelConfig{
+	Automod:          AutoModDisabled,
+	ModBehavior:      ModBehaviourFlag,
+	MaxMessageLength: defaultMessageLength,
+	MessageRetention: MessageRetentionForever,
+}

@@ -978,7 +978,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo9(in *jlexer.Lexer, out
 				in.Delim('[')
 				if out.Attachments == nil {
 					if !in.IsDelim(']') {
-						out.Attachments = make([]Attachment, 0, 1)
+						out.Attachments = make([]Attachment, 0, 0)
 					} else {
 						out.Attachments = []Attachment{}
 					}
@@ -2022,7 +2022,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo18(in *jlexer.Lexer, ou
 		case "html":
 			out.HTML = string(in.String())
 		case "type":
-			out.Type = string(in.String())
+			out.Type = messageType(in.String())
 		case "user":
 			if in.IsNull() {
 				in.Skip()
@@ -2041,9 +2041,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo18(in *jlexer.Lexer, ou
 				in.Delim('[')
 				if out.Attachments == nil {
 					if !in.IsDelim(']') {
-						out.Attachments = make(attachments, 0, 1)
+						out.Attachments = make([]Attachment, 0, 0)
 					} else {
-						out.Attachments = attachments{}
+						out.Attachments = []Attachment{}
 					}
 				} else {
 					out.Attachments = (out.Attachments)[:0]
@@ -3153,7 +3153,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo24(out *jwriter.Writer,
 		}
 		out.String(string(in.Role))
 	}
-	{
+	if true {
 		const prefix string = ",\"created_at\":"
 		if first {
 			first = false
@@ -3163,9 +3163,14 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo24(out *jwriter.Writer,
 		}
 		out.Raw((in.CreatedAt).MarshalJSON())
 	}
-	{
+	if true {
 		const prefix string = ",\"updated_at\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.Raw((in.UpdatedAt).MarshalJSON())
 	}
 	out.RawByte('}')
@@ -3362,6 +3367,8 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo26(in *jlexer.Lexer, ou
 			out.Type = string(in.String())
 		case "cid":
 			out.CID = string(in.String())
+		case "config":
+			(out.Config).UnmarshalEasyJSON(in)
 		case "created_by":
 			(out.CreatedBy).UnmarshalEasyJSON(in)
 		case "frozen":
@@ -3437,8 +3444,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo26(in *jlexer.Lexer, ou
 				}
 				in.Delim(']')
 			}
-		case "config":
-			(out.Config).UnmarshalEasyJSON(in)
 		case "created_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
@@ -3479,6 +3484,11 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo26(out *jwriter.Writer,
 		const prefix string = ",\"cid\":"
 		out.RawString(prefix)
 		out.String(string(in.CID))
+	}
+	{
+		const prefix string = ",\"config\":"
+		out.RawString(prefix)
+		(in.Config).MarshalEasyJSON(out)
 	}
 	{
 		const prefix string = ",\"created_by\":"
@@ -3544,11 +3554,6 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo26(out *jwriter.Writer,
 		}
 	}
 	{
-		const prefix string = ",\"config\":"
-		out.RawString(prefix)
-		(in.Config).MarshalEasyJSON(out)
-	}
-	{
 		const prefix string = ",\"created_at\":"
 		out.RawString(prefix)
 		out.Raw((in.CreatedAt).MarshalJSON())
@@ -3607,9 +3612,33 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo27(in *jlexer.Lexer, ou
 			in.WantComma()
 			continue
 		}
+		for key := range out.ExtraData {
+			delete(out.ExtraData, key)
+		}
 		switch key {
+		case "type":
+			out.Type = string(in.String())
+		case "author_name":
+			out.AuthorName = string(in.String())
+		case "title":
+			out.Title = string(in.String())
+		case "title_link":
+			out.TitleLink = string(in.String())
+		case "text":
+			out.Text = string(in.String())
+		case "image_url":
+			out.ImageURL = string(in.String())
+		case "thumb_url":
+			out.ThumbURL = string(in.String())
+		case "asset_url":
+			out.AssetURL = string(in.String())
+		case "og_scrape_url":
+			out.OGScrapeURL = string(in.String())
 		default:
-			in.SkipRecursive()
+			if out.ExtraData == nil {
+				out.ExtraData = make(map[string]interface{})
+			}
+			out.ExtraData[key] = in.Interface()
 		}
 		in.WantComma()
 	}
@@ -3622,6 +3651,112 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo27(out *jwriter.Writer,
 	out.RawByte('{')
 	first := true
 	_ = first
+	if in.Type != "" {
+		const prefix string = ",\"type\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.String(string(in.Type))
+	}
+	if in.AuthorName != "" {
+		const prefix string = ",\"author_name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.AuthorName))
+	}
+	if in.Title != "" {
+		const prefix string = ",\"title\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Title))
+	}
+	if in.TitleLink != "" {
+		const prefix string = ",\"title_link\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.TitleLink))
+	}
+	if in.Text != "" {
+		const prefix string = ",\"text\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Text))
+	}
+	if in.ImageURL != "" {
+		const prefix string = ",\"image_url\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.ImageURL))
+	}
+	if in.ThumbURL != "" {
+		const prefix string = ",\"thumb_url\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.ThumbURL))
+	}
+	if in.AssetURL != "" {
+		const prefix string = ",\"asset_url\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.AssetURL))
+	}
+	if in.OGScrapeURL != "" {
+		const prefix string = ",\"og_scrape_url\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.OGScrapeURL))
+	}
+	for k, v := range in.ExtraData {
+		switch k {
+		case "type", "author_name", "title", "title_link", "text", "image_url", "thumb_url", "asset_url", "og_scrape_url":
+			continue // don't allow field overwrites
+		}
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(string(k))
+		out.RawByte(':')
+		if m, ok := v.(easyjson.Marshaler); ok {
+			m.MarshalEasyJSON(out)
+		} else if m, ok := v.(json.Marshaler); ok {
+			out.Raw(m.MarshalJSON())
+		} else {
+			out.Raw(json.Marshal(v))
+		}
+	}
 	out.RawByte('}')
 }
 
