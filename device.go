@@ -2,8 +2,6 @@ package stream_chat
 
 import (
 	"net/http"
-
-	"github.com/francoispqt/gojay"
 )
 
 const (
@@ -19,30 +17,8 @@ type Device struct {
 	PushProvider pushProvider `json:"push_provider"` //The push provider for this device. One of constants PushProvider*
 }
 
-type devices []Device
-
-func (d *devices) UnmarshalJSONArray(dec *gojay.Decoder) error {
-	var dev Device
-	if err := dec.Object(&dev); err != nil {
-		return err
-	}
-	*d = append(*d, dev)
-	return nil
-}
-
 type devicesResponse struct {
-	Devices devices `json:"devices"`
-}
-
-func (d *devicesResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	if key == "devices" {
-		return dec.Array(&d.Devices)
-	}
-	return nil
-}
-
-func (d *devicesResponse) NKeys() int {
-	return 1
+	Devices []Device `json:"devices"`
 }
 
 // Get list of devices for user

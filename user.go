@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
-	"github.com/francoispqt/gojay"
 )
 
 type User struct {
@@ -17,7 +15,7 @@ type User struct {
 	Online    bool `json:"online"`
 	Invisible bool `json:"invisible"`
 
-	Mutes Mutes `json:"mutes"`
+	Mutes []Mute `json:"mutes"`
 
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
@@ -113,35 +111,12 @@ func (c *Client) DeleteUser(targetID string, options map[string][]string) error 
 	return c.makeRequest(http.MethodDelete, path, options, nil, nil)
 }
 
-type usersMap map[string]User
-
-func (u usersMap) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	var us User
-	if err := dec.Object(&us); err != nil {
-		return err
-	}
-	u[key] = us
-	return nil
-}
-
-func (u *usersMap) NKeys() int {
-	return 0
-}
-
 type usersResponse struct {
-	Users usersMap `json:"users"`
+	Users map[string]User `json:"users"`
 }
 
-func (u *usersResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	if key == "users" {
-		u.Users = usersMap{}
-		return dec.Object(&u.Users)
-	}
-	return nil
-}
-
-func (u *usersResponse) NKeys() int {
-	return 1
+type usersRequest struct {
+	Users map[string]User `json:"Users"`
 }
 
 // UpdateUsers send update users request; each user will be updated from response
@@ -150,29 +125,21 @@ func (c *Client) UpdateUsers(users ...*User) error {
 		return errors.New("users are not set")
 	}
 
-	// users search table for unmarshal
-	usersMap := map[string]*User{}
-
-	payload := map[string]map[string]interface{}{
-		"users": {},
-	}
-
-	// marshal users
+	req := usersRequest{Users: make(map[string]User, len(users))}
 	for _, u := range users {
-		usersMap[u.ID] = u
-		payload["users"][u.ID] = u.marshalMap()
+		req.Users[u.ID] = *u
 	}
 
 	var resp usersResponse
 
-	err := c.makeRequest(http.MethodPost, "users", nil, payload, &resp)
+	err := c.makeRequest(http.MethodPost, "users", nil, req, &resp)
 	if err != nil {
 		return err
 	}
 
-	for k, v := range resp.Users {
-		if u, ok := usersMap[k]; ok {
-			*u = v
+	for _, usr := range users {
+		if u, ok := resp.Users[usr.ID]; ok {
+			*usr = u
 		}
 	}
 

@@ -53,7 +53,3 @@ type Event struct {
 
 	CreatedAt time.Time `json:"created_at"`
 }
-
-func (ev Event) toHash() map[string]interface{} {
-	return nil
-}

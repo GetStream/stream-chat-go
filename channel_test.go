@@ -280,15 +280,3 @@ func TestChannel_Truncate(t *testing.T) {
 func TestChannel_Update(t *testing.T) {
 
 }
-
-func Test_addUserID(t *testing.T) {
-	id := "someid"
-
-	params := map[string]interface{}{
-		"test": 1,
-	}
-
-	addUserID(params, id)
-
-	assert.Equal(t, map[string]interface{}{"id": id}, params["user"], "user id present")
-}

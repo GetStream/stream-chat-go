@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/mailru/easyjson"
+	"github.com/Bogdan-D/easyjson"
 
 	"github.com/pascaldekloe/jwt"
 )
@@ -81,8 +81,8 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 	}
 
 	var body []byte
-	if m, ok := data.(marshalMap); ok {
-		body, err = json.Marshal(m.marshalMap())
+	if m, ok := data.(easyjson.Marshaler); ok {
+		body, err = easyjson.Marshal(m)
 	} else {
 		body, err = json.Marshal(data)
 	}

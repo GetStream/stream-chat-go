@@ -6,8 +6,6 @@ import (
 	"net/url"
 	"path"
 	"time"
-
-	"github.com/francoispqt/gojay"
 )
 
 type ChannelMember struct {
@@ -22,43 +20,6 @@ type ChannelMember struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func (c *ChannelMember) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	switch key {
-	case "user_id":
-		return dec.String(&c.UserID)
-	case "user":
-		return dec.ObjectNull(&c.User)
-	case "is_moderator":
-		return dec.Bool(&c.IsModerator)
-	case "invited":
-		return dec.Bool(&c.Invited)
-	case "invite_accepted_at":
-		var t time.Time
-		if err := dec.Time(&t, time.RFC3339); err != nil {
-			return err
-		}
-		c.InviteAcceptedAt = &t
-	case "invite_rejected_at":
-		var t time.Time
-		if err := dec.Time(&t, time.RFC3339); err != nil {
-			return err
-		}
-		c.InviteRejectedAt = &t
-	case "role":
-		return dec.String(&c.Role)
-	case "created_at":
-		return dec.Time(&c.CreatedAt, time.RFC3339)
-	case "updated_at":
-		return dec.Time(&c.UpdatedAt, time.RFC3339)
-	}
-
-	return nil
-}
-
-func (c *ChannelMember) NKeys() int {
-	return 0
 }
 
 type Channel struct {
@@ -85,43 +46,6 @@ type Channel struct {
 	client *Client
 }
 
-func (ch *Channel) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	switch key {
-	case "id":
-		return dec.String(&ch.ID)
-	case "type":
-		return dec.String(&ch.Type)
-	case "cid":
-		return dec.String(&ch.CID)
-	case "created_by":
-		return dec.Object(&ch.CreatedBy)
-	case "frozen":
-		return dec.Bool(&ch.Frozen)
-	case "member_count":
-		return dec.Int(&ch.MemberCount)
-	case "members":
-		return dec.ObjectNull(&ch.Members)
-	case "messages":
-		return dec.ObjectNull(&ch.Messages)
-	case "read":
-		return dec.ObjectNull(&ch.Read)
-	case "config":
-		return dec.Object(&ch.Config)
-	case "created_at":
-		return dec.Time(&ch.CreatedAt, time.RFC3339)
-	case "updated_at":
-		return dec.Time(&ch.UpdatedAt, time.RFC3339)
-	case "last_message_at":
-		return dec.Time(&ch.LastMessageAt, time.RFC3339)
-	}
-
-	return nil
-}
-
-func (ch *Channel) NKeys() int {
-	return 13
-}
-
 func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
 	hash["user"] = map[string]interface{}{"id": userID}
 	return hash
@@ -132,29 +56,22 @@ type messageResponse struct {
 	duration string
 }
 
-func (m *messageResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	if key == "message" {
-		return dec.Object(&m.Message)
-	}
-	return nil
-}
-
-func (m messageResponse) NKeys() int {
-	return 1
+type messageRequest struct {
+	Message Message `json:"message"`
 }
 
 // SendMessage sends a message to this channel.
 // *Message will be updated from response body
 func (ch *Channel) SendMessage(message *Message, userID string) error {
-	data := map[string]interface{}{
-		"message": addUserID(message.toHash(), userID),
-	}
+	var resp messageResponse
+
+	message.ExtraData["user"] = map[string]interface{}{"id": userID}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
 
-	var resp messageResponse
+	req := messageRequest{Message: *message}
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
 	if err != nil {
 		return err
 	}
@@ -164,18 +81,23 @@ func (ch *Channel) SendMessage(message *Message, userID string) error {
 	return nil
 }
 
+type eventRequest struct {
+	Event Event `json:"event"`
+}
+
 // SendEvent sends an event on this channel
 //
 // event: event data, ie {type: 'message.read'}
 // userID: the ID of the user sending the event
 func (ch *Channel) SendEvent(event Event, userID string) error {
-	data := map[string]interface{}{
-		"event": addUserID(event.toHash(), userID),
+	if event.User == nil {
+		event.User = &User{ID: userID}
 	}
 
+	req := eventRequest{Event: event}
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
 }
 
 type reactionResponse struct {
@@ -183,18 +105,8 @@ type reactionResponse struct {
 	Reaction Reaction `json:"reaction"`
 }
 
-func (r *reactionResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	switch key {
-	case "message":
-		return dec.Object(&r.Message)
-	case "reaction":
-		return dec.Object(&r.Reaction)
-	}
-	return nil
-}
-
-func (r *reactionResponse) NKeys() int {
-	return 2
+type reactionRequest struct {
+	Reaction *Reaction `json:"reaction"`
 }
 
 // SendReaction sends a reaction about a message
@@ -203,15 +115,14 @@ func (r *reactionResponse) NKeys() int {
 // reaction: the reaction object, ie {type: 'love'}
 // userID: the ID of the user that created the reaction
 func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
-	data := map[string]interface{}{
-		"reaction": addUserID(reaction.marshalMap(), userID),
-	}
+	var resp reactionResponse
+
+	reaction.ExtraData["user"] = map[string]interface{}{"id": userID}
 
 	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
 
-	var resp reactionResponse
-
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	req := reactionRequest{Reaction: reaction}
+	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
 
 	*msg = resp.Message
 	*reaction = resp.Reaction
@@ -259,36 +170,9 @@ type queryResponse struct {
 
 type messages []Message
 
-func (m *messages) UnmarshalJSONArray(dec *gojay.Decoder) error {
-	var msg Message
-	if err := dec.Object(&msg); err != nil {
-		return err
-	}
-	*m = append(*m, msg)
-	return nil
-}
-
 type users []User
 
-func (u *users) UnmarshalJSONArray(dec *gojay.Decoder) error {
-	var usr User
-	if err := dec.Object(&usr); err != nil {
-		return err
-	}
-	*u = append(*u, usr)
-	return nil
-}
-
 type members []ChannelMember
-
-func (m *members) UnmarshalJSONArray(dec *gojay.Decoder) error {
-	var mem ChannelMember
-	if err := dec.Object(&mem); err != nil {
-		return err
-	}
-	*m = append(*m, mem)
-	return nil
-}
 
 func (q queryResponse) updateChannel(ch *Channel) {
 	if q.Channel != nil {
@@ -307,24 +191,6 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	if q.Read != nil {
 		ch.Read = *q.Read
 	}
-}
-
-func (q *queryResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	switch key {
-	case "channel":
-		return dec.ObjectNull(&q.Channel)
-	case "messages":
-		return dec.ArrayNull(&q.Messages)
-	case "members":
-		return dec.ArrayNull(&q.Members)
-	case "read":
-		return dec.ArrayNull(&q.Read)
-	}
-	return nil
-}
-
-func (q *queryResponse) NKeys() int {
-	return 4
 }
 
 // query makes request to channel api and updates channel internal state
@@ -476,18 +342,7 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) (rep
 }
 
 type reactionsResponse struct {
-	Reactions reactions `json:"reactions"`
-}
-
-func (r *reactionsResponse) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	if key == "reactions" {
-		return dec.Array(&r.Reactions)
-	}
-	return nil
-}
-
-func (r *reactionsResponse) NKeys() int {
-	return 1
+	Reactions []Reaction `json:"reactions"`
 }
 
 // GetReactions returns list of the reactions, supports pagination
