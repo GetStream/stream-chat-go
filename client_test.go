@@ -12,7 +12,7 @@ import (
 
 func initClient(t *testing.T) *Client {
 	c, err := NewClient(APIKey, []byte(APISecret))
-	mustNoError(t, err)
+	mustNoError(t, err, "new client")
 
 	// set hostname to client from env if present
 	if StreamHost != "" {
@@ -24,7 +24,7 @@ func initClient(t *testing.T) *Client {
 
 func initChannel(t *testing.T, c *Client) *Channel {
 	err := c.UpdateUsers(testUsers...)
-	mustNoError(t, err)
+	mustNoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
 	for i := range testUsers {
@@ -35,7 +35,7 @@ func initChannel(t *testing.T, c *Client) *Channel {
 		"members": members,
 	})
 
-	mustNoError(t, err)
+	mustNoError(t, err, "create channel")
 	return ch
 }
 
@@ -67,10 +67,10 @@ func Test_client_CreateToken(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			token, err := c.CreateToken(testUsers[0].ID, test.expire)
-			mustNoError(t, err)
+			mustNoError(t, err, "create token")
 
 			claims, err := jwt.HMACCheck(token, c.apiSecret)
-			mustNoError(t, err)
+			mustNoError(t, err, "jwt check")
 
 			var expiresIn *jwt.NumericTime
 			if !test.expire.IsZero() {

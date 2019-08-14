@@ -13,7 +13,7 @@ func TestClient_CreateChannel(t *testing.T) {
 	t.Run("get existing channel", func(t *testing.T) {
 		ch := initChannel(t, c)
 		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
-		mustNoError(t, err, ch)
+		mustNoError(t, err, "create channel", ch)
 
 		assert.Equal(t, c, got.client, "client link")
 		assert.Equal(t, ch.Type, got.Type, "channel type")
@@ -36,9 +36,9 @@ func TestClient_CreateChannel(t *testing.T) {
 		t.Run(fmt.Sprintf("create new channel %s:%s", tt._type, tt.id), func(t *testing.T) {
 			got, err := c.CreateChannel(tt._type, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
-				mustError(t, err)
+				mustError(t, err, "create channel", tt)
 			} else {
-				mustNoError(t, err)
+				mustNoError(t, err, "create channel", tt)
 			}
 
 			assert.Equal(t, tt._type, got.Type, "channel type")
@@ -54,7 +54,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	chanID := randomString(12)
 
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
-	mustNoError(t, err)
+	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -62,10 +62,10 @@ func TestChannel_AddMembers(t *testing.T) {
 	user := randomUser()
 
 	err = ch.AddMembers([]string{user.ID})
-	mustNoError(t, err)
+	mustNoError(t, err, "add members")
 
 	// refresh channel state
-	mustNoError(t, ch.refresh())
+	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
@@ -76,7 +76,7 @@ func TestChannel_Moderation(t *testing.T) {
 	// init random channel
 	chanID := randomString(12)
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
-	mustNoError(t, err)
+	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -84,19 +84,19 @@ func TestChannel_Moderation(t *testing.T) {
 	user := randomUser()
 
 	err = ch.AddModerators([]string{user.ID})
-	mustNoError(t, err)
+	mustNoError(t, err, "add moderators")
 
 	// refresh channel state
-	mustNoError(t, ch.refresh())
+	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
 	err = ch.DemoteModerators([]string{user.ID})
-	mustNoError(t, err)
+	mustNoError(t, err, "demote moderators")
 
 	// refresh channel state
-	mustNoError(t, ch.refresh())
+	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
@@ -110,16 +110,16 @@ func TestChannel_BanUser(t *testing.T) {
 	user := randomUser()
 
 	err := ch.BanUser(user.ID, serverUser.ID, nil)
-	mustNoError(t, err)
+	mustNoError(t, err, "ban user")
 
 	err = ch.BanUser(user.ID, serverUser.ID, map[string]interface{}{
 		"timeout": 3600,
 		"reason":  "offensive language is not allowed here",
 	})
-	mustNoError(t, err)
+	mustNoError(t, err, "ban user")
 
 	err = ch.UnBanUser(user.ID, nil)
-	mustNoError(t, err)
+	mustNoError(t, err, "unban user")
 }
 
 func TestChannel_Delete(t *testing.T) {
@@ -127,7 +127,7 @@ func TestChannel_Delete(t *testing.T) {
 	ch := initChannel(t, c)
 
 	err := ch.Delete()
-	mustNoError(t, err)
+	mustNoError(t, err, "delete channel")
 }
 
 func TestChannel_GetReplies(t *testing.T) {
@@ -146,7 +146,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	user := randomUser()
 	err := ch.RemoveMembers([]string{user.ID})
 
-	mustNoError(t, err)
+	mustNoError(t, err, "remove members")
 
 	for _, member := range ch.Members {
 		assert.NotEqual(t, member.User.ID, user.ID, "member is not present")
@@ -169,7 +169,7 @@ func TestChannel_SendMessage(t *testing.T) {
 	}
 
 	err := ch.SendMessage(&msg, serverUser.ID)
-	mustNoError(t, err)
+	mustNoError(t, err, "send message")
 	// check that message was updated
 	assert.NotEmpty(t, msg.ID, "message has ID")
 	assert.NotEmpty(t, msg.HTML, "message has HTML body")
@@ -186,18 +186,18 @@ func TestChannel_Truncate(t *testing.T) {
 		User: user,
 	}
 	err := ch.SendMessage(&msg, serverUser.ID)
-	mustNoError(t, err)
+	mustNoError(t, err, "send message")
 
 	// refresh channel state
-	mustNoError(t, ch.refresh())
+	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
 
 	err = ch.Truncate()
-	mustNoError(t, err)
+	mustNoError(t, err, "truncate channel")
 
 	// refresh channel state
-	mustNoError(t, ch.refresh())
+	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Empty(t, ch.Messages, "message not exists")
 }

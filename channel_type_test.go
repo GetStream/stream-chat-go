@@ -10,7 +10,7 @@ func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	ct := NewChannelType(randomString(10))
 
 	err := c.CreateChannelType(&ct)
-	mustNoError(t, err)
+	mustNoError(t, err, "create channel type")
 
 	return &ct
 }
@@ -22,7 +22,7 @@ func TestClient_GetChannelType(t *testing.T) {
 	defer c.DeleteChannelType(ct.Name)
 
 	got, err := c.GetChannelType(ct.Name)
-	mustNoError(t, err)
+	mustNoError(t, err, "get channel type")
 
 	assert.Equal(t, ct.Name, got.Name)
 	assert.Equal(t, len(ct.Commands), len(got.Commands))
@@ -36,7 +36,7 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	defer c.DeleteChannelType(ct.Name)
 
 	got, err := c.ListChannelTypes()
-	mustNoError(t, err)
+	mustNoError(t, err, "list channel types")
 
 	assert.Contains(t, got, ct.Name)
 }
