@@ -1,6 +1,7 @@
 package stream_chat
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -23,6 +24,10 @@ type devicesResponse struct {
 
 // Get list of devices for user
 func (c *Client) GetDevices(userId string) (devices []Device, err error) {
+	if userId == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
 	params := map[string][]string{
 		"user_id": {userId},
 	}
@@ -40,10 +45,17 @@ func (c *Client) AddDevice(device Device) error {
 }
 
 // Delete a device for a user
-func (c *Client) DeleteDevice(userId string, deviceID string) error {
+func (c *Client) DeleteDevice(userID string, deviceID string) error {
+	switch {
+	case userID == "":
+		return errors.New("user ID is empty")
+	case deviceID == "":
+		return errors.New("device ID is empty")
+	}
+
 	params := map[string][]string{
 		"id":      {deviceID},
-		"user_id": {userId},
+		"user_id": {userID},
 	}
 
 	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)

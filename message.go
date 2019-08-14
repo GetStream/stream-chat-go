@@ -102,6 +102,13 @@ type Attachment struct {
 // SendMessage sends a message to the channel.
 // *Message will be updated from response body
 func (ch *Channel) SendMessage(message *Message, userID string) error {
+	switch {
+	case message == nil:
+		return errors.New("message is nil")
+	case userID == "":
+		return errors.New("user ID must be not empty")
+	}
+
 	var resp messageResponse
 
 	message.User = &User{ID: userID}
@@ -120,6 +127,10 @@ func (ch *Channel) SendMessage(message *Message, userID string) error {
 
 // MarkAllRead marks all messages as read for userID
 func (c *Client) MarkAllRead(userID string) error {
+	if userID == "" {
+		return errors.New("user ID must be not empty")
+	}
+
 	data := map[string]interface{}{
 		"user": map[string]string{
 			"id": userID,
@@ -131,7 +142,10 @@ func (c *Client) MarkAllRead(userID string) error {
 
 // UpdateMessage updates message with given msgID
 func (c *Client) UpdateMessage(msg *Message, msgID string) error {
-	if msgID == "" {
+	switch {
+	case msg == nil:
+		return errors.New("message is nil")
+	case msgID == "":
 		return errors.New("message ID must be not empty")
 	}
 
@@ -150,6 +164,10 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
+	if msgID == "" {
+		return errors.New("message ID must be not empty")
+	}
+
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)

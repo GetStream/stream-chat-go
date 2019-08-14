@@ -132,12 +132,14 @@ func (ch *Channel) Truncate() error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
 }
 
-// Adds members to the channel
-//
-// users: user IDs to add as members
-func (ch *Channel) AddMembers(users []string) error {
+// AddMembers adds members with given user IDs to the channel
+func (ch *Channel) AddMembers(userIDs []string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
-		"add_members": users,
+		"add_members": userIDs,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
@@ -147,6 +149,10 @@ func (ch *Channel) AddMembers(users []string) error {
 
 //  RemoveMembers deletes members with given IDs from the channel
 func (ch *Channel) RemoveMembers(userIDs []string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"remove_members": userIDs,
 	}
@@ -167,6 +173,10 @@ func (ch *Channel) RemoveMembers(userIDs []string) error {
 
 // AddModerators adds moderators with given IDs to the channel
 func (ch *Channel) AddModerators(userIDs []string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"add_moderators": userIDs,
 	}
@@ -178,6 +188,10 @@ func (ch *Channel) AddModerators(userIDs []string) error {
 
 // DemoteModerators moderators with given IDs from the channel
 func (ch *Channel) DemoteModerators(userIDs []string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"demote_moderators": userIDs,
 	}
@@ -192,8 +206,11 @@ func (ch *Channel) DemoteModerators(userIDs []string) error {
 //  userID: the user ID for the event
 //  options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
-	if userID == "" {
+	switch {
+	case userID == "":
 		return errors.New("user ID must be not empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
@@ -209,7 +226,7 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 // options: Pagination params, ie {limit:10, idlte: 10}
 func (ch *Channel) GetReplies(parentID string, options map[string][]string) (replies []Message, err error) {
 	if parentID == "" {
-		return nil, errors.New("parent ID must be not empty")
+		return nil, errors.New("parent ID is empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(parentID), "replies")
@@ -229,7 +246,7 @@ type reactionsResponse struct {
 // options: Pagination params, ie {"limit":10, "idlte": 10}
 func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]Reaction, error) {
 	if messageID == "" {
-		return nil, errors.New("messageID must be not empty")
+		return nil, errors.New("message ID is empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(messageID), "reactions")
@@ -245,10 +262,12 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 // userID: user who bans target
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
 func (ch *Channel) BanUser(targetID string, userID string, options map[string]interface{}) error {
-	if targetID == "" {
-		return errors.New("targetID must be not empty")
-	}
-	if options == nil {
+	switch {
+	case targetID == "":
+		return errors.New("target ID is empty")
+	case userID == "":
+		return errors.New("user ID is empty")
+	case options == nil:
 		options = map[string]interface{}{}
 	}
 
@@ -260,10 +279,10 @@ func (ch *Channel) BanUser(targetID string, userID string, options map[string]in
 
 // UnBanUser removes the ban for target user ID on this channel
 func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
-	if targetID == "" {
+	switch {
+	case targetID == "":
 		return errors.New("target ID must be not empty")
-	}
-	if options == nil {
+	case options == nil:
 		options = map[string]string{}
 	}
 
@@ -275,6 +294,15 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+	switch {
+	case chanType == "":
+		return nil, errors.New("channel type is empty")
+	case chanID == "":
+		return nil, errors.New("channel ID is empty")
+	case userID == "":
+		return nil, errors.New("user ID is empty")
+	}
+
 	ch := &Channel{
 		Type:      chanType,
 		ID:        chanID,

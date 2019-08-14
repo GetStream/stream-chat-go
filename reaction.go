@@ -31,6 +31,17 @@ type reactionRequest struct {
 // reaction: the reaction object, ie {type: 'love'}
 // userID: the ID of the user that created the reaction
 func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
+	switch {
+	case msg == nil:
+		return errors.New("message is nil")
+	case reaction == nil:
+		return errors.New("reaction is nil")
+	case msg.ID == "":
+		return errors.New("message ID must be not empty")
+	case userID == "":
+		return errors.New("user ID must be not empty")
+	}
+
 	var resp reactionResponse
 
 	reaction.UserID = userID
@@ -52,11 +63,15 @@ func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string)
 // reaction_type: the type of reaction that should be removed
 // userID: the id of the user
 func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID string) error {
-	if message.ID == "" {
-		return errors.New("message ID must be not empty")
-	}
-	if reactionType == "" {
+	switch {
+	case message == nil:
+		return errors.New("message is nil")
+	case reactionType == "":
 		return errors.New("reaction type must be not empty")
+	case message.ID == "":
+		return errors.New("message ID must be not empty")
+	case userID == "":
+		return errors.New("user ID must be not empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(message.ID), "reaction", url.PathEscape(reactionType))

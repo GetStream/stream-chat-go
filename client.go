@@ -108,6 +108,10 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 
 // CreateToken creates new token for user with optional expire time
 func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
 	params := map[string]interface{}{
 		"user_id": userID,
 	}
@@ -149,6 +153,13 @@ func WithHTTPTransport(tr *http.Transport) func(*Client) {
 
 // NewClient creates new stream chat api client
 func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Client, error) {
+	switch {
+	case apiKey == "":
+		return nil, errors.New("API key is empty")
+	case len(apiSecret) == 0:
+		return nil, errors.New("API secret is empty")
+	}
+
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
