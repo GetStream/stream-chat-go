@@ -29,14 +29,14 @@ type Channel struct {
 
 	Config ChannelConfig `json:"config"`
 
-	CreatedBy User `json:"created_by"`
-	Frozen    bool `json:"frozen"`
+	CreatedBy *User `json:"created_by"`
+	Frozen    bool  `json:"frozen"`
 
-	MemberCount int             `json:"member_count"`
-	Members     []ChannelMember `json:"members"`
+	MemberCount int              `json:"member_count"`
+	Members     []*ChannelMember `json:"members"`
 
-	Messages []Message `json:"messages"`
-	Read     []User    `json:"read"`
+	Messages []*Message `json:"messages"`
+	Read     []*User    `json:"read"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -46,10 +46,10 @@ type Channel struct {
 }
 
 type queryResponse struct {
-	Channel  *Channel        `json:"channel,omitempty"`
-	Messages []Message       `json:"messages,omitempty"`
-	Members  []ChannelMember `json:"members,omitempty"`
-	Read     []User          `json:"read,omitempty"`
+	Channel  *Channel         `json:"channel,omitempty"`
+	Messages []*Message       `json:"messages,omitempty"`
+	Members  []*ChannelMember `json:"members,omitempty"`
+	Read     []*User          `json:"read,omitempty"`
 }
 
 func (q queryResponse) updateChannel(ch *Channel) {
@@ -133,7 +133,7 @@ func (ch *Channel) Truncate() error {
 }
 
 // AddMembers adds members with given user IDs to the channel
-func (ch *Channel) AddMembers(userIDs []string) error {
+func (ch *Channel) AddMembers(userIDs ...string) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -148,7 +148,7 @@ func (ch *Channel) AddMembers(userIDs []string) error {
 }
 
 //  RemoveMembers deletes members with given IDs from the channel
-func (ch *Channel) RemoveMembers(userIDs []string) error {
+func (ch *Channel) RemoveMembers(userIDs ...string) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -172,7 +172,7 @@ func (ch *Channel) RemoveMembers(userIDs []string) error {
 }
 
 // AddModerators adds moderators with given IDs to the channel
-func (ch *Channel) AddModerators(userIDs []string) error {
+func (ch *Channel) AddModerators(userIDs ...string) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -187,7 +187,7 @@ func (ch *Channel) AddModerators(userIDs []string) error {
 }
 
 // DemoteModerators moderators with given IDs from the channel
-func (ch *Channel) DemoteModerators(userIDs []string) error {
+func (ch *Channel) DemoteModerators(userIDs ...string) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -224,27 +224,28 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 //
 // parenID: The message parent id, ie the top of the thread
 // options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) (replies []Message, err error) {
+func (ch *Channel) GetReplies(parentID string, options map[string][]string) (replies []*Message, err error) {
 	if parentID == "" {
 		return nil, errors.New("parent ID is empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(parentID), "replies")
 
+	//TODO: get replies
 	err = ch.client.makeRequest(http.MethodGet, p, options, nil, nil)
 
 	return replies, err
 }
 
 type reactionsResponse struct {
-	Reactions []Reaction `json:"reactions"`
+	Reactions []*Reaction `json:"reactions"`
 }
 
 // GetReactions returns list of the reactions, supports pagination
 //
 // messageID: The message id
 // options: Pagination params, ie {"limit":10, "idlte": 10}
-func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]Reaction, error) {
+func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]*Reaction, error) {
 	if messageID == "" {
 		return nil, errors.New("message ID is empty")
 	}
@@ -307,7 +308,7 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 		Type:      chanType,
 		ID:        chanID,
 		client:    c,
-		CreatedBy: User{ID: userID},
+		CreatedBy: &User{ID: userID},
 	}
 
 	options := map[string]interface{}{

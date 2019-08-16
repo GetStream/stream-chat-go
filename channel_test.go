@@ -61,7 +61,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.AddMembers([]string{user.ID})
+	err = ch.AddMembers(user.ID)
 	mustNoError(t, err, "add members")
 
 	// refresh channel state
@@ -83,7 +83,7 @@ func TestChannel_Moderation(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.AddModerators([]string{user.ID})
+	err = ch.AddModerators(user.ID)
 	mustNoError(t, err, "add moderators")
 
 	// refresh channel state
@@ -92,7 +92,7 @@ func TestChannel_Moderation(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
-	err = ch.DemoteModerators([]string{user.ID})
+	err = ch.DemoteModerators(user.ID)
 	mustNoError(t, err, "demote moderators")
 
 	// refresh channel state
@@ -144,7 +144,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	err := ch.RemoveMembers([]string{user.ID})
+	err := ch.RemoveMembers(user.ID)
 
 	mustNoError(t, err, "remove members")
 
@@ -163,12 +163,12 @@ func TestChannel_SendMessage(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	msg := Message{
+	msg := &Message{
 		Text: "test message",
 		User: user,
 	}
 
-	err := ch.SendMessage(&msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, serverUser.ID)
 	mustNoError(t, err, "send message")
 	// check that message was updated
 	assert.NotEmpty(t, msg.ID, "message has ID")
@@ -181,11 +181,11 @@ func TestChannel_Truncate(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	msg := Message{
+	msg := &Message{
 		Text: "test message",
 		User: user,
 	}
-	err := ch.SendMessage(&msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, serverUser.ID)
 	mustNoError(t, err, "send message")
 
 	// refresh channel state

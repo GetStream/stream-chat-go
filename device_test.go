@@ -11,7 +11,7 @@ func TestClient_Devices(t *testing.T) {
 
 	user := randomUser()
 
-	devices := []Device{
+	devices := []*Device{
 		{UserID: user.ID, ID: randomString(12), PushProvider: PushProviderFirebase},
 		{UserID: user.ID, ID: randomString(12), PushProvider: PushProviderAPNS},
 	}
@@ -28,7 +28,7 @@ func TestClient_Devices(t *testing.T) {
 	}
 }
 
-func deviceIDExists(dev []Device, id string) bool {
+func deviceIDExists(dev []*Device, id string) bool {
 	for _, d := range dev {
 		if d.ID == id {
 			return true

@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-type messageType string
+type MessageType string
 
 const (
-	MessageTypeRegular   messageType = "regular"
-	MessageTypeError     messageType = "error"
-	MessageTypeReply     messageType = "reply"
-	MessageTypeSystem    messageType = "system"
-	MessageTypeEphemeral messageType = "ephemeral"
+	MessageTypeRegular   MessageType = "regular"
+	MessageTypeError     MessageType = "error"
+	MessageTypeReply     MessageType = "reply"
+	MessageTypeSystem    MessageType = "system"
+	MessageTypeEphemeral MessageType = "ephemeral"
 )
 
 type Message struct {
@@ -24,26 +24,26 @@ type Message struct {
 	Text string `json:"text"`
 	HTML string `json:"html"`
 
-	Type messageType `json:"type"` // one of MessageType* constants
+	Type MessageType `json:"type"` // one of MessageType* constants
 
 	User            *User          `json:"user"`
-	Attachments     []Attachment   `json:"attachments"`
-	LatestReactions []Reaction     `json:"latest_reactions"` // last reactions
-	OwnReactions    []Reaction     `json:"own_reactions"`
+	Attachments     []*Attachment  `json:"attachments"`
+	LatestReactions []*Reaction    `json:"latest_reactions"` // last reactions
+	OwnReactions    []*Reaction    `json:"own_reactions"`
 	ReactionCounts  map[string]int `json:"reaction_counts"`
 
 	ReplyCount int `json:"reply_count"`
+
+	MentionedUsers []*User `json:"mentioned_users"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// any other fields the user wants to attach a message
 	ExtraData map[string]interface{}
-
-	MentionedUsers []User `json:"mentioned_users"`
 }
 
-func (m Message) toRequest() messageRequest {
+func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
@@ -69,7 +69,7 @@ type messageRequest struct {
 
 type messageRequestMessage struct {
 	Text           string                 `json:"text"`
-	Attachments    []Attachment           `json:"attachments"`
+	Attachments    []*Attachment          `json:"attachments"`
 	User           messageRequestUser     `json:"user"`
 	MentionedUsers []string               `json:"mentioned_users"`
 	ExtraData      map[string]interface{} `json:"-,extra"`
@@ -80,7 +80,7 @@ type messageRequestUser struct {
 }
 
 type messageResponse struct {
-	Message Message `json:"message"`
+	Message *Message `json:"message"`
 }
 
 type Attachment struct {
@@ -101,12 +101,12 @@ type Attachment struct {
 
 // SendMessage sends a message to the channel.
 // *Message will be updated from response body
-func (ch *Channel) SendMessage(message *Message, userID string) error {
+func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error) {
 	switch {
 	case message == nil:
-		return errors.New("message is nil")
+		return nil, errors.New("message is nil")
 	case userID == "":
-		return errors.New("user ID must be not empty")
+		return nil, errors.New("user ID must be not empty")
 	}
 
 	var resp messageResponse
@@ -117,12 +117,10 @@ func (ch *Channel) SendMessage(message *Message, userID string) error {
 
 	err := ch.client.makeRequest(http.MethodPost, p, nil, message.toRequest(), &resp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	*message = resp.Message
-
-	return nil
+	return resp.Message, nil
 }
 
 // MarkAllRead marks all messages as read for userID
@@ -141,12 +139,12 @@ func (c *Client) MarkAllRead(userID string) error {
 }
 
 // UpdateMessage updates message with given msgID
-func (c *Client) UpdateMessage(msg *Message, msgID string) error {
+func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	switch {
 	case msg == nil:
-		return errors.New("message is nil")
+		return nil, errors.New("message is nil")
 	case msgID == "":
-		return errors.New("message ID must be not empty")
+		return nil, errors.New("message ID must be not empty")
 	}
 
 	var resp messageResponse
@@ -155,12 +153,10 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) error {
 
 	err := c.makeRequest(http.MethodPost, p, nil, msg.toRequest(), &resp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	*msg = resp.Message
-
-	return nil
+	return resp.Message, nil
 }
 
 func (c *Client) DeleteMessage(msgID string) error {

@@ -23,7 +23,7 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client) *Channel {
-	err := c.UpdateUsers(testUsers...)
+	_, err := c.UpdateUsers(testUsers...)
 	mustNoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
@@ -45,10 +45,8 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.authToken)
-	assert.Equal(t, defaultTimeout, c.timeout)
-	//	assert.Equal(t, defaultBaseURL, c.baseURL, )
-	assert.Equal(t, c.http, http.DefaultClient)
 	assert.Equal(t, defaultTimeout, c.http.Timeout)
+	//	assert.Equal(t, defaultBaseURL, c.baseURL, )
 }
 
 func Test_client_CreateToken(t *testing.T) {
@@ -91,23 +89,12 @@ func TestWithBaseURL(t *testing.T) {
 	assert.Equal(t, u, c.baseURL)
 }
 
-func TestWithTimeout(t *testing.T) {
+func TestWithHTTPClient(t *testing.T) {
 	c := initClient(t)
 
-	timeout := time.Hour
+	cl := &http.Client{Timeout: 100}
 
-	WithTimeout(timeout)(c)
+	WithHTTPClient(cl)(c)
 
-	assert.Equal(t, timeout, c.timeout)
-	assert.Equal(t, timeout, c.http.Timeout)
-}
-
-func TestWithHTTPTransport(t *testing.T) {
-	c := initClient(t)
-
-	tr := &http.Transport{}
-
-	WithHTTPTransport(tr)(c)
-
-	assert.Equal(t, tr, c.http.Transport)
+	assert.Equal(t, cl, c.http)
 }

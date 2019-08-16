@@ -9,10 +9,10 @@ import (
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	ct := NewChannelType(randomString(10))
 
-	err := c.CreateChannelType(&ct)
+	ct, err := c.CreateChannelType(ct)
 	mustNoError(t, err, "create channel type")
 
-	return &ct
+	return ct
 }
 
 func TestClient_GetChannelType(t *testing.T) {

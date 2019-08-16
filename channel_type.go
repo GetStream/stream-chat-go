@@ -44,14 +44,14 @@ type Command struct {
 type ChannelType struct {
 	ChannelConfig
 
-	Commands    []Command    `json:"commands"`
-	Permissions []Permission `json:"permissions"`
+	Commands    []*Command    `json:"commands"`
+	Permissions []*Permission `json:"permissions"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (ct ChannelType) toRequest() channelTypeRequest {
+func (ct *ChannelType) toRequest() channelTypeRequest {
 	req := channelTypeRequest{ChannelType: ct}
 
 	if len(req.Commands) == 0 {
@@ -62,15 +62,15 @@ func (ct ChannelType) toRequest() channelTypeRequest {
 }
 
 // NewChannelType returns initialized ChannelType with default values
-func NewChannelType(name string) ChannelType {
-	ct := ChannelType{ChannelConfig: DefaultChannelConfig}
+func NewChannelType(name string) *ChannelType {
+	ct := &ChannelType{ChannelConfig: DefaultChannelConfig}
 	ct.Name = name
 
 	return ct
 }
 
 type channelTypeRequest struct {
-	ChannelType
+	*ChannelType
 
 	Commands []string `json:"commands"`
 
@@ -79,45 +79,49 @@ type channelTypeRequest struct {
 }
 
 type channelTypeResponse struct {
-	ChannelTypes map[string]ChannelType `json:"channel_types"`
+	ChannelTypes map[string]*ChannelType `json:"channel_types"`
 }
 
 // CreateChannelType adds new channel type
-func (c *Client) CreateChannelType(chType *ChannelType) (err error) {
+func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
 	if chType == nil {
-		return errors.New("channel type is nil")
+		return nil, errors.New("channel type is nil")
 	}
 
 	var resp channelTypeRequest
 
-	err = c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
+	err := c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	if resp.ChannelType == nil {
+		return nil, errors.New("unexpected error: channel type response is nil")
 	}
 
-	*chType = resp.ChannelType
 	for _, cmd := range resp.Commands {
-		chType.Commands = append(chType.Commands, Command{Name: cmd})
+		resp.ChannelType.Commands = append(resp.ChannelType.Commands, &Command{Name: cmd})
 	}
 
-	return err
+	return resp.ChannelType, nil
 }
 
 // GetChannelType returns information about channel type
-func (c *Client) GetChannelType(chanType string) (ct ChannelType, err error) {
+func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 	if chanType == "" {
-		return ct, errors.New("channel type is empty")
+		return nil, errors.New("channel type is empty")
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(chanType))
 
-	err = c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+	ct := ChannelType{}
 
-	return ct, err
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+
+	return &ct, err
 }
 
 // ListChannelTypes returns all channel types
-func (c *Client) ListChannelTypes() (map[string]ChannelType, error) {
+func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
 	var resp channelTypeResponse
 
 	err := c.makeRequest(http.MethodGet, "channeltypes", nil, nil, &resp)

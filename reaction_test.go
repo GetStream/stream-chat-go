@@ -12,20 +12,32 @@ func TestChannel_SendReaction(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	msg := Message{
+	msg := &Message{
 		Text: "test message",
 		User: user,
 	}
-	err := ch.SendMessage(&msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, serverUser.ID)
 	mustNoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	err = ch.SendReaction(&msg, &reaction, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
 	mustNoError(t, err, "send reaction")
 
 	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
-	assert.Contains(t, msg.LatestReactions, reaction, "latest reactions exists")
+
+	assert.Condition(t, reactionExistsCondition(msg.LatestReactions, reaction.Type), "latest reaction exists")
+}
+
+func reactionExistsCondition(reactions []*Reaction, searchType string) func() bool {
+	return func() bool {
+		for _, r := range reactions {
+			if r.Type == searchType {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 func TestChannel_DeleteReaction(t *testing.T) {
@@ -34,19 +46,19 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	msg := Message{
+	msg := &Message{
 		Text: "test message",
 		User: user,
 	}
-	err := ch.SendMessage(&msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, serverUser.ID)
 	mustNoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	err = ch.SendReaction(&msg, &reaction, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
 	mustNoError(t, err, "send reaction")
 
-	err = ch.DeleteReaction(&msg, reaction.Type, serverUser.ID)
+	msg, err = ch.DeleteReaction(msg.ID, reaction.Type, serverUser.ID)
 	mustNoError(t, err, "delete reaction")
 
 	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
@@ -59,11 +71,11 @@ func TestChannel_GetReactions(t *testing.T) {
 	defer ch.Delete()
 
 	user := randomUser()
-	msg := Message{
+	msg := &Message{
 		Text: "test message",
 		User: user,
 	}
-	err := ch.SendMessage(&msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, serverUser.ID)
 	mustNoError(t, err, "send message")
 
 	reactions, err := ch.GetReactions(msg.ID, nil)
@@ -72,11 +84,11 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	reaction := Reaction{Type: "love"}
 
-	err = ch.SendReaction(&msg, &reaction, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
 	mustNoError(t, err, "send reaction")
 
 	reactions, err = ch.GetReactions(msg.ID, nil)
 	mustNoError(t, err, "get reactions")
 
-	assert.Contains(t, reactions, reaction, "reaction exists")
+	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
 }

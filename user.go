@@ -24,7 +24,7 @@ type User struct {
 	Online    bool `json:"online"`
 	Invisible bool `json:"invisible"`
 
-	Mutes []Mute `json:"mutes"`
+	Mutes []*Mute `json:"mutes"`
 
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
@@ -132,14 +132,14 @@ func (c *Client) UnBanUser(targetID string, options map[string]string) error {
 	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
 }
 
-func (c *Client) ExportUser(targetID string, options map[string][]string) (user User, err error) {
+func (c *Client) ExportUser(targetID string, options map[string][]string) (user *User, err error) {
 	if targetID == "" {
 		return user, errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "export")
 
-	err = c.makeRequest(http.MethodGet, p, options, nil, &user)
+	err = c.makeRequest(http.MethodGet, p, options, nil, user)
 
 	return user, err
 }
@@ -165,7 +165,7 @@ func (c *Client) DeleteUser(targetID string, options map[string][]string) error 
 }
 
 type usersResponse struct {
-	Users map[string]User `json:"users"`
+	Users map[string]*User `json:"users"`
 }
 
 type usersRequest struct {
@@ -181,9 +181,9 @@ type userRequest struct {
 }
 
 // UpdateUsers send update users request; each user will be updated from response
-func (c *Client) UpdateUsers(users ...*User) error {
+func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
-		return errors.New("users are not set")
+		return nil, errors.New("users are not set")
 	}
 
 	req := usersRequest{Users: make(map[string]userRequest, len(users))}
@@ -195,14 +195,8 @@ func (c *Client) UpdateUsers(users ...*User) error {
 
 	err := c.makeRequest(http.MethodPost, "users", nil, req, &resp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, usr := range users {
-		if u, ok := resp.Users[usr.ID]; ok {
-			*usr = u
-		}
-	}
-
-	return err
+	return resp.Users, err
 }

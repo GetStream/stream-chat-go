@@ -39,9 +39,9 @@ func TestClient_UpdateUsers(t *testing.T) {
 
 	user := randomUser()
 
-	err := c.UpdateUsers(user)
+	resp, err := c.UpdateUsers(user)
 	mustNoError(t, err, "update users")
 
-	assert.NotEmpty(t, user.CreatedAt)
-	assert.NotEmpty(t, user.UpdatedAt)
+	assert.NotEmpty(t, resp[user.ID].CreatedAt)
+	assert.NotEmpty(t, resp[user.ID].UpdatedAt)
 }

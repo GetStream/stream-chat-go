@@ -55,14 +55,14 @@ type Event struct {
 }
 
 type eventRequest struct {
-	Event Event `json:"event"`
+	Event *Event `json:"event"`
 }
 
 // SendEvent sends an event on this channel
 //
 // event: event data, ie {type: 'message.read'}
 // userID: the ID of the user sending the event
-func (ch *Channel) SendEvent(event Event, userID string) error {
+func (ch *Channel) SendEvent(event *Event, userID string) error {
 	if event.User == nil {
 		event.User = &User{ID: userID}
 	}

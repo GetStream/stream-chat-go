@@ -25,7 +25,6 @@ type Client struct {
 	apiKey    string
 	apiSecret []byte
 	authToken string
-	timeout   time.Duration
 	http      *http.Client
 }
 
@@ -128,31 +127,25 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
 }
 
-// WithTimeout sets http requests timeout to the client
-func WithTimeout(t time.Duration) func(*Client) {
-	return func(c *Client) {
-		c.timeout = t
-		c.http.Timeout = t
-	}
-}
+type ClientOption func(*Client)
 
 // WithBaseURL sets base url to the client
-func WithBaseURL(url string) func(*Client) {
+func WithBaseURL(url string) ClientOption {
 	return func(c *Client) {
 		c.baseURL = url
 	}
 }
 
-// WithHTTPTransport sets custom transport for http client.
+// WithHTTPClient sets custom http client.
 // Useful to set proxy, timeouts, tests etc.
-func WithHTTPTransport(tr *http.Transport) func(*Client) {
+func WithHTTPClient(cl *http.Client) ClientOption {
 	return func(c *Client) {
-		c.http.Transport = tr
+		c.http = cl
 	}
 }
 
 // NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Client, error) {
+func NewClient(apiKey string, apiSecret []byte, options ...ClientOption) (*Client, error) {
 	switch {
 	case apiKey == "":
 		return nil, errors.New("API key is empty")
@@ -163,9 +156,10 @@ func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Clie
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
-		timeout:   defaultTimeout,
 		baseURL:   defaultBaseURL,
-		http:      http.DefaultClient,
+		http: &http.Client{
+			Timeout: defaultTimeout,
+		},
 	}
 
 	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
@@ -177,8 +171,6 @@ func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Clie
 	for _, opt := range options {
 		opt(client)
 	}
-
-	client.http.Timeout = client.timeout
 
 	return client, nil
 }

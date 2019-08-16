@@ -19,11 +19,11 @@ type Device struct {
 }
 
 type devicesResponse struct {
-	Devices []Device `json:"devices"`
+	Devices []*Device `json:"devices"`
 }
 
 // Get list of devices for user
-func (c *Client) GetDevices(userId string) (devices []Device, err error) {
+func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
 	if userId == "" {
 		return nil, errors.New("user ID is empty")
 	}
@@ -40,7 +40,7 @@ func (c *Client) GetDevices(userId string) (devices []Device, err error) {
 }
 
 // Add device to a user. Provider should be one of PushProvider* constant
-func (c *Client) AddDevice(device Device) error {
+func (c *Client) AddDevice(device *Device) error {
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
