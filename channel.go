@@ -220,21 +220,26 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
+type repliesResponse struct {
+	Messages []*Message `json:"messages"`
+}
+
 // GetReplies returns list of the message replies for a parent message
 //
 // parenID: The message parent id, ie the top of the thread
 // options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) (replies []*Message, err error) {
+func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
 	if parentID == "" {
 		return nil, errors.New("parent ID is empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(parentID), "replies")
 
-	//TODO: get replies
-	err = ch.client.makeRequest(http.MethodGet, p, options, nil, nil)
+	var resp repliesResponse
 
-	return replies, err
+	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+
+	return resp.Messages, err
 }
 
 type reactionsResponse struct {

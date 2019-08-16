@@ -32,6 +32,9 @@ type Message struct {
 	OwnReactions    []*Reaction    `json:"own_reactions"`
 	ReactionCounts  map[string]int `json:"reaction_counts"`
 
+	ParentID      string `json:"parent_id"`       // id of parent message if it's reply
+	ShowInChannel bool   `json:"show_in_channel"` // show reply message also in channel
+
 	ReplyCount int `json:"reply_count"`
 
 	MentionedUsers []*User `json:"mentioned_users"`
@@ -47,10 +50,12 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
-		Text:        m.Text,
-		Attachments: m.Attachments,
-		User:        messageRequestUser{ID: m.User.ID},
-		ExtraData:   m.ExtraData,
+		Text:          m.Text,
+		Attachments:   m.Attachments,
+		User:          messageRequestUser{ID: m.User.ID},
+		ExtraData:     m.ExtraData,
+		ParentID:      m.ParentID,
+		ShowInChannel: m.ShowInChannel,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -72,6 +77,8 @@ type messageRequestMessage struct {
 	Attachments    []*Attachment          `json:"attachments"`
 	User           messageRequestUser     `json:"user"`
 	MentionedUsers []string               `json:"mentioned_users"`
+	ParentID       string                 `json:"parent_id"`
+	ShowInChannel  bool                   `json:"show_in_channel"`
 	ExtraData      map[string]interface{} `json:"-,extra"`
 }
 
@@ -100,7 +107,6 @@ type Attachment struct {
 }
 
 // SendMessage sends a message to the channel.
-// *Message will be updated from response body
 func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error) {
 	switch {
 	case message == nil:
