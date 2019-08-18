@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ func initClient(t *testing.T) *Client {
 
 	// set hostname to client from env if present
 	if StreamHost != "" {
-		WithBaseURL(StreamHost)(c)
+		c.BaseURL = StreamHost
 	}
 
 	return c
@@ -45,8 +44,8 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.authToken)
-	assert.Equal(t, defaultTimeout, c.http.Timeout)
-	//	assert.Equal(t, defaultBaseURL, c.baseURL, )
+	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
+	//	assert.Equal(t, defaultBaseURL, c.BaseURL, )
 }
 
 func Test_client_CreateToken(t *testing.T) {
@@ -79,22 +78,4 @@ func Test_client_CreateToken(t *testing.T) {
 			assert.Equal(t, testUsers[0].ID, claims.Set["user_id"])
 		})
 	}
-}
-
-func TestWithBaseURL(t *testing.T) {
-	c := initClient(t)
-
-	u := "http://test:3030"
-	WithBaseURL(u)(c)
-	assert.Equal(t, u, c.baseURL)
-}
-
-func TestWithHTTPClient(t *testing.T) {
-	c := initClient(t)
-
-	cl := &http.Client{Timeout: 100}
-
-	WithHTTPClient(cl)(c)
-
-	assert.Equal(t, cl, c.http)
 }

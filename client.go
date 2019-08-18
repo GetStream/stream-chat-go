@@ -21,11 +21,12 @@ const (
 )
 
 type Client struct {
-	baseURL   string
+	BaseURL string
+	HTTP    *http.Client
+
 	apiKey    string
 	apiSecret []byte
 	authToken string
-	http      *http.Client
 }
 
 func (c *Client) setHeaders(r *http.Request) {
@@ -53,7 +54,7 @@ func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler)
 }
 
 func (c *Client) requestURL(path string, params map[string][]string) (string, error) {
-	_url, err := url.Parse(c.baseURL + "/" + path)
+	_url, err := url.Parse(c.BaseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
 	}
@@ -97,7 +98,7 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 
 	c.setHeaders(r)
 
-	resp, err := c.http.Do(r)
+	resp, err := c.HTTP.Do(r)
 	if err != nil {
 		return err
 	}
@@ -127,25 +128,8 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
 }
 
-type ClientOption func(*Client)
-
-// WithBaseURL sets base url to the client
-func WithBaseURL(url string) ClientOption {
-	return func(c *Client) {
-		c.baseURL = url
-	}
-}
-
-// WithHTTPClient sets custom http client.
-// Useful to set proxy, timeouts, tests etc.
-func WithHTTPClient(cl *http.Client) ClientOption {
-	return func(c *Client) {
-		c.http = cl
-	}
-}
-
 // NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte, options ...ClientOption) (*Client, error) {
+func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 	switch {
 	case apiKey == "":
 		return nil, errors.New("API key is empty")
@@ -156,8 +140,8 @@ func NewClient(apiKey string, apiSecret []byte, options ...ClientOption) (*Clien
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
-		baseURL:   defaultBaseURL,
-		http: &http.Client{
+		BaseURL:   defaultBaseURL,
+		HTTP: &http.Client{
 			Timeout: defaultTimeout,
 		},
 	}
@@ -168,9 +152,6 @@ func NewClient(apiKey string, apiSecret []byte, options ...ClientOption) (*Clien
 	}
 
 	client.authToken = string(token)
-	for _, opt := range options {
-		opt(client)
-	}
 
 	return client, nil
 }
