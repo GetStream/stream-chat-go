@@ -53,18 +53,14 @@ func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler)
 	return nil
 }
 
-func (c *Client) requestURL(path string, params map[string][]string) (string, error) {
+func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	_url, err := url.Parse(c.BaseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
 	}
 
-	values := url.Values{}
-	// set request params to url
-	for key, vv := range params {
-		for _, v := range vv {
-			values.Add(key, v)
-		}
+	if values == nil {
+		values = make(url.Values)
 	}
 
 	values.Add("api_key", c.apiKey)
@@ -74,7 +70,7 @@ func (c *Client) requestURL(path string, params map[string][]string) (string, er
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result easyjson.Unmarshaler) error {
+func (c *Client) makeRequest(method string, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err

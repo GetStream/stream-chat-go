@@ -25,10 +25,7 @@ type reactionRequest struct {
 	Reaction *Reaction `json:"reaction"`
 }
 
-// SendReaction sends a reaction about a message
-// reaction: the reaction object, ie {type: 'love'}
-// messageID: is of the message
-// userID: the ID of the user that created the reaction
+// SendReaction sends a reaction to message with given ID
 func (ch *Channel) SendReaction(reaction *Reaction, messageID string, userID string) (*Message, error) {
 	switch {
 	case reaction == nil:
@@ -51,11 +48,7 @@ func (ch *Channel) SendReaction(reaction *Reaction, messageID string, userID str
 	return resp.Message, err
 }
 
-// DeleteReaction removes a reaction by user and type
-//
-// message:  pointer to the message from which we remove the reaction. Message will be updated from response body
-// reaction_type: the type of reaction that should be removed
-// userID: the id of the user
+// DeleteReaction removes a reaction from message with given ID
 func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID string) (*Message, error) {
 	switch {
 	case messageID == "":
@@ -83,4 +76,24 @@ func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID 
 	}
 
 	return resp.Message, nil
+}
+
+type reactionsResponse struct {
+	Reactions []*Reaction `json:"reactions"`
+}
+
+// GetReactions returns list of the reactions for message with given ID.
+// options: Pagination params, ie {"limit":{10}, "idlte": {10}}
+func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]*Reaction, error) {
+	if messageID == "" {
+		return nil, errors.New("message ID is empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(messageID), "reactions")
+
+	var resp reactionsResponse
+
+	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+
+	return resp.Reactions, err
 }

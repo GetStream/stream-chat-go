@@ -1,6 +1,7 @@
 package stream_chat
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -59,15 +60,15 @@ type eventRequest struct {
 }
 
 // SendEvent sends an event on this channel
-//
-// event: event data, ie {type: 'message.read'}
-// userID: the ID of the user sending the event
 func (ch *Channel) SendEvent(event *Event, userID string) error {
-	if event.User == nil {
-		event.User = &User{ID: userID}
+	if event == nil {
+		return errors.New("event is nil")
 	}
 
+	event.User = &User{ID: userID}
+
 	req := eventRequest{Event: event}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)

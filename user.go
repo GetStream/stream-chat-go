@@ -180,7 +180,7 @@ type userRequest struct {
 	LastActive time.Time `json:"-"`
 }
 
-// UpdateUsers send update users request; each user will be updated from response
+// UpdateUsers send update users request, returns updated user info
 func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
 		return nil, errors.New("users are not set")

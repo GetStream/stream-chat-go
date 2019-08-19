@@ -106,7 +106,7 @@ type Attachment struct {
 	ExtraData map[string]interface{} `json:"-,extra"`
 }
 
-// SendMessage sends a message to the channel.
+// SendMessage sends a message to the channel. Returns full message details from server
 func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error) {
 	switch {
 	case message == nil:
@@ -173,4 +173,24 @@ func (c *Client) DeleteMessage(msgID string) error {
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+}
+
+type repliesResponse struct {
+	Messages []*Message `json:"messages"`
+}
+
+// GetReplies returns list of the message replies for a parent message
+// options: Pagination params, ie {limit:10, idlte: 10}
+func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
+	if parentID == "" {
+		return nil, errors.New("parent ID is empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(parentID), "replies")
+
+	var resp repliesResponse
+
+	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+
+	return resp.Messages, err
 }

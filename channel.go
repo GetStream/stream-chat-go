@@ -201,9 +201,7 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-//  MarkRead send the mark read event for this user, only works if the `read_events` setting is enabled
-//
-//  userID: the user ID for the event
+//  MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
 //  options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
 	switch {
@@ -218,50 +216,6 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 	options["user"] = map[string]interface{}{"id": userID}
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
-}
-
-type repliesResponse struct {
-	Messages []*Message `json:"messages"`
-}
-
-// GetReplies returns list of the message replies for a parent message
-//
-// parenID: The message parent id, ie the top of the thread
-// options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
-	if parentID == "" {
-		return nil, errors.New("parent ID is empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(parentID), "replies")
-
-	var resp repliesResponse
-
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
-
-	return resp.Messages, err
-}
-
-type reactionsResponse struct {
-	Reactions []*Reaction `json:"reactions"`
-}
-
-// GetReactions returns list of the reactions, supports pagination
-//
-// messageID: The message id
-// options: Pagination params, ie {"limit":10, "idlte": 10}
-func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]*Reaction, error) {
-	if messageID == "" {
-		return nil, errors.New("message ID is empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(messageID), "reactions")
-
-	var resp reactionsResponse
-
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
-
-	return resp.Reactions, err
 }
 
 // BanUser bans target user ID from this channel

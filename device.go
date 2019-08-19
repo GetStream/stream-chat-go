@@ -39,12 +39,23 @@ func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
 	return resp.Devices, err
 }
 
-// Add device to a user. Provider should be one of PushProvider* constant
+// AddDevice adds new device.
 func (c *Client) AddDevice(device *Device) error {
+	switch {
+	case device == nil:
+		return errors.New("device is nil")
+	case device.ID == "":
+		return errors.New("device ID is empty")
+	case device.UserID == "":
+		return errors.New("device user ID is empty")
+	case device.PushProvider == "":
+		return errors.New("device push provider is empty")
+	}
+
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
-// Delete a device for a user
+// Delete a device from the user
 func (c *Client) DeleteDevice(userID string, deviceID string) error {
 	switch {
 	case userID == "":
