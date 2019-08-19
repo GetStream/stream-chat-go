@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -19,159 +18,57 @@ type ChannelMember struct {
 	InviteRejectedAt *time.Time `json:"invite_rejected_at,omitempty"`
 	Role             string     `json:"role,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 type Channel struct {
-	ID   string
-	Type string
-	// full id in format channel_type:channel_ID
-	CID string
+	ID   string `json:"id"`
+	Type string `json:"type"`
+	CID  string `json:"cid"` // full id in format channel_type:channel_ID
 
-	CreatedBy User
-	Frozen    bool
+	Config ChannelConfig `json:"config"`
 
-	MemberCount int
-	Members     []ChannelMember
+	CreatedBy *User `json:"created_by"`
+	Frozen    bool  `json:"frozen"`
 
-	Messages []Message
-	Read     []User
+	MemberCount int              `json:"member_count"`
+	Members     []*ChannelMember `json:"members"`
 
-	Config ChannelConfig
+	Messages []*Message `json:"messages"`
+	Read     []*User    `json:"read"`
 
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	LastMessageAt time.Time
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	LastMessageAt time.Time `json:"last_message_at"`
 
 	client *Client
 }
 
-func (ch *Channel) unmarshalMap(hmap map[string]interface{}) {
-	if id, ok := hmap["id"].(string); ok {
-		ch.ID = id
-	}
-	if _type, ok := hmap["type"].(string); ok {
-		ch.Type = _type
-	}
-	if cid, ok := hmap["cid"].(string); ok {
-		ch.CID = cid
-	}
-	if created, ok := hmap["cid"].(time.Time); ok {
-		ch.CreatedAt = created
-	}
-	if updated, ok := hmap["cid"].(time.Time); ok {
-		ch.UpdatedAt = updated
-	}
-	// todo: user
-	if frozen, ok := hmap["frozen"].(bool); ok {
-		ch.Frozen = frozen
-	}
-
-	if count, ok := hmap["member_count"].(float64); ok {
-		ch.MemberCount = int(count)
-	}
+type queryResponse struct {
+	Channel  *Channel         `json:"channel,omitempty"`
+	Messages []*Message       `json:"messages,omitempty"`
+	Members  []*ChannelMember `json:"members,omitempty"`
+	Read     []*User          `json:"read,omitempty"`
 }
 
-func addUserID(hash map[string]interface{}, userID string) map[string]interface{} {
-	hash["user"] = map[string]interface{}{"id": userID}
-	return hash
-}
-
-// SendMessage sends a message to this channel.
-// *Message will be updated from response body
-func (ch *Channel) SendMessage(message *Message, userID string) error {
-	data := map[string]interface{}{
-		"message": addUserID(message.toHash(), userID),
+func (q queryResponse) updateChannel(ch *Channel) {
+	if q.Channel != nil {
+		// save client pointer but update channel information
+		client := ch.client
+		*ch = *q.Channel
+		ch.client = client
 	}
 
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
-
-	var resp struct {
-		Message Message `json:"message"`
+	if q.Members != nil {
+		ch.Members = q.Members
 	}
-
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
-	if err != nil {
-		return err
+	if q.Messages != nil {
+		ch.Messages = q.Messages
 	}
-
-	*message = resp.Message
-
-	return nil
-}
-
-// SendEvent sends an event on this channel
-//
-// event: event data, ie {type: 'message.read'}
-// userID: the ID of the user sending the event
-func (ch *Channel) SendEvent(event Event, userID string) error {
-	data := map[string]interface{}{
-		"event": addUserID(event.toHash(), userID),
+	if q.Read != nil {
+		ch.Read = q.Read
 	}
-
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
-
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
-}
-
-// SendReaction sends a reaction about a message
-//
-// message: pointer to the message struct
-// reaction: the reaction object, ie {type: 'love'}
-// userID: the ID of the user that created the reaction
-func (ch *Channel) SendReaction(msg *Message, reaction *Reaction, userID string) error {
-	data := map[string]interface{}{
-		"reaction": addUserID(reaction.toHash(), userID),
-	}
-
-	p := path.Join("messages", url.PathEscape(msg.ID), "reaction")
-
-	var resp struct {
-		Message  Message
-		Reaction Reaction
-	}
-
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
-
-	*msg = resp.Message
-	*reaction = resp.Reaction
-
-	return err
-}
-
-// DeleteReaction removes a reaction by user and type
-//
-// message:  pointer to the message from which we remove the reaction. Message will be updated from response body
-// reaction_type: the type of reaction that should be removed
-// userID: the id of the user
-func (ch *Channel) DeleteReaction(message *Message, reactionType string, userID string) error {
-	if message.ID == "" {
-		return errors.New("message ID must be not empty")
-	}
-	if reactionType == "" {
-		return errors.New("reaction type must be not empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(message.ID), "reaction", url.PathEscape(reactionType))
-
-	params := map[string][]string{
-		"user_id": {userID},
-	}
-
-	var resp struct {
-		Message  Message
-		Reaction Reaction
-	}
-
-	err := ch.client.makeRequest(http.MethodDelete, p, params, nil, &resp)
-	if err != nil {
-		return err
-	}
-
-	*message = resp.Message
-
-	return nil
 }
 
 // query makes request to channel api and updates channel internal state
@@ -194,22 +91,14 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
-	var resp struct {
-		Channel  map[string]interface{}
-		Messages []Message
-		Members  []ChannelMember
-		Read     []User
-	}
+	var resp queryResponse
 
 	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
 	if err != nil {
 		return err
 	}
 
-	ch.unmarshalMap(resp.Channel)
-	ch.Members = resp.Members
-	ch.Messages = resp.Messages
-	ch.Read = resp.Read
+	resp.updateChannel(ch)
 
 	return nil
 }
@@ -243,12 +132,14 @@ func (ch *Channel) Truncate() error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
 }
 
-// Adds members to the channel
-//
-// users: user IDs to add as members
-func (ch *Channel) AddMembers(users []string) error {
+// AddMembers adds members with given user IDs to the channel
+func (ch *Channel) AddMembers(userIDs ...string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
-		"add_members": users,
+		"add_members": userIDs,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
@@ -257,30 +148,35 @@ func (ch *Channel) AddMembers(users []string) error {
 }
 
 //  RemoveMembers deletes members with given IDs from the channel
-func (ch *Channel) RemoveMembers(userIDs []string) error {
+func (ch *Channel) RemoveMembers(userIDs ...string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"remove_members": userIDs,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp struct {
-		Channel map[string]interface{}
-		Members []ChannelMember
-	}
+	var resp queryResponse
+
 	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
 	if err != nil {
 		return err
 	}
 
-	ch.unmarshalMap(resp.Channel)
-	ch.Members = resp.Members
+	resp.updateChannel(ch)
 
 	return nil
 }
 
 // AddModerators adds moderators with given IDs to the channel
-func (ch *Channel) AddModerators(userIDs []string) error {
+func (ch *Channel) AddModerators(userIDs ...string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"add_moderators": userIDs,
 	}
@@ -291,7 +187,11 @@ func (ch *Channel) AddModerators(userIDs []string) error {
 }
 
 // DemoteModerators moderators with given IDs from the channel
-func (ch *Channel) DemoteModerators(userIDs []string) error {
+func (ch *Channel) DemoteModerators(userIDs ...string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
 	data := map[string]interface{}{
 		"demote_moderators": userIDs,
 	}
@@ -301,68 +201,33 @@ func (ch *Channel) DemoteModerators(userIDs []string) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-//  MarkRead send the mark read event for this user, only works if the `read_events` setting is enabled
-//
-//  userID: the user ID for the event
+//  MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
 //  options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
-	if userID == "" {
+	switch {
+	case userID == "":
 		return errors.New("user ID must be not empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
-	options = addUserID(options, userID)
+	options["user"] = map[string]interface{}{"id": userID}
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
-}
-
-// GetReplies returns list of the message replies for a parent message
-//
-// parenID: The message parent id, ie the top of the thread
-// options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) (replies []Message, err error) {
-	if parentID == "" {
-		return nil, errors.New("parent ID must be not empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(parentID), "replies")
-
-	var resp json.RawMessage
-
-	err = ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
-
-	return replies, err
-}
-
-// GetReactions returns list of the reactions, supports pagination
-//
-// messageID: The message id
-// options: Pagination params, ie {"limit":10, "idlte": 10}
-func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]Reaction, error) {
-	if messageID == "" {
-		return nil, errors.New("messageID must be not empty")
-	}
-
-	p := path.Join("messages", url.PathEscape(messageID), "reactions")
-
-	var resp struct {
-		Reactions []Reaction `json:"reactions"`
-	}
-
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
-
-	return resp.Reactions, err
 }
 
 // BanUser bans target user ID from this channel
 // userID: user who bans target
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
 func (ch *Channel) BanUser(targetID string, userID string, options map[string]interface{}) error {
-	if targetID == "" {
-		return errors.New("targetID must be not empty")
-	}
-	if options == nil {
+	switch {
+	case targetID == "":
+		return errors.New("target ID is empty")
+	case userID == "":
+		return errors.New("user ID is empty")
+	case options == nil:
 		options = map[string]interface{}{}
 	}
 
@@ -374,10 +239,10 @@ func (ch *Channel) BanUser(targetID string, userID string, options map[string]in
 
 // UnBanUser removes the ban for target user ID on this channel
 func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
-	if targetID == "" {
+	switch {
+	case targetID == "":
 		return errors.New("target ID must be not empty")
-	}
-	if options == nil {
+	case options == nil:
 		options = map[string]string{}
 	}
 
@@ -389,11 +254,20 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+	switch {
+	case chanType == "":
+		return nil, errors.New("channel type is empty")
+	case chanID == "":
+		return nil, errors.New("channel ID is empty")
+	case userID == "":
+		return nil, errors.New("user ID is empty")
+	}
+
 	ch := &Channel{
 		Type:      chanType,
 		ID:        chanID,
 		client:    c,
-		CreatedBy: User{ID: userID},
+		CreatedBy: &User{ID: userID},
 	}
 
 	options := map[string]interface{}{

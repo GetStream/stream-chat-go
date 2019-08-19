@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/getstream/easyjson"
+
 	"github.com/pascaldekloe/jwt"
 )
 
@@ -19,12 +21,12 @@ const (
 )
 
 type Client struct {
-	baseURL   string
+	BaseURL string
+	HTTP    *http.Client
+
 	apiKey    string
 	apiSecret []byte
 	authToken string
-	timeout   time.Duration
-	http      *http.Client
 }
 
 func (c *Client) setHeaders(r *http.Request) {
@@ -34,7 +36,7 @@ func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Stream-Auth-Type", "jwt")
 }
 
-func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
+func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler) error {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -45,23 +47,20 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	}
 
 	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
+		return easyjson.UnmarshalFromReader(resp.Body, result)
 	}
+
 	return nil
 }
 
-func (c *Client) requestURL(path string, params map[string][]string) (string, error) {
-	_url, err := url.Parse(c.baseURL + "/" + path)
+func (c *Client) requestURL(path string, values url.Values) (string, error) {
+	_url, err := url.Parse(c.BaseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
 	}
 
-	values := url.Values{}
-	// set request params to url
-	for key, vv := range params {
-		for _, v := range vv {
-			values.Add(key, v)
-		}
+	if values == nil {
+		values = make(url.Values)
 	}
 
 	values.Add("api_key", c.apiKey)
@@ -71,13 +70,19 @@ func (c *Client) requestURL(path string, params map[string][]string) (string, er
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params map[string][]string, data interface{}, result interface{}) error {
+func (c *Client) makeRequest(method string, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err
 	}
 
-	body, err := json.Marshal(data)
+	var body []byte
+	if m, ok := data.(easyjson.Marshaler); ok {
+		body, err = easyjson.Marshal(m)
+	} else {
+		body, err = json.Marshal(data)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -89,7 +94,7 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 
 	c.setHeaders(r)
 
-	resp, err := c.http.Do(r)
+	resp, err := c.HTTP.Do(r)
 	if err != nil {
 		return err
 	}
@@ -99,6 +104,10 @@ func (c *Client) makeRequest(method string, path string, params map[string][]str
 
 // CreateToken creates new token for user with optional expire time
 func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
 	params := map[string]interface{}{
 		"user_id": userID,
 	}
@@ -116,13 +125,21 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 }
 
 // NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Client, error) {
+func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
+	switch {
+	case apiKey == "":
+		return nil, errors.New("API key is empty")
+	case len(apiSecret) == 0:
+		return nil, errors.New("API secret is empty")
+	}
+
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: apiSecret,
-		timeout:   defaultTimeout,
-		baseURL:   defaultBaseURL,
-		http:      http.DefaultClient,
+		BaseURL:   defaultBaseURL,
+		HTTP: &http.Client{
+			Timeout: defaultTimeout,
+		},
 	}
 
 	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
@@ -131,11 +148,6 @@ func NewClient(apiKey string, apiSecret []byte, options ...func(*Client)) (*Clie
 	}
 
 	client.authToken = string(token)
-	for _, opt := range options {
-		opt(client)
-	}
-
-	client.http.Timeout = client.timeout
 
 	return client, nil
 }

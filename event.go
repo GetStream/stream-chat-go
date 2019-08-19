@@ -1,6 +1,12 @@
 package stream_chat
 
-import "time"
+import (
+	"errors"
+	"net/http"
+	"net/url"
+	"path"
+	"time"
+)
 
 type EventType string
 
@@ -30,16 +36,11 @@ const (
 	EventNotificationAddedToChannel     EventType = "notification.added_to_channel"
 	EventNotificationRemovedFromChannel EventType = "notification.removed_from_channel"
 	EventNotificationMutesUpdated       EventType = "notification.mutes_updated"
-
-	// local events
-	EventConnectionChanged   EventType = "connection.changed"
-	EventConnectionRecovered EventType = "connection.recovered"
 )
 
 type Event struct {
-	// Channel ID
-	CID          string         `json:"cid,omitempty"`
-	Type         EventType      `json:"type"`
+	CID          string         `json:"cid,omitempty"` // Channel ID
+	Type         EventType      `json:"type"`          // Event type, one of Event* constants
 	Message      *Message       `json:"message,omitempty"`
 	Reaction     *Reaction      `json:"reaction,omitempty"`
 	Channel      *Channel       `json:"channel,omitempty"`
@@ -51,9 +52,24 @@ type Event struct {
 
 	ExtraData map[string]interface{} `json:"-"`
 
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
-func (ev Event) toHash() map[string]interface{} {
-	return nil
+type eventRequest struct {
+	Event *Event `json:"event"`
+}
+
+// SendEvent sends an event on this channel
+func (ch *Channel) SendEvent(event *Event, userID string) error {
+	if event == nil {
+		return errors.New("event is nil")
+	}
+
+	event.User = &User{ID: userID}
+
+	req := eventRequest{Event: event}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
 }

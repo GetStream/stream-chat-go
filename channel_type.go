@@ -1,6 +1,7 @@
 package stream_chat
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -24,70 +25,104 @@ type modType string
 type modBehaviour string
 
 type Permission struct {
-	// required
-	Name string `json:"name"`
-	// one of: Deny Allow
-	Action string `json:"action"`
-	// required
-	Resources []string `json:"resources"`
+	Name   string `json:"name"`   // required
+	Action string `json:"action"` // one of: Deny Allow
+
+	Resources []string `json:"resources"` // required
 	Roles     []string `json:"roles"`
 	Owner     bool     `json:"owner"`
-	// required
-	Priority int `json:"priority"`
+	Priority  int      `json:"priority"` // required
+}
+
+type Command struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Args        string `json:"args"`
+	Set         string `json:"set"`
 }
 
 type ChannelType struct {
 	ChannelConfig
 
-	Commands    Commands     `json:"commands"`
-	Permissions []Permission `json:"permissions"`
+	Commands    []*Command    `json:"commands"`
+	Permissions []*Permission `json:"permissions"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// NewChannelType returns initialized ChannelType with default values
-func NewChannelType(name string) ChannelType {
-	ct := ChannelType{
-		ChannelConfig: ChannelConfig{
-			Name:             name,
-			Automod:          AutoModDisabled,
-			ModBehavior:      ModBehaviourFlag,
-			MaxMessageLength: defaultMessageLength,
-			MessageRetention: MessageRetentionForever,
-		},
+func (ct *ChannelType) toRequest() channelTypeRequest {
+	req := channelTypeRequest{ChannelType: ct}
+
+	if len(req.Commands) == 0 {
+		req.Commands = []string{"all"}
 	}
+
+	return req
+}
+
+// NewChannelType returns initialized ChannelType with default values
+func NewChannelType(name string) *ChannelType {
+	ct := &ChannelType{ChannelConfig: DefaultChannelConfig}
+	ct.Name = name
 
 	return ct
 }
 
+type channelTypeRequest struct {
+	*ChannelType
+
+	Commands []string `json:"commands"`
+
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type channelTypeResponse struct {
+	ChannelTypes map[string]*ChannelType `json:"channel_types"`
+}
+
 // CreateChannelType adds new channel type
-func (c *Client) CreateChannelType(chType *ChannelType) (err error) {
-	var resp ChannelType
-	err = c.makeRequest(http.MethodPost, "channeltypes", nil, chType, &resp)
-	if err != nil {
-		return err
+func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
+	if chType == nil {
+		return nil, errors.New("channel type is nil")
 	}
 
-	*chType = resp
+	var resp channelTypeRequest
 
-	return err
+	err := c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
+	if err != nil {
+		return nil, err
+	}
+	if resp.ChannelType == nil {
+		return nil, errors.New("unexpected error: channel type response is nil")
+	}
+
+	for _, cmd := range resp.Commands {
+		resp.ChannelType.Commands = append(resp.ChannelType.Commands, &Command{Name: cmd})
+	}
+
+	return resp.ChannelType, nil
 }
 
 // GetChannelType returns information about channel type
-func (c *Client) GetChannelType(chanType string) (ct ChannelType, err error) {
+func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
+	if chanType == "" {
+		return nil, errors.New("channel type is empty")
+	}
+
 	p := path.Join("channeltypes", url.PathEscape(chanType))
 
-	err = c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+	ct := ChannelType{}
 
-	return ct, err
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+
+	return &ct, err
 }
 
 // ListChannelTypes returns all channel types
-func (c *Client) ListChannelTypes() (map[string]ChannelType, error) {
-	var resp struct {
-		ChannelTypes map[string]ChannelType `json:"channel_types"`
-	}
+func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
+	var resp channelTypeResponse
 
 	err := c.makeRequest(http.MethodGet, "channeltypes", nil, nil, &resp)
 
@@ -95,6 +130,10 @@ func (c *Client) ListChannelTypes() (map[string]ChannelType, error) {
 }
 
 func (c *Client) DeleteChannelType(ct string) error {
+	if ct == "" {
+		return errors.New("channel type is empty")
+	}
+
 	p := path.Join("channeltypes", url.PathEscape(ct))
 
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)

@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
@@ -12,19 +11,19 @@ import (
 
 func initClient(t *testing.T) *Client {
 	c, err := NewClient(APIKey, []byte(APISecret))
-	mustNoError(t, err)
+	mustNoError(t, err, "new client")
 
 	// set hostname to client from env if present
 	if StreamHost != "" {
-		WithBaseURL(StreamHost)(c)
+		c.BaseURL = StreamHost
 	}
 
 	return c
 }
 
 func initChannel(t *testing.T, c *Client) *Channel {
-	err := c.UpdateUsers(testUsers...)
-	mustNoError(t, err)
+	_, err := c.UpdateUsers(testUsers...)
+	mustNoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
 	for i := range testUsers {
@@ -35,7 +34,7 @@ func initChannel(t *testing.T, c *Client) *Channel {
 		"members": members,
 	})
 
-	mustNoError(t, err)
+	mustNoError(t, err, "create channel")
 	return ch
 }
 
@@ -45,10 +44,8 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.authToken)
-	assert.Equal(t, defaultTimeout, c.timeout)
-	//	assert.Equal(t, defaultBaseURL, c.baseURL, )
-	assert.Equal(t, c.http, http.DefaultClient)
-	assert.Equal(t, defaultTimeout, c.http.Timeout)
+	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
+	//	assert.Equal(t, defaultBaseURL, c.BaseURL, )
 }
 
 func Test_client_CreateToken(t *testing.T) {
@@ -67,10 +64,10 @@ func Test_client_CreateToken(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			token, err := c.CreateToken(testUsers[0].ID, test.expire)
-			mustNoError(t, err)
+			mustNoError(t, err, "create token")
 
 			claims, err := jwt.HMACCheck(token, c.apiSecret)
-			mustNoError(t, err)
+			mustNoError(t, err, "jwt check")
 
 			var expiresIn *jwt.NumericTime
 			if !test.expire.IsZero() {
@@ -81,33 +78,4 @@ func Test_client_CreateToken(t *testing.T) {
 			assert.Equal(t, testUsers[0].ID, claims.Set["user_id"])
 		})
 	}
-}
-
-func TestWithBaseURL(t *testing.T) {
-	c := initClient(t)
-
-	u := "http://test:3030"
-	WithBaseURL(u)(c)
-	assert.Equal(t, u, c.baseURL)
-}
-
-func TestWithTimeout(t *testing.T) {
-	c := initClient(t)
-
-	timeout := time.Hour
-
-	WithTimeout(timeout)(c)
-
-	assert.Equal(t, timeout, c.timeout)
-	assert.Equal(t, timeout, c.http.Timeout)
-}
-
-func TestWithHTTPTransport(t *testing.T) {
-	c := initClient(t)
-
-	tr := &http.Transport{}
-
-	WithHTTPTransport(tr)(c)
-
-	assert.Equal(t, tr, c.http.Transport)
 }

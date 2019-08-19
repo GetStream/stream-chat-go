@@ -1,6 +1,7 @@
 package stream_chat
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -9,56 +10,63 @@ const (
 	PushProviderFirebase = pushProvider("firebase")
 )
 
-type pushProvider string
+type pushProvider = string
 
 type Device struct {
-	//The device ID.
-	ID string `json:"id"`
-	//The user ID for this device.
-	UserID string `json:"user_id"`
-	//The push provider for this device. One of constants PushProvider*
-	PushProvider pushProvider `json:"push_provider"`
+	ID           string       `json:"id"`            //The device ID.
+	UserID       string       `json:"user_id"`       //The user ID for this device.
+	PushProvider pushProvider `json:"push_provider"` //The push provider for this device. One of constants PushProvider*
 }
 
-func (d *Device) fromHash(hash map[string]string) {
-	d.UserID = hash["user_id"]
-	d.ID = hash["id"]
-	d.PushProvider = pushProvider(hash["provider"])
-}
-
-func (d *Device) toHash() map[string]interface{} {
-	return map[string]interface{}{
-		"user_id":  d.UserID,
-		"id":       d.ID,
-		"provider": d.PushProvider,
-	}
+type devicesResponse struct {
+	Devices []*Device `json:"devices"`
 }
 
 // Get list of devices for user
-func (c *Client) GetDevices(userId string) (devices []Device, err error) {
+func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
+	if userId == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
 	params := map[string][]string{
 		"user_id": {userId},
 	}
 
-	var resp struct {
-		Devices []Device `json:"devices"`
-	}
+	var resp devicesResponse
 
 	err = c.makeRequest(http.MethodGet, "devices", params, nil, &resp)
 
 	return resp.Devices, err
 }
 
-// Add device to a user. Provider should be one of PushProvider* constant
-func (c *Client) AddDevice(device Device) error {
+// AddDevice adds new device.
+func (c *Client) AddDevice(device *Device) error {
+	switch {
+	case device == nil:
+		return errors.New("device is nil")
+	case device.ID == "":
+		return errors.New("device ID is empty")
+	case device.UserID == "":
+		return errors.New("device user ID is empty")
+	case device.PushProvider == "":
+		return errors.New("device push provider is empty")
+	}
+
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
-// Delete a device for a user
-func (c *Client) DeleteDevice(userId string, deviceID string) error {
+// Delete a device from the user
+func (c *Client) DeleteDevice(userID string, deviceID string) error {
+	switch {
+	case userID == "":
+		return errors.New("user ID is empty")
+	case deviceID == "":
+		return errors.New("device ID is empty")
+	}
+
 	params := map[string][]string{
 		"id":      {deviceID},
-		"user_id": {userId},
+		"user_id": {userID},
 	}
 
 	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)
