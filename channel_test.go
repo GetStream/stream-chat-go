@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClient_CreateChannel(t *testing.T) {
+func Test_CreateChannel(t *testing.T) {
 	c := initClient(t)
 
 	t.Run("get existing channel", func(t *testing.T) {
 		ch := initChannel(t, c)
-		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
+		got, err := CreateChannel(c, ch.Type, ch.ID, serverUser.ID, nil)
 		mustNoError(t, err, "create channel", ch)
 
 		assert.Equal(t, c, got.client, "client link")
@@ -34,7 +34,7 @@ func TestClient_CreateChannel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("create new channel %s:%s", tt._type, tt.id), func(t *testing.T) {
-			got, err := c.CreateChannel(tt._type, tt.id, tt.userID, tt.data)
+			got, err := CreateChannel(c, tt._type, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
 				mustError(t, err, "create channel", tt)
 			} else {
@@ -53,7 +53,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := CreateChannel(c, "messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 
@@ -75,7 +75,7 @@ func TestChannel_Moderation(t *testing.T) {
 
 	// init random channel
 	chanID := randomString(12)
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := CreateChannel(c, "messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 

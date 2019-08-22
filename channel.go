@@ -42,7 +42,37 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
-	client *Client
+	client StreamClient
+}
+
+// CreateChannel creates new channel of given type and id or returns already created one
+func CreateChannel(client StreamClient, chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+	switch {
+	case chanType == "":
+		return nil, errors.New("channel type is empty")
+	case chanID == "":
+		return nil, errors.New("channel ID is empty")
+	case userID == "":
+		return nil, errors.New("user ID is empty")
+	}
+
+	ch := &Channel{
+		Type:      chanType,
+		ID:        chanID,
+		CreatedBy: &User{ID: userID},
+
+		client: client,
+	}
+
+	options := map[string]interface{}{
+		"watch":    false,
+		"state":    true,
+		"presence": false,
+	}
+
+	err := ch.query(options, data)
+
+	return ch, err
 }
 
 type queryResponse struct {
@@ -250,35 +280,6 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	options["id"] = ch.ID
 
 	return ch.client.UnBanUser(targetID, options)
-}
-
-// CreateChannel creates new channel of given type and id or returns already created one
-func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
-	switch {
-	case chanType == "":
-		return nil, errors.New("channel type is empty")
-	case chanID == "":
-		return nil, errors.New("channel ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	}
-
-	ch := &Channel{
-		Type:      chanType,
-		ID:        chanID,
-		client:    c,
-		CreatedBy: &User{ID: userID},
-	}
-
-	options := map[string]interface{}{
-		"watch":    false,
-		"state":    true,
-		"presence": false,
-	}
-
-	err := ch.query(options, data)
-
-	return ch, err
 }
 
 // todo: cleanup this
