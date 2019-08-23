@@ -1,6 +1,7 @@
 package stream_chat
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -45,7 +46,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiKey, APIKey)
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.header)
-	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
+	assert.Equal(t, defaultTimeout, c.HTTP.(*http.Client).Timeout)
 	//	assert.Equal(t, defaultBaseURL, c.BaseURL, )
 }
 
