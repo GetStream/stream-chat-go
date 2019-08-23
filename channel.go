@@ -45,32 +45,39 @@ type Channel struct {
 	client StreamClient
 }
 
+type ChannelOptions struct {
+	ID   string // channel ID, required
+	Type string // channel type, for example "messaging"; required
+
+	Data map[string]interface{} // extra channel data
+}
+
 // CreateChannel creates new channel of given type and id or returns already created one
-func CreateChannel(client StreamClient, chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+func CreateChannel(client StreamClient, options ChannelOptions, userID string) (*Channel, error) {
 	switch {
-	case chanType == "":
+	case options.Type == "":
 		return nil, errors.New("channel type is empty")
-	case chanID == "":
+	case options.ID == "":
 		return nil, errors.New("channel ID is empty")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
 	}
 
 	ch := &Channel{
-		Type:      chanType,
-		ID:        chanID,
+		Type:      options.Type,
+		ID:        options.ID,
 		CreatedBy: &User{ID: userID},
 
 		client: client,
 	}
 
-	options := map[string]interface{}{
+	args := map[string]interface{}{
 		"watch":    false,
 		"state":    true,
 		"presence": false,
 	}
 
-	err := ch.query(options, data)
+	err := ch.query(args, options.Data)
 
 	return ch, err
 }

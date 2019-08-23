@@ -30,9 +30,9 @@ func initChannel(t *testing.T, c *Client) *Channel {
 		members = append(members, testUsers[i].ID)
 	}
 
-	ch, err := CreateChannel(c, "team", "fellowship-of-the-ring", serverUser.ID, map[string]interface{}{
+	ch, err := CreateChannel(c, ChannelOptions{ID: "fellowship-of-the-ring", Type: "team", Data: map[string]interface{}{
 		"members": members,
-	})
+	}}, serverUser.ID)
 
 	mustNoError(t, err, "create channel")
 

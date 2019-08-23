@@ -12,7 +12,8 @@ func Test_CreateChannel(t *testing.T) {
 
 	t.Run("get existing channel", func(t *testing.T) {
 		ch := initChannel(t, c)
-		got, err := CreateChannel(c, ch.Type, ch.ID, serverUser.ID, nil)
+
+		got, err := CreateChannel(c, ChannelOptions{ID: ch.ID, Type: ch.Type}, serverUser.ID)
 		mustNoError(t, err, "create channel", ch)
 
 		assert.Equal(t, c, got.client, "client link")
@@ -23,26 +24,24 @@ func Test_CreateChannel(t *testing.T) {
 	})
 
 	tests := []struct {
-		_type   string
-		id      string
+		options ChannelOptions
 		userID  string
-		data    map[string]interface{}
 		wantErr bool
 	}{
-		{"messaging", randomString(12), serverUser.ID, nil, false},
+		{ChannelOptions{ID: randomString(12), Type: "messaging"}, serverUser.ID, false},
 	}
 
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("create new channel %s:%s", tt._type, tt.id), func(t *testing.T) {
-			got, err := CreateChannel(c, tt._type, tt.id, tt.userID, tt.data)
+		t.Run(fmt.Sprintf("create new channel %s:%s", tt.options.Type, tt.options.ID), func(t *testing.T) {
+			got, err := CreateChannel(c, tt.options, tt.userID)
 			if tt.wantErr {
 				mustError(t, err, "create channel", tt)
 			} else {
 				mustNoError(t, err, "create channel", tt)
 			}
 
-			assert.Equal(t, tt._type, got.Type, "channel type")
-			assert.Equal(t, tt.id, got.ID, "channel id")
+			assert.Equal(t, tt.options.Type, got.Type, "channel type")
+			assert.Equal(t, tt.options.ID, got.ID, "channel id")
 			assert.Equal(t, tt.userID, got.CreatedBy.ID, "channel created by")
 		})
 	}
@@ -53,7 +52,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := CreateChannel(c, "messaging", chanID, serverUser.ID, nil)
+	ch, err := CreateChannel(c, ChannelOptions{ID: chanID, Type: "messaging"}, serverUser.ID)
 	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 
@@ -75,7 +74,7 @@ func TestChannel_Moderation(t *testing.T) {
 
 	// init random channel
 	chanID := randomString(12)
-	ch, err := CreateChannel(c, "messaging", chanID, serverUser.ID, nil)
+	ch, err := CreateChannel(c, ChannelOptions{ID: chanID, Type: "messaging"}, serverUser.ID)
 	mustNoError(t, err, "create channel")
 	defer ch.Delete()
 
