@@ -138,6 +138,7 @@ func (c *Client) ExportUser(targetID string, options map[string][]string) (user 
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "export")
+	user = &User{}
 
 	err = c.makeRequest(http.MethodGet, p, options, nil, user)
 
