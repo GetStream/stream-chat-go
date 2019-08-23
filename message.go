@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 	"time"
@@ -121,7 +120,7 @@ func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, message.toRequest(), &resp)
+	err := ch.client.Post(p, nil, message.toRequest(), &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +140,7 @@ func (c *Client) MarkAllRead(userID string) error {
 		},
 	}
 
-	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
+	return c.Post("channels/read", nil, data, nil)
 }
 
 // UpdateMessage updates message with given msgID
@@ -157,7 +156,7 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	err := c.makeRequest(http.MethodPost, p, nil, msg.toRequest(), &resp)
+	err := c.Post(p, nil, msg.toRequest(), &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +171,7 @@ func (c *Client) DeleteMessage(msgID string) error {
 
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return c.Delete(p, nil, nil)
 }
 
 type repliesResponse struct {
@@ -190,7 +189,7 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*
 
 	var resp repliesResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.Get(p, options, &resp)
 
 	return resp.Messages, err
 }

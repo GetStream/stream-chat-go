@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 	"time"
@@ -90,7 +89,7 @@ func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
 
 	var resp channelTypeRequest
 
-	err := c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
+	err := c.Post("channeltypes", nil, chType.toRequest(), &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +114,7 @@ func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 
 	ct := ChannelType{}
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+	err := c.Get(p, nil, &ct)
 
 	return &ct, err
 }
@@ -124,7 +123,7 @@ func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
 	var resp channelTypeResponse
 
-	err := c.makeRequest(http.MethodGet, "channeltypes", nil, nil, &resp)
+	err := c.Get("channeltypes", nil, &resp)
 
 	return resp.ChannelTypes, err
 }
@@ -136,5 +135,5 @@ func (c *Client) DeleteChannelType(ct string) error {
 
 	p := path.Join("channeltypes", url.PathEscape(ct))
 
-	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return c.Delete(p, nil, nil)
 }

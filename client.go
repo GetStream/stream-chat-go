@@ -1,11 +1,7 @@
 package stream_chat
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -26,31 +22,9 @@ type Client struct {
 
 	apiKey    string
 	apiSecret []byte
-	authToken string
-}
+	token     string
 
-func (c *Client) setHeaders(r *http.Request) {
-	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Stream-Client", "stream-go-client")
-	r.Header.Set("Authorization", c.authToken)
-	r.Header.Set("Stream-Auth-Type", "jwt")
-}
-
-func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler) error {
-	if resp.Body != nil {
-		defer resp.Body.Close()
-	}
-
-	if resp.StatusCode >= 399 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("chat-client: HTTP %s %s status %s: %s", resp.Request.Method, resp.Request.URL, resp.Status, string(msg))
-	}
-
-	if result != nil {
-		return easyjson.UnmarshalFromReader(resp.Body, result)
-	}
-
-	return nil
+	header http.Header
 }
 
 func (c *Client) requestURL(path string, values url.Values) (string, error) {
@@ -59,8 +33,8 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 		return "", errors.New("url.Parse: " + err.Error())
 	}
 
-	if values == nil {
-		values = make(url.Values)
+	if len(values) == 0 {
+		values = make(url.Values, 1)
 	}
 
 	values.Add("api_key", c.apiKey)
@@ -70,36 +44,31 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
-	_url, err := c.requestURL(path, params)
+func (c *Client) Get(path string, urlParams url.Values, result easyjson.Unmarshaler) error {
+	_url, err := c.requestURL(path, urlParams)
 	if err != nil {
 		return err
 	}
 
-	var body []byte
-	if m, ok := data.(easyjson.Marshaler); ok {
-		body, err = easyjson.Marshal(m)
-	} else {
-		body, err = json.Marshal(data)
-	}
+	return MakeRequest(c.HTTP, c.header, http.MethodGet, _url, nil, result)
+}
 
+func (c *Client) Post(path string, urlParams url.Values, body interface{}, result easyjson.Unmarshaler) error {
+	_url, err := c.requestURL(path, urlParams)
 	if err != nil {
 		return err
 	}
 
-	r, err := http.NewRequest(method, _url, bytes.NewReader(body))
+	return MakeRequest(c.HTTP, c.header, http.MethodPost, _url, body, result)
+}
+
+func (c *Client) Delete(path string, urlParams url.Values, result easyjson.Unmarshaler) error {
+	_url, err := c.requestURL(path, urlParams)
 	if err != nil {
 		return err
 	}
 
-	c.setHeaders(r)
-
-	resp, err := c.HTTP.Do(r)
-	if err != nil {
-		return err
-	}
-
-	return c.parseResponse(resp, result)
+	return MakeRequest(c.HTTP, c.header, http.MethodDelete, _url, nil, result)
 }
 
 // CreateToken creates new token for user with optional expire time
@@ -140,6 +109,7 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 		HTTP: &http.Client{
 			Timeout: defaultTimeout,
 		},
+		header: make(http.Header),
 	}
 
 	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
@@ -147,7 +117,10 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 		return nil, err
 	}
 
-	client.authToken = string(token)
+	client.header.Set("Content-Type", "application/json")
+	client.header.Set("X-Stream-Client", "stream-go-client")
+	client.header.Set("Authorization", string(token))
+	client.header.Set("Stream-Auth-Type", "jwt")
 
 	return client, nil
 }

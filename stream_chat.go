@@ -2,10 +2,7 @@
 package stream_chat
 
 import (
-	"net/url"
 	"time"
-
-	"github.com/getstream/easyjson"
 )
 
 // for interfaces type matching
@@ -36,8 +33,6 @@ type StreamClient interface {
 	UnmuteUser(targetID string, userID string) error
 	UpdateMessage(msg *Message, msgID string) (*Message, error)
 	UpdateUsers(users ...*User) (map[string]*User, error)
-
-	makeRequest(method string, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error
 }
 
 type StreamChannel interface {

@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 )
 
 const (
@@ -34,7 +33,7 @@ func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
 
 	var resp devicesResponse
 
-	err = c.makeRequest(http.MethodGet, "devices", params, nil, &resp)
+	err = c.Get("devices", params, &resp)
 
 	return resp.Devices, err
 }
@@ -52,7 +51,7 @@ func (c *Client) AddDevice(device *Device) error {
 		return errors.New("device push provider is empty")
 	}
 
-	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
+	return c.Post("devices", nil, device, nil)
 }
 
 // Delete a device from the user
@@ -69,5 +68,5 @@ func (c *Client) DeleteDevice(userID string, deviceID string) error {
 		"user_id": {userID},
 	}
 
-	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)
+	return c.Delete("devices", params, nil)
 }

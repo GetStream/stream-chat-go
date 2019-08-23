@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 )
@@ -43,7 +42,7 @@ func (ch *Channel) SendReaction(reaction *Reaction, messageID string, userID str
 	p := path.Join("messages", url.PathEscape(messageID), "reaction")
 
 	req := reactionRequest{Reaction: reaction}
-	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
+	err := ch.client.Post(p, nil, req, &resp)
 
 	return resp.Message, err
 }
@@ -67,7 +66,7 @@ func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID 
 
 	var resp reactionResponse
 
-	err := ch.client.makeRequest(http.MethodDelete, p, params, nil, &resp)
+	err := ch.client.Delete(p, params, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +92,7 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 
 	var resp reactionsResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.Get(p, options, &resp)
 
 	return resp.Reactions, err
 }

@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 	"time"
@@ -49,7 +48,7 @@ func (c *Client) MuteUser(targetID string, userID string) error {
 		"user_id":   userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
+	return c.Post("moderation/mute", nil, data, nil)
 }
 
 // Removes a mute
@@ -68,7 +67,7 @@ func (c *Client) UnmuteUser(targetID string, userID string) error {
 		"user_id":   userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
+	return c.Post("moderation/unmute", nil, data, nil)
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
@@ -81,7 +80,7 @@ func (c *Client) FlagUser(targetID string, options map[string]interface{}) error
 
 	options["target_user_id"] = targetID
 
-	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
+	return c.Post("moderation/flag", nil, options, nil)
 }
 
 func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) error {
@@ -94,7 +93,7 @@ func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) err
 
 	options["target_user_id"] = targetID
 
-	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
+	return c.Post("moderation/unflag", nil, options, nil)
 }
 
 func (c *Client) BanUser(targetID string, userID string, options map[string]interface{}) error {
@@ -110,7 +109,7 @@ func (c *Client) BanUser(targetID string, userID string, options map[string]inte
 	options["target_user_id"] = targetID
 	options["user_id"] = userID
 
-	return c.makeRequest(http.MethodPost, "moderation/ban", nil, options, nil)
+	return c.Post("moderation/ban", nil, options, nil)
 }
 
 func (c *Client) UnBanUser(targetID string, options map[string]string) error {
@@ -129,7 +128,7 @@ func (c *Client) UnBanUser(targetID string, options map[string]string) error {
 
 	params["target_user_id"] = []string{targetID}
 
-	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
+	return c.Delete("moderation/ban", params, nil)
 }
 
 func (c *Client) ExportUser(targetID string, options map[string][]string) (user *User, err error) {
@@ -140,7 +139,7 @@ func (c *Client) ExportUser(targetID string, options map[string][]string) (user 
 	p := path.Join("users", url.PathEscape(targetID), "export")
 	user = &User{}
 
-	err = c.makeRequest(http.MethodGet, p, options, nil, user)
+	err = c.Get(p, options, user)
 
 	return user, err
 }
@@ -152,7 +151,7 @@ func (c *Client) DeactivateUser(targetID string, options map[string]interface{})
 
 	p := path.Join("users", url.PathEscape(targetID), "deactivate")
 
-	return c.makeRequest(http.MethodPost, p, nil, options, nil)
+	return c.Post(p, nil, options, nil)
 }
 
 func (c *Client) DeleteUser(targetID string, options map[string][]string) error {
@@ -162,7 +161,7 @@ func (c *Client) DeleteUser(targetID string, options map[string][]string) error 
 
 	p := path.Join("users", url.PathEscape(targetID))
 
-	return c.makeRequest(http.MethodDelete, p, options, nil, nil)
+	return c.Delete(p, options, nil)
 }
 
 type usersResponse struct {
@@ -194,7 +193,7 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 
 	var resp usersResponse
 
-	err := c.makeRequest(http.MethodPost, "users", nil, req, &resp)
+	err := c.Post("users", nil, req, &resp)
 	if err != nil {
 		return nil, err
 	}

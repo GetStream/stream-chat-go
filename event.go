@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 	"time"
@@ -71,5 +70,5 @@ func (ch *Channel) SendEvent(event *Event, userID string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
+	return ch.client.Post(p, nil, req, nil)
 }

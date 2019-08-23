@@ -129,27 +129,6 @@ func TestChannel_Delete(t *testing.T) {
 	mustNoError(t, err, "delete channel")
 }
 
-func TestChannel_GetReplies(t *testing.T) {
-	c := initClient(t)
-	ch := initChannel(t, c)
-	defer ch.Delete()
-
-	user := randomUser()
-
-	msg := &Message{Text: "test message"}
-
-	msg, err := ch.SendMessage(msg, user.ID)
-	mustNoError(t, err, "send message")
-
-	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
-	reply, err = ch.SendMessage(reply, serverUser.ID)
-	mustNoError(t, err, "send reply")
-
-	replies, err := ch.GetReplies(msg.ID, nil)
-	mustNoError(t, err, "get replies")
-	assert.Len(t, replies, 1)
-}
-
 func TestChannel_MarkRead(t *testing.T) {
 
 }
@@ -171,24 +150,6 @@ func TestChannel_RemoveMembers(t *testing.T) {
 
 func TestChannel_SendEvent(t *testing.T) {
 
-}
-
-func TestChannel_SendMessage(t *testing.T) {
-	c := initClient(t)
-	ch := initChannel(t, c)
-	defer ch.Delete()
-
-	user := randomUser()
-	msg := &Message{
-		Text: "test message",
-		User: user,
-	}
-
-	msg, err := ch.SendMessage(msg, serverUser.ID)
-	mustNoError(t, err, "send message")
-	// check that message was updated
-	assert.NotEmpty(t, msg.ID, "message has ID")
-	assert.NotEmpty(t, msg.HTML, "message has HTML body")
 }
 
 func TestChannel_Truncate(t *testing.T) {

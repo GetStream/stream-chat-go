@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"path"
 	"time"
@@ -42,7 +41,7 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
-	client StreamClient
+	client RestClient
 }
 
 type ChannelOptions struct {
@@ -53,7 +52,7 @@ type ChannelOptions struct {
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one
-func CreateChannel(client StreamClient, options ChannelOptions, userID string) (*Channel, error) {
+func CreateChannel(client RestClient, options ChannelOptions, userID string) (*Channel, error) {
 	switch {
 	case options.Type == "":
 		return nil, errors.New("channel type is empty")
@@ -130,7 +129,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 
 	var resp queryResponse
 
-	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
+	err = ch.client.Post(p, nil, payload, &resp)
 	if err != nil {
 		return err
 	}
@@ -152,21 +151,21 @@ func (ch *Channel) Update(options map[string]interface{}, message string) error 
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, payload, nil)
+	return ch.client.Post(p, nil, payload, nil)
 }
 
 // Delete removes the channel. Messages are permanently removed.
 func (ch *Channel) Delete() error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return ch.client.Delete(p, nil, nil)
 }
 
 // Truncate removes all messages from the channel
 func (ch *Channel) Truncate() error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
+	return ch.client.Post(p, nil, nil, nil)
 }
 
 // AddMembers adds members with given user IDs to the channel
@@ -181,7 +180,7 @@ func (ch *Channel) AddMembers(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.Post(p, nil, data, nil)
 }
 
 //  RemoveMembers deletes members with given IDs from the channel
@@ -198,7 +197,7 @@ func (ch *Channel) RemoveMembers(userIDs ...string) error {
 
 	var resp queryResponse
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	err := ch.client.Post(p, nil, data, &resp)
 	if err != nil {
 		return err
 	}
@@ -220,7 +219,7 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.Post(p, nil, data, nil)
 }
 
 // DemoteModerators moderators with given IDs from the channel
@@ -235,7 +234,7 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.Post(p, nil, data, nil)
 }
 
 //  MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
@@ -252,7 +251,7 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 
 	options["user"] = map[string]interface{}{"id": userID}
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
+	return ch.client.Post(p, nil, options, nil)
 }
 
 // BanUser bans target user ID from this channel
@@ -270,8 +269,10 @@ func (ch *Channel) BanUser(targetID string, userID string, options map[string]in
 
 	options["type"] = ch.Type
 	options["id"] = ch.ID
+	options["target_user_id"] = targetID
+	options["user_id"] = userID
 
-	return ch.client.BanUser(targetID, userID, options)
+	return ch.client.Post("moderation/ban", nil, options, nil)
 }
 
 // UnBanUser removes the ban for target user ID on this channel
@@ -280,13 +281,19 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	case targetID == "":
 		return errors.New("target ID must be not empty")
 	case options == nil:
-		options = map[string]string{}
+		options = make(map[string]string, 3)
 	}
 
 	options["type"] = ch.Type
 	options["id"] = ch.ID
+	options["target_user_id"] = targetID
 
-	return ch.client.UnBanUser(targetID, options)
+	params := make(map[string][]string, 3)
+	for k, v := range options {
+		params[k] = []string{v}
+	}
+
+	return ch.client.Delete("moderation/ban", params, nil)
 }
 
 // todo: cleanup this
