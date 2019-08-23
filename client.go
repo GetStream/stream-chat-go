@@ -50,7 +50,7 @@ func (c *Client) Get(path string, urlParams url.Values, result easyjson.Unmarsha
 		return err
 	}
 
-	return MakeRequest(c.HTTP, c.header, http.MethodGet, _url, nil, result)
+	return makeRequest(c.HTTP, c.header, http.MethodGet, _url, nil, result)
 }
 
 func (c *Client) Post(path string, urlParams url.Values, body interface{}, result easyjson.Unmarshaler) error {
@@ -59,7 +59,7 @@ func (c *Client) Post(path string, urlParams url.Values, body interface{}, resul
 		return err
 	}
 
-	return MakeRequest(c.HTTP, c.header, http.MethodPost, _url, body, result)
+	return makeRequest(c.HTTP, c.header, http.MethodPost, _url, body, result)
 }
 
 func (c *Client) Delete(path string, urlParams url.Values, result easyjson.Unmarshaler) error {
@@ -68,7 +68,7 @@ func (c *Client) Delete(path string, urlParams url.Values, result easyjson.Unmar
 		return err
 	}
 
-	return MakeRequest(c.HTTP, c.header, http.MethodDelete, _url, nil, result)
+	return makeRequest(c.HTTP, c.header, http.MethodDelete, _url, nil, result)
 }
 
 // CreateToken creates new token for user with optional expire time

@@ -21,7 +21,7 @@ type HTTPDo interface {
 	Do(r *http.Request) (*http.Response, error)
 }
 
-var MakeRequest = func(client HTTPDo, header http.Header, method, path string, data interface{}, result easyjson.Unmarshaler) (err error) {
+func makeRequest(client HTTPDo, header http.Header, method, path string, data interface{}, result easyjson.Unmarshaler) (err error) {
 	req, err := newRequest(method, path, data)
 	if err != nil {
 		return err
