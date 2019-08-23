@@ -18,7 +18,7 @@ const (
 
 type Client struct {
 	BaseURL string
-	HTTP    *http.Client
+	HTTP    HTTPDo `json:"-"`
 
 	apiKey    string
 	apiSecret []byte
@@ -109,7 +109,7 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 		HTTP: &http.Client{
 			Timeout: defaultTimeout,
 		},
-		header: make(http.Header),
+		header: make(http.Header, 4),
 	}
 
 	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
