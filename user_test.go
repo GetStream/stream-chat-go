@@ -45,3 +45,18 @@ func TestClient_UpdateUsers(t *testing.T) {
 	assert.NotEmpty(t, resp[user.ID].CreatedAt)
 	assert.NotEmpty(t, resp[user.ID].UpdatedAt)
 }
+
+func TestClient_QueryUsers(t *testing.T) {
+	c := initClient(t)
+
+	user := randomUser()
+
+	users, err := c.QueryUsers(&QueryOption{Query: map[string]interface{}{
+		"id": map[string]interface{}{
+			"$eq": user.ID,
+		},
+	}})
+
+	mustNoError(t, err)
+	assert.Contains(t, users, user.ID)
+}

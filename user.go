@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"path"
 	"time"
+
+	"github.com/getstream/easyjson"
 )
 
 type Mute struct {
@@ -199,4 +201,64 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	}
 
 	return resp.Users, err
+}
+
+type QueryOption struct {
+	Query map[string]interface{} `json:"-,extra"` // https://getstream.io/chat/docs/#query_syntax
+
+	PaginationOption
+}
+
+type PaginationOption struct {
+	Limit  int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
+}
+
+type SortOption struct {
+	Field     string `json:"field"`
+	Direction int    `json:"direction"` // [-1, 1]
+}
+
+type queryParams struct {
+	Watch    bool `json:"watch,omitempty"`
+	State    bool `json:"state,omitempty"`
+	Presence bool `json:"presence,omitempty"`
+
+	FilterConditions *QueryOption  `json:"filter_conditions,omitempty"`
+	Sort             []*SortOption `json:"sort,omitempty"`
+}
+
+type queryUsersResponse struct {
+	Users []*User `json:"users"`
+}
+
+func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) (map[string]*User, error) {
+	qp := queryParams{
+		State:            true,
+		Watch:            false,
+		Presence:         false,
+		FilterConditions: q,
+		Sort:             sort,
+	}
+
+	data, err := easyjson.Marshal(&qp)
+	if err != nil {
+		return nil, err
+	}
+
+	values := make(url.Values)
+	values.Set("payload", string(data))
+
+	var resp queryUsersResponse
+	err = c.makeRequest(http.MethodGet, "users", values, nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]*User, len(resp.Users))
+	for _, u := range resp.Users {
+		result[u.ID] = u
+	}
+
+	return result, nil
 }
