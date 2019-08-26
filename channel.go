@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type ChannelRead struct {
+	User     *User     `json:"user"`
+	LastRead time.Time `json:"last_read"`
+}
+
 type ChannelMember struct {
 	UserID      string `json:"user_id,omitempty"`
 	User        *User  `json:"user,omitempty"`
@@ -35,8 +40,8 @@ type Channel struct {
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
 
-	Messages []*Message `json:"messages"`
-	Read     []*User    `json:"read"`
+	Messages []*Message     `json:"messages"`
+	Read     []*ChannelRead `json:"read"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -49,7 +54,7 @@ type queryResponse struct {
 	Channel  *Channel         `json:"channel,omitempty"`
 	Messages []*Message       `json:"messages,omitempty"`
 	Members  []*ChannelMember `json:"members,omitempty"`
-	Read     []*User          `json:"read,omitempty"`
+	Read     []*ChannelRead   `json:"read,omitempty"`
 }
 
 func (q queryResponse) updateChannel(ch *Channel) {
