@@ -12,7 +12,7 @@ import (
 
 	"github.com/getstream/easyjson"
 
-	"github.com/pascaldekloe/jwt"
+	"github.com/dgrijalva/jwt-go"
 )
 
 const (
@@ -112,16 +112,17 @@ func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
 		"user_id": userID,
 	}
 
-	return c.createToken(params, expire)
+	if !expire.IsZero() {
+		params["exp"] = expire.Unix()
+	}
+
+	return c.createToken(params)
 }
 
-func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([]byte, error) {
-	var claims = jwt.Claims{
-		Set: params,
-	}
-	claims.Expires = jwt.NewNumericTime(expire)
-
-	return claims.HMACSign(jwt.HS256, c.apiSecret)
+func (c *Client) createToken(params map[string]interface{}) ([]byte, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(params))
+	tokenString, err := token.SignedString(c.apiSecret)
+	return []byte(tokenString), err
 }
 
 // NewClient creates new stream chat api client
@@ -142,12 +143,11 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 		},
 	}
 
-	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
+	token, err := client.createToken(map[string]interface{}{"server": true})
 	if err != nil {
 		return nil, err
 	}
 
 	client.authToken = string(token)
-
 	return client, nil
 }
