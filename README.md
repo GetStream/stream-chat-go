@@ -50,7 +50,12 @@ func main() {
     client, err := stream.NewClient(APIKey, []byte(APISecret))
     // use client methods
     
-    channel, err := stream.CreateChannel(client, stream.ChannelOptions{Type: "messaging", ID: "channel-id"} ,userID)
+    // create channel with users
+    users := []string{"id1", "id2", "id3"}
+    channel, err := client.CreateChannel("messaging", "channel-id" ,userID, map[string]interface{}{
+    	"users": users,
+    })
+
     // use channel methods
     msg, err := channel.SendMessage(&stream.Message{Text: "hello"}, userID)
 }
