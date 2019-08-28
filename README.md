@@ -28,8 +28,8 @@ go get github.com/GetStream/stream-chat-go
 - [x] Moderation API 
 - [x] Push configuration 
 - [x] User devices 
-- [ ] User search
-- [ ] Channel search
+- [x] User search
+- [x] Channel search
 
 ### Quickstart
 
