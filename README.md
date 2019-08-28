@@ -23,7 +23,7 @@ go get github.com/GetStream/stream-chat-go
 
 - [x] Chat channels 
 - [x] Messages
-- [ ] Chat channel types 
+- [x] Chat channel types 
 - [x] User management 
 - [x] Moderation API 
 - [x] Push configuration 
@@ -34,6 +34,26 @@ go get github.com/GetStream/stream-chat-go
 ### Quickstart
 
 ```go
+
+package main
+
+import ( 
+    "os"
+    stream "github.com/GetStream/stream-chat-go"
+)
+
+var APIKey = os.Getenv("STREAM_API_KEY")
+var APISecret = os.Getenv("STREAM_API_SECRET")
+var userID = "" // your server user id
+
+func main() {
+    client, err := stream.NewClient(APIKey, []byte(APISecret))
+    // use client methods
+    
+    channel, err := stream.CreateChannel(client, stream.ChannelOptions{Type: "messaging", ID: "channel-id"} ,userID)
+    // use channel methods
+    msg, err := channel.SendMessage(&stream.Message{Text: "hello"}, userID)
+}
 ```
 
 ### Contributing
