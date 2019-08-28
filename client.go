@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"time"
@@ -120,6 +121,12 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 		Set: params,
 	}
 	claims.Expires = jwt.NewNumericTime(expire)
+
+	// TODO: apply fix for rounding from jwt when be released
+	if claims.Expires != nil {
+		r := jwt.NumericTime(math.Round(float64(*claims.Expires)))
+		claims.Expires = &r
+	}
 
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
 }

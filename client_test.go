@@ -1,10 +1,9 @@
 package stream_chat
 
 import (
+	"reflect"
 	"testing"
 	"time"
-
-	"github.com/pascaldekloe/jwt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -48,34 +47,31 @@ func TestNewClient(t *testing.T) {
 	//	assert.Equal(t, defaultBaseURL, c.BaseURL, )
 }
 
-func Test_client_CreateToken(t *testing.T) {
-	c := initClient(t)
-
-	var expire = time.Now().Add(time.Hour)
-	tt := []struct {
-		name   string
+func TestClient_CreateToken(t *testing.T) {
+	type args struct {
+		userId string
 		expire time.Time
-	}{
-		{"token without expire", time.Time{}},
-		{"token with expire", expire},
 	}
-
-	for _, test := range tt {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
-			token, err := c.CreateToken(testUsers[0].ID, test.expire)
-			mustNoError(t, err, "create token")
-
-			claims, err := jwt.HMACCheck(token, c.apiSecret)
-			mustNoError(t, err, "jwt check")
-
-			var expiresIn *jwt.NumericTime
-			if !test.expire.IsZero() {
-				expiresIn = jwt.NewNumericTime(test.expire)
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
+	}{
+		{"simple without expiration", args{"tommaso", time.Time{}}, []byte("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.oQLtgTc9_SIr3Rvrq-eW_WrLmdO1gAAYA335qTatxrU"), false},
+		{"simple with expiration", args{"tommaso", time.Unix(1566941272, 123121)}, []byte("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.bkMDhCJhzKKnSZO27QcP8n3o7u9C1TpoMt0MD-JCNnY"), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, _ := NewClient("key", []byte("secret"))
+			got, err := c.CreateToken(tt.args.userId, tt.args.expire)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-
-			assert.Equal(t, expiresIn, claims.Expires)
-			assert.Equal(t, testUsers[0].ID, claims.Set["user_id"])
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("createToken() got = %v, want %v", string(got), string(tt.want))
+			}
 		})
 	}
 }
