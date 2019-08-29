@@ -29,6 +29,8 @@ type StreamClient interface {
 	ListChannelTypes() (map[string]*ChannelType, error)
 	MarkAllRead(userID string) error
 	MuteUser(targetID string, userID string) error
+	QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error)
+	QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error)
 	UnBanUser(targetID string, options map[string]string) error
 	UnFlagUser(targetID string, options map[string]interface{}) error
 	UnmuteUser(targetID string, userID string) error
