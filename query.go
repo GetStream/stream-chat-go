@@ -10,10 +10,6 @@ import (
 type QueryOption struct {
 	Filter map[string]interface{} `json:"-,extra"` // https://getstream.io/chat/docs/#query_syntax
 
-	PaginationOption
-}
-
-type PaginationOption struct {
 	Limit  int `json:"limit,omitempty"`
 	Offset int `json:"offset,omitempty"`
 }

@@ -14,8 +14,8 @@ func TestClient_QueryUsers(t *testing.T) {
 	users, err := c.QueryUsers(&QueryOption{Filter: map[string]interface{}{
 		"id": map[string]interface{}{
 			"$eq": user.ID,
-		},
-	}})
+		}},
+	})
 
 	mustNoError(t, err, "query users error")
 
