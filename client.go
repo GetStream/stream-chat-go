@@ -23,7 +23,7 @@ const (
 
 type Client struct {
 	BaseURL string
-	HTTP    *http.Client
+	HTTP    *http.Client `json:"-"`
 
 	apiKey    string
 	apiSecret []byte
