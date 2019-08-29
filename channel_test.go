@@ -148,7 +148,33 @@ func TestChannel_GetReplies(t *testing.T) {
 }
 
 func TestChannel_MarkRead(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
 
+	_, err := ch.SendMessage(&Message{Text: "testing"}, serverUser.ID)
+	mustNoError(t, err, "send message")
+
+	user := randomUser()
+
+	err = ch.MarkRead(user.ID, nil)
+	mustNoError(t, err, "mark read")
+
+	mustNoError(t, ch.Reload(), "channel reload")
+
+	if assert.NotEmpty(t, ch.Read) {
+		assert.Condition(t, isChannelReadByUser(ch, user), "channel read by user", user.ID)
+	}
+}
+
+func isChannelReadByUser(ch *Channel, user *User) func() bool {
+	return func() bool {
+		for _, read := range ch.Read {
+			if read.User.ID == user.ID {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 func TestChannel_RemoveMembers(t *testing.T) {

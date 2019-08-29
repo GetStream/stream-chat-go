@@ -106,7 +106,9 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 		data = map[string]interface{}{}
 	}
 
-	data["created_by"] = map[string]interface{}{"id": ch.CreatedBy.ID}
+	if ch.CreatedBy != nil {
+		data["created_by"] = map[string]interface{}{"id": ch.CreatedBy.ID}
+	}
 
 	payload["data"] = data
 
@@ -136,7 +138,14 @@ func (ch *Channel) Update(options map[string]interface{}, message string) error 
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, payload, nil)
+	var resp channelQueryResponse
+	if err := ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp); err != nil {
+		return err
+	}
+
+	ch.update(resp)
+
+	return nil
 }
 
 // Delete removes the channel. Messages are permanently removed.
@@ -150,7 +159,15 @@ func (ch *Channel) Delete() error {
 func (ch *Channel) Truncate() error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
+	var resp channelQueryResponse
+
+	if err := ch.client.makeRequest(http.MethodPost, p, nil, nil, &resp); err != nil {
+		return err
+	}
+
+	ch.update(resp)
+
+	return nil
 }
 
 // AddMembers adds members with given user IDs to the channel
@@ -173,6 +190,7 @@ func (ch *Channel) AddMembers(userIDs ...string) error {
 	}
 
 	ch.update(resp)
+
 	return nil
 }
 
@@ -219,6 +237,7 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 	}
 
 	ch.update(resp)
+
 	return nil
 }
 
@@ -241,6 +260,7 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 	}
 
 	ch.update(resp)
+
 	return nil
 }
 
