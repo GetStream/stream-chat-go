@@ -10,12 +10,12 @@ import (
 type QueryOption struct {
 	Filter map[string]interface{} `json:"-,extra"` // https://getstream.io/chat/docs/#query_syntax
 
-	Limit  int `json:"limit,omitempty"`
-	Offset int `json:"offset,omitempty"`
+	Limit  int `json:"limit,omitempty"`  // pagination option: limit number of results
+	Offset int `json:"offset,omitempty"` // pagination option: offset to return items from
 }
 
 type SortOption struct {
-	Field     string `json:"field"`
+	Field     string `json:"field"`     // field name to sort by,from json tags(in camel case), for example created_at
 	Direction int    `json:"direction"` // [-1, 1]
 }
 
@@ -29,7 +29,7 @@ type queryUsersResponse struct {
 }
 
 // QueryUsers returns list of users that match QueryOption.
-// If list of SortOption are set, channels will be sorted by field and direction
+// If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error) {
 	qp := queryUsersRequest{
 		FilterConditions: q,
@@ -71,7 +71,7 @@ type queryChannelResponseData struct {
 }
 
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
-// If list of SortOption are set, channels will be sorted by field and direction
+// If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
 	qp := queryChannelRequest{
 		State:            true,
