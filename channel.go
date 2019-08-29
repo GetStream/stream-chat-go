@@ -5,8 +5,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"sync"
 	"time"
 )
+
+// global lock storage for channels
+var channelsLock sync.Map
 
 type ChannelRead struct {
 	User     *User     `json:"user"`
@@ -50,27 +54,39 @@ type Channel struct {
 	client *Client
 }
 
-type queryResponse struct {
+type channelQueryResponse struct {
 	Channel  *Channel         `json:"channel,omitempty"`
 	Messages []*Message       `json:"messages,omitempty"`
 	Members  []*ChannelMember `json:"members,omitempty"`
 	Read     []*ChannelRead   `json:"read,omitempty"`
 }
 
-func (q queryResponse) updateChannel(ch *Channel) {
+func (ch *Channel) update(q channelQueryResponse) {
+	// atomically add or create new lock in channel lock store
+	lock, _ := channelsLock.LoadOrStore(ch.CID, &sync.Mutex{})
+
+	lock.(*sync.Mutex).Lock()
+	defer lock.(*sync.Mutex).Unlock()
+
+	// update channel
 	if q.Channel != nil {
-		// save client pointer but update channel information
+		//save client pointer from being overwritten
 		client := ch.client
 		*ch = *q.Channel
 		ch.client = client
 	}
 
+	// update members
 	if q.Members != nil {
 		ch.Members = q.Members
 	}
+
+	// update messages
 	if q.Messages != nil {
 		ch.Messages = q.Messages
 	}
+
+	// update read
 	if q.Read != nil {
 		ch.Read = q.Read
 	}
@@ -96,14 +112,14 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
-	var resp queryResponse
+	var resp channelQueryResponse
 
 	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
 	if err != nil {
 		return err
 	}
 
-	resp.updateChannel(ch)
+	ch.update(resp)
 
 	return nil
 }
@@ -149,7 +165,15 @@ func (ch *Channel) AddMembers(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp channelQueryResponse
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	if err != nil {
+		return err
+	}
+
+	ch.update(resp)
+	return nil
 }
 
 //  RemoveMembers deletes members with given IDs from the channel
@@ -164,14 +188,14 @@ func (ch *Channel) RemoveMembers(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp queryResponse
+	var resp channelQueryResponse
 
 	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
 	if err != nil {
 		return err
 	}
 
-	resp.updateChannel(ch)
+	ch.update(resp)
 
 	return nil
 }
@@ -188,7 +212,14 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp channelQueryResponse
+
+	if err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp); err != nil {
+		return err
+	}
+
+	ch.update(resp)
+	return nil
 }
 
 // DemoteModerators moderators with given IDs from the channel
@@ -203,7 +234,14 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	var resp channelQueryResponse
+
+	if err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp); err != nil {
+		return err
+	}
+
+	ch.update(resp)
+	return nil
 }
 
 //  MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
