@@ -324,8 +324,8 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 	return ch, err
 }
 
-// todo: cleanup this
-func (ch *Channel) refresh() error {
+// Reload updates channel data from server
+func (ch *Channel) Reload() error {
 	options := map[string]interface{}{
 		"watch":    false,
 		"state":    true,

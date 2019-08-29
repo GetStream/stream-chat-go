@@ -49,6 +49,7 @@ type StreamChannel interface {
 	GetReplies(parentID string, options map[string][]string) (replies []*Message, err error)
 	MarkRead(userID string, options map[string]interface{}) error
 	RemoveMembers(userIDs ...string) error
+	Reload() error
 	SendEvent(event *Event, userID string) error
 	SendMessage(message *Message, userID string) (*Message, error)
 	SendReaction(reaction *Reaction, messageID string, userID string) (*Message, error)
