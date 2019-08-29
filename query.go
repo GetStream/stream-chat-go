@@ -8,7 +8,7 @@ import (
 )
 
 type QueryOption struct {
-	Query map[string]interface{} `json:"-,extra"` // https://getstream.io/chat/docs/#query_syntax
+	Filter map[string]interface{} `json:"-,extra"` // https://getstream.io/chat/docs/#query_syntax
 
 	PaginationOption
 }
@@ -32,6 +32,8 @@ type queryUsersResponse struct {
 	Users []*User `json:"users"`
 }
 
+// QueryUsers returns list of users that match QueryOption.
+// If list of SortOption are set, channels will be sorted by field and direction
 func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error) {
 	qp := queryUsersRequest{
 		FilterConditions: q,
@@ -72,6 +74,8 @@ type queryChannelResponseData struct {
 	Members  []*ChannelMember `json:"members"`
 }
 
+// QueryChannels returns list of channels with members and messages, that match QueryOption.
+// If list of SortOption are set, channels will be sorted by field and direction
 func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
 	qp := queryChannelRequest{
 		State:            true,
