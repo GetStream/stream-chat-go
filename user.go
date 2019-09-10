@@ -36,39 +36,39 @@ type User struct {
 // Create a mute
 // targetID: the user getting muted
 // userID: the user muting the target
-func (c *Client) MuteUser(targetID string, userID string) error {
+func (c *Client) MuteUser(targetIDs []string, userID string) error {
 	switch {
-	case targetID == "":
-		return errors.New("target ID is empty")
+	case len(targetIDs) == 0:
+		return errors.New("target IDs are empty")
 	case userID == "":
 		return errors.New("user ID is empty")
 	}
 
 	data := map[string]interface{}{
-		"target_id": targetID,
-		"user_id":   userID,
+		"target_ids": targetIDs,
+		"user_id":    userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
+	return c.makeRequest(http.MethodPost, "moderation/bulk_mute", nil, data, nil)
 }
 
 // Removes a mute
 // targetID: the user getting un-muted
 // userID: the user muting the target
-func (c *Client) UnmuteUser(targetID string, userID string) error {
+func (c *Client) UnmuteUser(targetIDs []string, userID string) error {
 	switch {
-	case targetID == "":
-		return errors.New("target ID is empty")
+	case len(targetIDs) == 0:
+		return errors.New("target IDs is empty")
 	case userID == "":
 		return errors.New("user ID is empty")
 	}
 
-	data := map[string]interface{}{
-		"target_id": targetID,
-		"user_id":   userID,
+	data := map[string][]string{
+		"target_ids": targetIDs,
+		"user_id":    {userID},
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
+	return c.makeRequest(http.MethodDelete, "moderation/bulk_mute", data, nil, nil)
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
