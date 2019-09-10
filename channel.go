@@ -259,11 +259,16 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+	var membersPresent bool
+	if len(data) > 0 {
+		_, membersPresent = data["members"]
+	}
+
 	switch {
 	case chanType == "":
 		return nil, errors.New("channel type is empty")
-	case chanID == "":
-		return nil, errors.New("channel ID is empty")
+	case chanID == "" && !membersPresent:
+		return nil, errors.New("channel ID or members are empty")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
 	}

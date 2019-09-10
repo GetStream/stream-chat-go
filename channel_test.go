@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,26 +22,33 @@ func TestClient_CreateChannel(t *testing.T) {
 	})
 
 	tests := []struct {
+		name    string
 		_type   string
 		id      string
 		userID  string
 		data    map[string]interface{}
 		wantErr bool
 	}{
-		{"messaging", randomString(12), serverUser.ID, nil, false},
+		{"create channel with ID", "messaging", randomString(12), serverUser.ID, nil, false},
+		{"create channel without ID and members", "messaging", "", serverUser.ID, nil, true},
+		{"create channel without ID but with members", "messaging", "", serverUser.ID, map[string]interface{}{"members": []string{randomUser().ID, randomUser().ID}}, false},
 	}
 
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("create new channel %s:%s", tt._type, tt.id), func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.CreateChannel(tt._type, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
 				mustError(t, err, "create channel", tt)
-			} else {
-				mustNoError(t, err, "create channel", tt)
+				return
 			}
 
+			mustNoError(t, err, "create channel", tt)
+
 			assert.Equal(t, tt._type, got.Type, "channel type")
-			assert.Equal(t, tt.id, got.ID, "channel id")
+			assert.NotEmpty(t, got.ID)
+			if tt.id != "" {
+				assert.Equal(t, tt.id, got.ID, "channel id")
+			}
 			assert.Equal(t, tt.userID, got.CreatedBy.ID, "channel created by")
 		})
 	}
