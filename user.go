@@ -9,10 +9,10 @@ import (
 )
 
 type Mute struct {
-	User      User
-	Target    User
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	User      User      `json:"user"`
+	Target    User      `json:"target"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type User struct {

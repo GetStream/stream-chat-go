@@ -3340,15 +3340,15 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo26(in *jlexer.Lexer, ou
 			continue
 		}
 		switch key {
-		case "User":
+		case "user":
 			(out.User).UnmarshalEasyJSON(in)
-		case "Target":
+		case "target":
 			(out.Target).UnmarshalEasyJSON(in)
-		case "CreatedAt":
+		case "created_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
 			}
-		case "UpdatedAt":
+		case "updated_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
 			}
@@ -3367,22 +3367,22 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo26(out *jwriter.Writer,
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"User\":"
+		const prefix string = ",\"user\":"
 		out.RawString(prefix[1:])
 		(in.User).MarshalEasyJSON(out)
 	}
 	{
-		const prefix string = ",\"Target\":"
+		const prefix string = ",\"target\":"
 		out.RawString(prefix)
 		(in.Target).MarshalEasyJSON(out)
 	}
 	{
-		const prefix string = ",\"CreatedAt\":"
+		const prefix string = ",\"created_at\":"
 		out.RawString(prefix)
 		out.Raw((in.CreatedAt).MarshalJSON())
 	}
 	{
-		const prefix string = ",\"UpdatedAt\":"
+		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
 		out.Raw((in.UpdatedAt).MarshalJSON())
 	}
