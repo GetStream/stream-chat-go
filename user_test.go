@@ -34,7 +34,7 @@ func TestClient_MuteUser(t *testing.T) {
 		target = append(target, u.ID)
 	}
 
-	err := c.MuteUser(target, serverUser.ID)
+	err := c.MuteUsers(target, serverUser.ID)
 	mustNoError(t, err, "mute user")
 
 	users, err := c.QueryUsers(&QueryOption{
