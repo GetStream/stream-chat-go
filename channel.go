@@ -268,7 +268,7 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 	case chanType == "":
 		return nil, errors.New("channel type is empty")
 	case chanID == "" && !membersPresent:
-		return nil, errors.New("channel ID or members are empty")
+		return nil, errors.New("either channel ID or members must be provided")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
 	}
