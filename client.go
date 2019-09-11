@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/getstream/easyjson"
-
 	"github.com/pascaldekloe/jwt"
 )
 
