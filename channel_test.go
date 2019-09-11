@@ -61,7 +61,6 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
-	defer ch.Delete()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
@@ -74,6 +73,8 @@ func TestChannel_AddMembers(t *testing.T) {
 	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_Moderation(t *testing.T) {
@@ -83,7 +84,6 @@ func TestChannel_Moderation(t *testing.T) {
 	chanID := randomString(12)
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
-	defer ch.Delete()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
@@ -106,12 +106,13 @@ func TestChannel_Moderation(t *testing.T) {
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_BanUser(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
 
 	user := randomUser()
 
@@ -126,20 +127,20 @@ func TestChannel_BanUser(t *testing.T) {
 
 	err = ch.UnBanUser(user.ID, nil)
 	mustNoError(t, err, "unban user")
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_Delete(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	err := ch.Delete()
-	mustNoError(t, err, "delete channel")
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_GetReplies(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
 
 	user := randomUser()
 
@@ -149,12 +150,14 @@ func TestChannel_GetReplies(t *testing.T) {
 	mustNoError(t, err, "send message")
 
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
-	reply, err = ch.SendMessage(reply, serverUser.ID)
+	_, err = ch.SendMessage(reply, serverUser.ID)
 	mustNoError(t, err, "send reply")
 
 	replies, err := ch.GetReplies(msg.ID, nil)
 	mustNoError(t, err, "get replies")
 	assert.Len(t, replies, 1)
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_MarkRead(t *testing.T) {
@@ -164,7 +167,6 @@ func TestChannel_MarkRead(t *testing.T) {
 func TestChannel_RemoveMembers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
 
 	user := randomUser()
 	err := ch.RemoveMembers(user.ID)
@@ -173,7 +175,9 @@ func TestChannel_RemoveMembers(t *testing.T) {
 
 	for _, member := range ch.Members {
 		assert.NotEqual(t, member.User.ID, user.ID, "member is not present")
+
 	}
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_SendEvent(t *testing.T) {
@@ -183,7 +187,6 @@ func TestChannel_SendEvent(t *testing.T) {
 func TestChannel_SendMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
 
 	user := randomUser()
 	msg := &Message{
@@ -196,12 +199,13 @@ func TestChannel_SendMessage(t *testing.T) {
 	// check that message was updated
 	assert.NotEmpty(t, msg.ID, "message has ID")
 	assert.NotEmpty(t, msg.HTML, "message has HTML body")
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
 
 	user := randomUser()
 	msg := &Message{
@@ -223,6 +227,8 @@ func TestChannel_Truncate(t *testing.T) {
 	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Empty(t, ch.Messages, "message not exists")
+
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_Update(t *testing.T) {
