@@ -68,7 +68,7 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 		"user_id":    userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/bulk_mute", nil, data, nil)
+	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
 // Removes a mute
@@ -106,7 +106,7 @@ func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 		"user_id":    {userID},
 	}
 
-	return c.makeRequest(http.MethodDelete, "moderation/bulk_mute", data, nil, nil)
+	return c.makeRequest(http.MethodPost, "moderation/unmute", data, nil, nil)
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
