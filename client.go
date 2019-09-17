@@ -2,6 +2,8 @@ package stream_chat
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/hmac"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -123,6 +125,14 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 	claims.Expires = jwt.NewNumericTime(expire.Round(time.Second))
 
 	return claims.HMACSign(jwt.HS256, c.apiSecret)
+}
+
+// VerifyWebhook validates if hmac signature is correct for message body
+func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
+	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
+	mac.Write(body)
+	expectedMAC := mac.Sum(nil)
+	return hmac.Equal(signature, expectedMAC)
 }
 
 // NewClient creates new stream chat api client
