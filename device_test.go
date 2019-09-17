@@ -18,15 +18,14 @@ func TestClient_Devices(t *testing.T) {
 
 	for _, dev := range devices {
 		mustNoError(t, c.AddDevice(dev), "add device")
+		defer func(dev *Device) {
+			mustNoError(t, c.DeleteDevice(user.ID, dev.ID), "delete device")
+		}(dev)
 
 		resp, err := c.GetDevices(user.ID)
 		mustNoError(t, err, "get devices")
 
 		assert.True(t, deviceIDExists(resp, dev.ID), "device with ID %s was created", dev.ID)
-	}
-
-	for _, dev := range devices {
-		mustNoError(t, c.DeleteDevice(user.ID, dev.ID), "delete device")
 	}
 }
 
