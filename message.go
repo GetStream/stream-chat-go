@@ -144,6 +144,24 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
+// GetMessage returns message by ID
+func (c *Client) GetMessage(msgID string) (*Message, error) {
+	if msgID == "" {
+		return nil, errors.New("message ID must be not empty")
+	}
+
+	var resp messageResponse
+
+	p := path.Join("messages", url.PathEscape(msgID))
+
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Message, nil
+}
+
 // UpdateMessage updates message with given msgID
 func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	switch {

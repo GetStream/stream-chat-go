@@ -35,6 +35,7 @@ type StreamClient interface {
 
 	// message.go
 	DeleteMessage(msgID string) error
+	GetMessage(msgID string) (*Message, error)
 	MarkAllRead(userID string) error
 	UpdateMessage(msg *Message, msgID string) (*Message, error)
 
