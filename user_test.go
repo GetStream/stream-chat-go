@@ -23,6 +23,32 @@ func TestClient_FlagUser(t *testing.T) {
 }
 
 func TestClient_MuteUser(t *testing.T) {
+	c := initClient(t)
+	initChannel(t, c)
+
+	var target []string
+	for _, u := range testUsers {
+		if u.ID == serverUser.ID {
+			continue
+		}
+		target = append(target, u.ID)
+	}
+
+	err := c.MuteUsers(target, serverUser.ID)
+	mustNoError(t, err, "mute user")
+
+	users, err := c.QueryUsers(&QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": serverUser.ID},
+		}})
+
+	mustNoError(t, err, "query users")
+
+	assert.Lenf(t, users[0].Mutes, len(target), "user mutes exists: %+v", users[0])
+
+	mute := users[0].Mutes[0]
+	assert.NotEmpty(t, mute.User, "mute has user")
+	assert.NotEmpty(t, mute.Target, "mute has target")
 }
 
 func TestClient_UnBanUser(t *testing.T) {

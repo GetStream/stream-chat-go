@@ -3,6 +3,7 @@ package stream_chat
 import (
 	"errors"
 	"net/http"
+	"net/url"
 )
 
 const (
@@ -28,9 +29,8 @@ func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
 		return nil, errors.New("user ID is empty")
 	}
 
-	params := map[string][]string{
-		"user_id": {userId},
-	}
+	params := url.Values{}
+	params.Set("user_id", userId)
 
 	var resp devicesResponse
 
@@ -64,10 +64,9 @@ func (c *Client) DeleteDevice(userID string, deviceID string) error {
 		return errors.New("device ID is empty")
 	}
 
-	params := map[string][]string{
-		"id":      {deviceID},
-		"user_id": {userID},
-	}
+	params := url.Values{}
+	params.Set("id", deviceID)
+	params.Set("user_id", userID)
 
 	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)
 }

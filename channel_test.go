@@ -228,3 +228,15 @@ func TestChannel_Truncate(t *testing.T) {
 func TestChannel_Update(t *testing.T) {
 
 }
+
+func TestChannel_AddModerators(t *testing.T) {
+
+}
+
+func TestChannel_DemoteModerators(t *testing.T) {
+
+}
+
+func TestChannel_UnBanUser(t *testing.T) {
+
+}

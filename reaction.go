@@ -61,9 +61,8 @@ func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID 
 
 	p := path.Join("messages", url.PathEscape(messageID), "reaction", url.PathEscape(reactionType))
 
-	params := map[string][]string{
-		"user_id": {userID},
-	}
+	params := url.Values{}
+	params.Set("user_id", userID)
 
 	var resp reactionResponse
 
