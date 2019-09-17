@@ -101,10 +101,10 @@ func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 		return errors.New("user ID is empty")
 	}
 
-	data := map[string][]string{
+	data := url.Values{
 		"target_ids": targetIDs,
-		"user_id":    {userID},
 	}
+	data.Set("user_id", userID)
 
 	return c.makeRequest(http.MethodPost, "moderation/unmute", data, nil, nil)
 }
@@ -159,13 +159,12 @@ func (c *Client) UnBanUser(targetID string, options map[string]string) error {
 		options = map[string]string{}
 	}
 
-	var params = map[string][]string{}
+	params := url.Values{}
 
 	for k, v := range options {
-		params[k] = []string{v}
+		params.Add(k, v)
 	}
-
-	params["target_user_id"] = []string{targetID}
+	params.Set("target_user_id", targetID)
 
 	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
 }
