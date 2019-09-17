@@ -33,6 +33,7 @@ type StreamClient interface {
 
 	// client.go
 	CreateToken(userID string, expire time.Time) ([]byte, error)
+	VerifyWebhook(body []byte, signature []byte) (valid bool)
 
 	// message.go
 	DeleteMessage(msgID string) error
@@ -75,6 +76,8 @@ type StreamChannel interface {
 	Truncate() error
 	UnBanUser(targetID string, options map[string]string) error
 	Update(options map[string]interface{}, message string) error
+	AcceptInvite(userID string, options map[string]interface{}) error
+	RejectInvite(userID string, options map[string]interface{}) error
 
 	// event.go
 	SendEvent(event *Event, userID string) error
