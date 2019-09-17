@@ -45,6 +45,7 @@ type StreamClient interface {
 	// user.go
 	BanUser(targetID string, userID string, options map[string]interface{}) error
 	DeactivateUser(targetID string, options map[string]interface{}) error
+	ReactivateUser(targetID string, options map[string]interface{}) error
 	DeleteUser(targetID string, options map[string][]string) error
 	ExportUser(targetID string, options map[string][]string) (user *User, err error)
 	FlagUser(targetID string, options map[string]interface{}) error

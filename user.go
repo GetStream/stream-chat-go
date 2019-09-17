@@ -192,6 +192,16 @@ func (c *Client) DeactivateUser(targetID string, options map[string]interface{})
 	return c.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
+func (c *Client) ReactivateUser(targetID string, options map[string]interface{}) error {
+	if targetID == "" {
+		return errors.New("target ID is empty")
+	}
+
+	p := path.Join("users", url.PathEscape(targetID), "reactivate")
+
+	return c.makeRequest(http.MethodPost, p, nil, options, nil)
+}
+
 func (c *Client) DeleteUser(targetID string, options map[string][]string) error {
 	if targetID == "" {
 		return errors.New("target ID is empty")
