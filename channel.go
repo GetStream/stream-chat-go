@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -226,7 +228,7 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 // BanUser bans target user ID from this channel
 // userID: user who bans target
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
-func (ch *Channel) BanUser(targetID string, userID string, options map[string]interface{}) error {
+func (ch *Channel) BanUser(targetID, userID string, options map[string]interface{}) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID is empty")
@@ -258,7 +260,7 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one
-func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
+func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]interface{}) (*Channel, error) {
 	_, membersPresent := data["members"]
 
 	switch {

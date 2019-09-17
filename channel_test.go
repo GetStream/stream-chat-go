@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -31,7 +33,8 @@ func TestClient_CreateChannel(t *testing.T) {
 	}{
 		{"create channel with ID", "messaging", randomString(12), serverUser.ID, nil, false},
 		{"create channel without ID and members", "messaging", "", serverUser.ID, nil, true},
-		{"create channel without ID but with members", "messaging", "", serverUser.ID, map[string]interface{}{"members": []string{randomUser().ID, randomUser().ID}}, false},
+		{"create channel without ID but with members", "messaging", "", serverUser.ID,
+			map[string]interface{}{"members": []string{randomUser().ID, randomUser().ID}}, false},
 	}
 
 	for _, tt := range tests {

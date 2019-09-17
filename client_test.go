@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -44,12 +46,12 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, c.apiSecret, []byte(APISecret))
 	assert.NotEmpty(t, c.authToken)
 	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
-	//	assert.Equal(t, defaultBaseURL, c.BaseURL, )
 }
 
+//nolint: lll
 func TestClient_CreateToken(t *testing.T) {
 	type args struct {
-		userId string
+		userID string
 		expire time.Time
 	}
 	tests := []struct {
@@ -58,14 +60,20 @@ func TestClient_CreateToken(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-		{"simple without expiration", args{"tommaso", time.Time{}}, []byte("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.oQLtgTc9_SIr3Rvrq-eW_WrLmdO1gAAYA335qTatxrU"), false},
-		{"simple with expiration", args{"tommaso", time.Unix(1566941272, 123121)}, []byte("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.bkMDhCJhzKKnSZO27QcP8n3o7u9C1TpoMt0MD-JCNnY"), false},
+		{"simple without expiration",
+			args{"tommaso", time.Time{}},
+			[]byte("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.oQLtgTc9_SIr3Rvrq-eW_WrLmdO1gAAYA335qTatxrU"),
+			false},
+		{"simple with expiration",
+			args{"tommaso", time.Unix(1566941272, 123121)},
+			[]byte("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.bkMDhCJhzKKnSZO27QcP8n3o7u9C1TpoMt0MD-JCNnY"),
+			false},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c, _ := NewClient("key", []byte("secret"))
-			got, err := c.CreateToken(tt.args.userId, tt.args.expire)
+			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
