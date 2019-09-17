@@ -29,6 +29,7 @@ type StreamClient interface {
 	DeleteChannelType(chType string) error
 	GetChannelType(chanType string) (ct *ChannelType, err error)
 	ListChannelTypes() (map[string]*ChannelType, error)
+	UpdateChannelType(name string, options map[string]interface{}) error
 
 	// client.go
 	CreateToken(userID string, expire time.Time) ([]byte, error)

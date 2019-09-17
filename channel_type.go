@@ -129,12 +129,25 @@ func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
 	return resp.ChannelTypes, err
 }
 
-func (c *Client) DeleteChannelType(ct string) error {
-	if ct == "" {
-		return errors.New("channel type is empty")
+func (c *Client) UpdateChannelType(name string, options map[string]interface{}) error {
+	switch {
+	case name == "":
+		return errors.New("channel type name is empty")
+	case len(options) == 0:
+		return errors.New("options are empty")
 	}
 
-	p := path.Join("channeltypes", url.PathEscape(ct))
+	p := path.Join("channeltypes", url.PathEscape(name))
+
+	return c.makeRequest(http.MethodPut, p, nil, nil, nil)
+}
+
+func (c *Client) DeleteChannelType(name string) error {
+	if name == "" {
+		return errors.New("channel type name is empty")
+	}
+
+	p := path.Join("channeltypes", url.PathEscape(name))
 
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
