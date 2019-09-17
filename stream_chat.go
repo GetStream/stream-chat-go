@@ -85,6 +85,7 @@ type StreamChannel interface {
 	// message.go
 	SendMessage(message *Message, userID string) (*Message, error)
 	GetReplies(parentID string, options map[string][]string) (replies []*Message, err error)
+	SendAction(msgID string, formData map[string]string) (*Message, error)
 
 	// reaction.go
 	DeleteReaction(messageID string, reactionType string, userID string) (*Message, error)

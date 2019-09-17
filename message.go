@@ -236,3 +236,27 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*
 
 	return resp.Messages, err
 }
+
+type sendActionRequest struct {
+	MessageID string            `json:"message_id"`
+	FormData  map[string]string `json:"form_data"`
+}
+
+// SendAction for message
+func (ch *Channel) SendAction(msgID string, formData map[string]string) (*Message, error) {
+	switch {
+	case msgID == "":
+		return nil, errors.New("message ID is empty")
+	case len(formData) == 0:
+		return nil, errors.New("form data is empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(msgID), "action")
+
+	data := sendActionRequest{MessageID: msgID, FormData: formData}
+
+	var resp messageResponse
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	return resp.Message, err
+}
