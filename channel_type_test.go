@@ -19,6 +19,9 @@ func TestClient_GetChannelType(t *testing.T) {
 	c := initClient(t)
 
 	ct := prepareChannelType(t, c)
+	defer func() {
+		mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
+	}()
 
 	got, err := c.GetChannelType(ct.Name)
 	mustNoError(t, err, "get channel type")
@@ -26,19 +29,18 @@ func TestClient_GetChannelType(t *testing.T) {
 	assert.Equal(t, ct.Name, got.Name)
 	assert.Equal(t, len(ct.Commands), len(got.Commands))
 	assert.Equal(t, ct.Permissions, got.Permissions)
-
-	mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
 }
 
 func TestClient_ListChannelTypes(t *testing.T) {
 	c := initClient(t)
 
 	ct := prepareChannelType(t, c)
+	defer func() {
+		mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
+	}()
 
 	got, err := c.ListChannelTypes()
 	mustNoError(t, err, "list channel types")
 
 	assert.Contains(t, got, ct.Name)
-
-	mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
 }

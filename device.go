@@ -24,8 +24,8 @@ type devicesResponse struct {
 }
 
 // Get list of devices for user
-func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
-	if userId == "" {
+func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
+	if userID == "" {
 		return nil, errors.New("user ID is empty")
 	}
 

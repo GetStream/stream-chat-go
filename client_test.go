@@ -62,6 +62,7 @@ func TestClient_CreateToken(t *testing.T) {
 		{"simple with expiration", args{"tommaso", time.Unix(1566941272, 123121)}, []byte("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.bkMDhCJhzKKnSZO27QcP8n3o7u9C1TpoMt0MD-JCNnY"), false},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c, _ := NewClient("key", []byte("secret"))
 			got, err := c.CreateToken(tt.args.userId, tt.args.expire)

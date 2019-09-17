@@ -9,6 +9,9 @@ import (
 func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -26,8 +29,6 @@ func TestChannel_SendReaction(t *testing.T) {
 	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
 
 	assert.Condition(t, reactionExistsCondition(msg.LatestReactions, reaction.Type), "latest reaction exists")
-
-	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func reactionExistsCondition(reactions []*Reaction, searchType string) func() bool {
@@ -44,6 +45,9 @@ func reactionExistsCondition(reactions []*Reaction, searchType string) func() bo
 func TestChannel_DeleteReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -63,13 +67,14 @@ func TestChannel_DeleteReaction(t *testing.T) {
 
 	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
 	assert.Empty(t, msg.LatestReactions, "latest reactions empty")
-
-	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_GetReactions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -93,5 +98,4 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
 
-	mustNoError(t, ch.Delete(), "delete channel")
 }
