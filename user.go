@@ -38,7 +38,7 @@ type User struct {
 // userID: the user muting the target
 func (c *Client) MuteUser(targetID string, userID string) error {
 	switch {
-	case len(targetID) == 0:
+	case targetID == "":
 		return errors.New("target ID is empty")
 	case userID == "":
 		return errors.New("user ID is empty")
@@ -76,7 +76,7 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 // userID: the user muting the target
 func (c *Client) UnmuteUser(targetID string, userID string) error {
 	switch {
-	case len(targetID) == 0:
+	case targetID == "":
 		return errors.New("target IDs is empty")
 	case userID == "":
 		return errors.New("user ID is empty")
