@@ -39,6 +39,7 @@ type StreamClient interface {
 	UnmuteUser(targetID string, userID string) error
 	UnmuteUsers(targetIDs []string, userID string) error
 	UpdateMessage(msg *Message, msgID string) (*Message, error)
+	UpdateUser(user *User) (*User, error)
 	UpdateUsers(users ...*User) (map[string]*User, error)
 }
 

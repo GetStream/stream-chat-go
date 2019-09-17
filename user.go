@@ -218,6 +218,12 @@ type userRequest struct {
 	LastActive time.Time `json:"-"`
 }
 
+// UpdateUser sending update users request, returns updated user info
+func (c *Client) UpdateUser(user *User) (*User, error) {
+	users, err := c.UpdateUsers(user)
+	return users[user.ID], err
+}
+
 // UpdateUsers send update users request, returns updated user info
 func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
