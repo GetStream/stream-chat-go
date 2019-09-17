@@ -12,6 +12,8 @@ var (
 )
 
 type StreamClient interface {
+	GetApp() (*AppResponseFields, error)
+	UpdateAppSettings(settings *AppSettings) error
 	AddDevice(device *Device) error
 	BanUser(targetID string, userID string, options map[string]interface{}) error
 	CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error)
