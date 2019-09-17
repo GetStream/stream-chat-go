@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream API
+//nolint: golint
 //go:generate go run github.com/getstream/easyjson/easyjson -pkg -all
 package stream_chat
 
@@ -11,6 +13,7 @@ var (
 	_ StreamChannel = (*Channel)(nil)
 )
 
+// StreamClient is a client for chat
 type StreamClient interface {
 	// app.go
 	GetAppConfig() (*AppConfig, error)
@@ -19,7 +22,7 @@ type StreamClient interface {
 	// device.go
 	AddDevice(device *Device) error
 	DeleteDevice(userID string, deviceID string) error
-	GetDevices(userId string) (devices []*Device, err error)
+	GetDevices(userID string) (devices []*Device, err error)
 
 	// channel.go
 	CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error)
@@ -65,6 +68,7 @@ type StreamClient interface {
 	UpdateUsers(users ...*User) (map[string]*User, error)
 }
 
+// StreamChannel is a channel of communication
 type StreamChannel interface {
 	// channel.go
 	AddMembers(userIDs ...string) error
