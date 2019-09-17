@@ -193,6 +193,30 @@ func (c *Client) DeleteMessage(msgID string) error {
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
 
+func (c *Client) FlagMessage(msgID string) error {
+	if msgID == "" {
+		return errors.New("message ID is empty")
+	}
+
+	options := map[string]interface{}{
+		"target_message_id": msgID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
+}
+
+func (c *Client) UnflagMessage(msgID string) error {
+	if msgID == "" {
+		return errors.New("message ID is empty")
+	}
+
+	options := map[string]interface{}{
+		"target_message_id": msgID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
+}
+
 type repliesResponse struct {
 	Messages []*Message `json:"messages"`
 }

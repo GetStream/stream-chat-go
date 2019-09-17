@@ -38,6 +38,8 @@ type StreamClient interface {
 	GetMessage(msgID string) (*Message, error)
 	MarkAllRead(userID string) error
 	UpdateMessage(msg *Message, msgID string) (*Message, error)
+	FlagMessage(msgID string) error
+	UnflagMessage(msgID string) error
 
 	// query.go
 	QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error)
