@@ -77,8 +77,6 @@ type StreamChannel interface {
 	UnBanUser(targetID string, options map[string]string) error
 	Update(options map[string]interface{}, message string) error
 	Query(data map[string]interface{}) error
-	AcceptInvite(userID string, options map[string]interface{}) error
-	RejectInvite(userID string, options map[string]interface{}) error
 
 	// event.go
 	SendEvent(event *Event, userID string) error

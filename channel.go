@@ -315,32 +315,3 @@ func (ch *Channel) refresh() error {
 
 	return err
 }
-
-func (ch *Channel) AcceptInvite(userID string, options map[string]interface{}) error {
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
-	if len(options) == 0 {
-		options = map[string]interface{}{}
-	}
-	options["accept_invite"] = true
-	options["user"] = map[string]string{
-		"id": userID,
-	}
-
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
-}
-
-func (ch *Channel) RejectInvite(userID string, options map[string]interface{}) error {
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
-	if len(options) == 0 {
-		options = map[string]interface{}{}
-	}
-
-	options["reject_invite"] = true
-	options["user"] = map[string]string{
-		"id": userID,
-	}
-
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
-}
