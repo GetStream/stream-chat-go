@@ -90,8 +90,6 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 		data = map[string]interface{}{}
 	}
 
-	data["created_by"] = map[string]interface{}{"id": ch.CreatedBy.ID}
-
 	payload["data"] = data
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
@@ -257,6 +255,17 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	return ch.client.UnBanUser(targetID, options)
 }
 
+// Query fills channel info without state (messages, members, reads)
+func (ch *Channel) Query(data map[string]interface{}) error {
+	options := map[string]interface{}{
+		"watch":    false,
+		"state":    false,
+		"presence": false,
+	}
+
+	return ch.query(options, data)
+}
+
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
 	_, membersPresent := data["members"]
@@ -282,6 +291,12 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 		"state":    true,
 		"presence": false,
 	}
+
+	if data == nil {
+		data = make(map[string]interface{}, 1)
+	}
+
+	data["created_by"] = map[string]string{"id": userID}
 
 	err := ch.query(options, data)
 
