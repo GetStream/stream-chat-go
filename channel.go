@@ -9,9 +9,6 @@ import (
 	"time"
 )
 
-// global lock storage for channels
-var channelsLock sync.Map
-
 type ChannelRead struct {
 	User     *User     `json:"user"`
 	LastRead time.Time `json:"last_read"`
@@ -52,28 +49,26 @@ type Channel struct {
 	LastMessageAt time.Time `json:"last_message_at"`
 
 	client *Client
+	lock   *sync.Mutex
 }
 
-type channelQueryResponse struct {
+type channelResponse struct {
 	Channel  *Channel         `json:"channel,omitempty"`
 	Messages []*Message       `json:"messages,omitempty"`
 	Members  []*ChannelMember `json:"members,omitempty"`
 	Read     []*ChannelRead   `json:"read,omitempty"`
 }
 
-func (ch *Channel) update(q channelQueryResponse) {
-	// atomically add or create new lock in channel lock store
-	lock, _ := channelsLock.LoadOrStore(ch.CID, &sync.Mutex{})
-
-	lock.(*sync.Mutex).Lock()
-	defer lock.(*sync.Mutex).Unlock()
+func (ch *Channel) update(q channelResponse) {
+	ch.lock.Lock()
+	defer ch.lock.Unlock()
 
 	// update channel
 	if q.Channel != nil {
 		//save client pointer from being overwritten
-		client := ch.client
+		q.Channel.client = ch.client
+		q.Channel.lock = ch.lock
 		*ch = *q.Channel
-		ch.client = client
 	}
 
 	// update members
@@ -114,7 +109,7 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
 	if err != nil {
@@ -138,7 +133,7 @@ func (ch *Channel) Update(options map[string]interface{}, message string) error 
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp channelQueryResponse
+	var resp channelResponse
 	if err := ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp); err != nil {
 		return err
 	}
@@ -159,7 +154,7 @@ func (ch *Channel) Delete() error {
 func (ch *Channel) Truncate() error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	if err := ch.client.makeRequest(http.MethodPost, p, nil, nil, &resp); err != nil {
 		return err
@@ -182,7 +177,7 @@ func (ch *Channel) AddMembers(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
 	if err != nil {
@@ -206,7 +201,7 @@ func (ch *Channel) RemoveMembers(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
 	if err != nil {
@@ -230,7 +225,7 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	if err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp); err != nil {
 		return err
@@ -253,7 +248,7 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp channelQueryResponse
+	var resp channelResponse
 
 	if err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp); err != nil {
 		return err
@@ -315,6 +310,14 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	return ch.client.UnBanUser(targetID, options)
 }
 
+// newChannel initializes channel with required private fields
+func (c *Client) newChannel() *Channel {
+	return &Channel{
+		client: c,
+		lock:   &sync.Mutex{},
+	}
+}
+
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType string, chanID string, userID string, data map[string]interface{}) (*Channel, error) {
 	switch {
@@ -326,12 +329,10 @@ func (c *Client) CreateChannel(chanType string, chanID string, userID string, da
 		return nil, errors.New("user ID is empty")
 	}
 
-	ch := &Channel{
-		Type:      chanType,
-		ID:        chanID,
-		client:    c,
-		CreatedBy: &User{ID: userID},
-	}
+	ch := c.newChannel()
+	ch.Type = chanType
+	ch.ID = chanID
+	ch.CreatedBy = &User{ID: userID}
 
 	options := map[string]interface{}{
 		"watch":    false,

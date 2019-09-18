@@ -60,14 +60,7 @@ type queryChannelRequest struct {
 }
 
 type queryChannelResponse struct {
-	Channels []queryChannelResponseData `json:"channels"`
-}
-
-type queryChannelResponseData struct {
-	Channel  *Channel         `json:"channel"`
-	Messages []*Message       `json:"messages"`
-	Read     []*ChannelRead   `json:"read"`
-	Members  []*ChannelMember `json:"members"`
+	Channels []channelResponse `json:"channels"`
 }
 
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
@@ -90,14 +83,12 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 	var resp queryChannelResponse
 	err = c.makeRequest(http.MethodGet, "channels", values, nil, &resp)
 
-	result := make([]*Channel, len(resp.Channels))
+	channels := make([]*Channel, len(resp.Channels))
 	for i, data := range resp.Channels {
-		result[i] = data.Channel
-		result[i].Members = data.Members
-		result[i].Messages = data.Messages
-		result[i].Read = data.Read
-		result[i].client = c
+		ch := c.newChannel()
+		ch.update(data)
+		channels[i] = ch
 	}
 
-	return result, err
+	return channels, err
 }
