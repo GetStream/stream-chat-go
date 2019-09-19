@@ -40,3 +40,29 @@ func TestClient_QueryChannels(t *testing.T) {
 		assert.Equal(t, ch.ID, got[0].ID, "received channel ID")
 	}
 }
+
+func TestClient_Search(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	user1, user2 := randomUser(), randomUser()
+
+	text := randomString(10)
+
+	msg1, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
+	mustNoError(t, err)
+
+	msg2, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
+	mustNoError(t, err)
+
+	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
+		"members": map[string][]string{
+			"$in": {user1.ID, user2.ID},
+		},
+	}})
+
+	mustNoError(t, err)
+
+	assert.Len(t, got, 2)
+	_, _, _ = msg1, msg2, got
+}

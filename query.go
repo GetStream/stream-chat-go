@@ -3,6 +3,7 @@ package stream_chat
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/getstream/easyjson"
 )
@@ -100,4 +101,45 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 	}
 
 	return result, err
+}
+
+type SearchRequest struct {
+	// Required
+	Query   string                 `json:"query"`
+	Filters map[string]interface{} `json:"filter_conditions"`
+
+	// Pagination, optional
+	Limit  int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
+}
+
+type searchResponse struct {
+	Results []searchMessageResponse `json:"results"`
+}
+
+type searchMessageResponse struct {
+	Message *Message `json:"message"`
+}
+
+// Search returns channels matching for given keyword;
+func (c *Client) Search(request SearchRequest) ([]*Message, error) {
+	var buf strings.Builder
+
+	_, err := easyjson.MarshalToWriter(request, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	var values = url.Values{}
+	values.Set("payload", buf.String())
+
+	var result searchResponse
+	err = c.makeRequest(http.MethodGet, "search", values, nil, &result)
+
+	messages := make([]*Message, 0, len(result.Results))
+	for _, res := range result.Results {
+		messages = append(messages, res.Message)
+	}
+
+	return messages, err
 }

@@ -46,6 +46,7 @@ type StreamClient interface {
 	// query.go
 	QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error)
 	QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error)
+	Search(request SearchRequest) ([]*Message, error)
 
 	// user.go
 	BanUser(targetID string, userID string, options map[string]interface{}) error
