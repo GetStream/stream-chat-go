@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,15 +14,19 @@ var (
 	APISecret  = os.Getenv("STREAM_API_SECRET")
 	StreamHost = os.Getenv("STREAM_HOST")
 
-	serverUser = &User{ID: "gandalf", Name: "Gandalf the Grey", ExtraData: map[string]interface{}{"race": "Istari"}}
+	serverUser = &User{ID: randomString(10), Name: "Gandalf the Grey", ExtraData: map[string]interface{}{"race": "Istari"}}
 
 	testUsers = []*User{
-		{ID: "frodo-baggins", Name: "Frodo Baggins", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 50}},
-		{ID: "sam-gamgee", Name: "Samwise Gamgee", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 38}},
-		{ID: "legolas", Name: "Legolas", ExtraData: map[string]interface{}{"race": "Elf", "age": 500}},
+		{ID: randomString(10), Name: "Frodo Baggins", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 50}},
+		{ID: randomString(10), Name: "Samwise Gamgee", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 38}},
+		{ID: randomString(10), Name: "Legolas", ExtraData: map[string]interface{}{"race": "Elf", "age": 500}},
 		serverUser,
 	}
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 func randomUser() *User {
 	return testUsers[rand.Intn(len(testUsers)-1)]
