@@ -14,6 +14,13 @@ var (
 	APISecret  = os.Getenv("STREAM_API_SECRET")
 	StreamHost = os.Getenv("STREAM_HOST")
 
+	serverUser *User
+	testUsers  []*User
+)
+
+func init() {
+	rand.Seed(time.Now().Unix())
+
 	serverUser = &User{ID: randomString(10), Name: "Gandalf the Grey", ExtraData: map[string]interface{}{"race": "Istari"}}
 
 	testUsers = []*User{
@@ -22,10 +29,6 @@ var (
 		{ID: randomString(10), Name: "Legolas", ExtraData: map[string]interface{}{"race": "Elf", "age": 500}},
 		serverUser,
 	}
-)
-
-func init() {
-	rand.Seed(time.Now().Unix())
 }
 
 func randomUser() *User {
