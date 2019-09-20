@@ -13,7 +13,7 @@ var (
 
 type StreamClient interface {
 	// app.go
-	GetApp() (*AppResponseFields, error)
+	GetApp() (*AppConfig, error)
 	UpdateAppSettings(settings *AppSettings) error
 
 	// device.go

@@ -4,10 +4,11 @@ package stream_chat
 
 import (
 	json "encoding/json"
+	time "time"
+
 	easyjson "github.com/getstream/easyjson"
 	jlexer "github.com/getstream/easyjson/jlexer"
 	jwriter "github.com/getstream/easyjson/jwriter"
-	time "time"
 )
 
 // suppress unused package warning
@@ -2983,7 +2984,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo24(in *jlexer.Lexer, ou
 				out.App = nil
 			} else {
 				if out.App == nil {
-					out.App = new(AppResponseFields)
+					out.App = new(AppConfig)
 				}
 				(*out.App).UnmarshalEasyJSON(in)
 			}
@@ -6435,7 +6436,7 @@ func (v *AppSettings) UnmarshalJSON(data []byte) error {
 func (v *AppSettings) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson458e82b7DecodeGithubComGetStreamStreamChatGo46(l, v)
 }
-func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo47(in *jlexer.Lexer, out *AppResponseFields) {
+func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo47(in *jlexer.Lexer, out *AppConfig) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -6549,7 +6550,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo47(in *jlexer.Lexer, ou
 		in.Consumed()
 	}
 }
-func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo47(out *jwriter.Writer, in AppResponseFields) {
+func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo47(out *jwriter.Writer, in AppConfig) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -6654,26 +6655,26 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo47(out *jwriter.Writer,
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v AppResponseFields) MarshalJSON() ([]byte, error) {
+func (v AppConfig) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson458e82b7EncodeGithubComGetStreamStreamChatGo47(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v AppResponseFields) MarshalEasyJSON(w *jwriter.Writer) {
+func (v AppConfig) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson458e82b7EncodeGithubComGetStreamStreamChatGo47(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *AppResponseFields) UnmarshalJSON(data []byte) error {
+func (v *AppConfig) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson458e82b7DecodeGithubComGetStreamStreamChatGo47(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *AppResponseFields) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *AppConfig) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson458e82b7DecodeGithubComGetStreamStreamChatGo47(l, v)
 }
 func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo48(in *jlexer.Lexer, out *APNConfig) {

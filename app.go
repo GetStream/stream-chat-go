@@ -75,7 +75,7 @@ type Policy struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type AppResponseFields struct {
+type AppConfig struct {
 	Name                 string                    `json:"name"`
 	OrganizationName     string                    `json:"organization"`
 	PushNotifications    PushNotificationFields    `json:"push_notifications"`
@@ -89,11 +89,11 @@ type AppResponseFields struct {
 }
 
 type appResponse struct {
-	App *AppResponseFields `json:"app"`
+	App *AppConfig `json:"app"`
 }
 
 // GetApp returns app settings
-func (c *Client) GetApp() (*AppResponseFields, error) {
+func (c *Client) GetApp() (*AppConfig, error) {
 	var resp appResponse
 
 	err := c.makeRequest(http.MethodGet, "app", nil, nil, &resp)
