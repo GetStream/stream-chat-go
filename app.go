@@ -92,8 +92,8 @@ type appResponse struct {
 	App *AppConfig `json:"app"`
 }
 
-// GetApp returns app settings
-func (c *Client) GetApp() (*AppConfig, error) {
+// GetAppConfig returns app settings
+func (c *Client) GetAppConfig() (*AppConfig, error) {
 	var resp appResponse
 
 	err := c.makeRequest(http.MethodGet, "app", nil, nil, &resp)

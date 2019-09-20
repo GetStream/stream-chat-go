@@ -6,7 +6,7 @@ import (
 
 func TestClient_GetApp(t *testing.T) {
 	c := initClient(t)
-	_, err := c.GetApp()
+	_, err := c.GetAppConfig()
 	mustNoError(t, err)
 }
 
