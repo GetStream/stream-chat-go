@@ -1,6 +1,12 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/getstream/easyjson v0.0.0-20190812101623-3e305b49a744 h1:SZGH7vFhrf3FdhWt3r4/0rCiXCxRWhbdPZTUE0yyvxU=
+github.com/getstream/easyjson v0.0.0-20190812101623-3e305b49a744/go.mod h1:uxkBlUYO7Q8rGjjZgmin3mLczKaiRTL5XbFYiKDIFgA=
+github.com/getstream/easyjson v0.0.0-20190812114415-781f883296c4 h1:L8mdlsGqncfcXRuRQrRH1wuNzPvBt1Kpelnkya7gDyk=
+github.com/getstream/easyjson v0.0.0-20190812114415-781f883296c4/go.mod h1:hVXbNT9sjkGiUTgEfmdNwpmUnfOmetdMTRSxvgmqN8o=
+github.com/getstream/easyjson v0.0.0-20190923142417-55566b7e446f h1:Yer72+aHiPZlif7CwK7yeMFTXeFN2nMu5bANKIZGsKE=
+github.com/getstream/easyjson v0.0.0-20190923142417-55566b7e446f/go.mod h1:hVXbNT9sjkGiUTgEfmdNwpmUnfOmetdMTRSxvgmqN8o=
 github.com/getstream/easyjson v0.0.0-20190923162548-5adc7b1f33fa h1:Yw0xAzmfvWTFyjnsO0r8Rfx8BBqU6FDnF/WfNk0qgtg=
 github.com/getstream/easyjson v0.0.0-20190923162548-5adc7b1f33fa/go.mod h1:hVXbNT9sjkGiUTgEfmdNwpmUnfOmetdMTRSxvgmqN8o=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=

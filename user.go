@@ -19,20 +19,20 @@ type Mute struct {
 
 type User struct {
 	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Image string `json:"image"`
-	Role  string `json:"role"`
+	Name  string `json:"name,omitempty"`
+	Image string `json:"image,omitempty"`
+	Role  string `json:"role,omitempty"`
 
-	Online    bool `json:"online"`
-	Invisible bool `json:"invisible"`
+	Online    bool `json:"online,omitempty"`
+	Invisible bool `json:"invisible,omitempty"`
 
-	Mutes []*Mute `json:"mutes"`
-
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	LastActive time.Time `json:"last_active"`
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	UpdatedAt  time.Time `json:"updated_at,omitempty"`
+	LastActive time.Time `json:"last_active,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-,extra"`
+
+	Mutes []*Mute `json:"mutes,omitempty"`
 }
 
 // Create a mute
