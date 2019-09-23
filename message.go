@@ -144,6 +144,24 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
+// GetMessage returns message by ID
+func (c *Client) GetMessage(msgID string) (*Message, error) {
+	if msgID == "" {
+		return nil, errors.New("message ID must be not empty")
+	}
+
+	var resp messageResponse
+
+	p := path.Join("messages", url.PathEscape(msgID))
+
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Message, nil
+}
+
 // UpdateMessage updates message with given msgID
 func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	switch {
@@ -175,6 +193,30 @@ func (c *Client) DeleteMessage(msgID string) error {
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
 
+func (c *Client) FlagMessage(msgID string) error {
+	if msgID == "" {
+		return errors.New("message ID is empty")
+	}
+
+	options := map[string]interface{}{
+		"target_message_id": msgID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
+}
+
+func (c *Client) UnflagMessage(msgID string) error {
+	if msgID == "" {
+		return errors.New("message ID is empty")
+	}
+
+	options := map[string]interface{}{
+		"target_message_id": msgID,
+	}
+
+	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
+}
+
 type repliesResponse struct {
 	Messages []*Message `json:"messages"`
 }
@@ -193,4 +235,28 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*
 	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
 
 	return resp.Messages, err
+}
+
+type sendActionRequest struct {
+	MessageID string            `json:"message_id"`
+	FormData  map[string]string `json:"form_data"`
+}
+
+// SendAction for message
+func (ch *Channel) SendAction(msgID string, formData map[string]string) (*Message, error) {
+	switch {
+	case msgID == "":
+		return nil, errors.New("message ID is empty")
+	case len(formData) == 0:
+		return nil, errors.New("form data is empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(msgID), "action")
+
+	data := sendActionRequest{MessageID: msgID, FormData: formData}
+
+	var resp messageResponse
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	return resp.Message, err
 }

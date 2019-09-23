@@ -192,6 +192,16 @@ func (c *Client) DeactivateUser(targetID string, options map[string]interface{})
 	return c.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
+func (c *Client) ReactivateUser(targetID string, options map[string]interface{}) error {
+	if targetID == "" {
+		return errors.New("target ID is empty")
+	}
+
+	p := path.Join("users", url.PathEscape(targetID), "reactivate")
+
+	return c.makeRequest(http.MethodPost, p, nil, options, nil)
+}
+
 func (c *Client) DeleteUser(targetID string, options map[string][]string) error {
 	if targetID == "" {
 		return errors.New("target ID is empty")
@@ -216,6 +226,12 @@ type userRequest struct {
 	CreatedAt  time.Time `json:"-"`
 	UpdatedAt  time.Time `json:"-"`
 	LastActive time.Time `json:"-"`
+}
+
+// UpdateUser sending update users request, returns updated user info
+func (c *Client) UpdateUser(user *User) (*User, error) {
+	users, err := c.UpdateUsers(user)
+	return users[user.ID], err
 }
 
 // UpdateUsers send update users request, returns updated user info

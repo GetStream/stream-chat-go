@@ -30,6 +30,7 @@ go get github.com/GetStream/stream-chat-go
 - [x] User devices
 - [x] User search
 - [x] Channel search
+- [x] Message search
 
 ### Quickstart
 
