@@ -4,11 +4,10 @@ package stream_chat
 
 import (
 	json "encoding/json"
-	time "time"
-
 	easyjson "github.com/getstream/easyjson"
 	jlexer "github.com/getstream/easyjson/jlexer"
 	jwriter "github.com/getstream/easyjson/jwriter"
+	time "time"
 )
 
 // suppress unused package warning
@@ -150,7 +149,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo1(in *jlexer.Lexer, out
 			continue
 		}
 		switch key {
-		case "Users":
+		case "users":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -185,7 +184,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo1(out *jwriter.Writer, 
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Users\":"
+		const prefix string = ",\"users\":"
 		out.RawString(prefix[1:])
 		if in.Users == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
@@ -241,6 +240,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo2(in *jlexer.Lexer, out
 		return
 	}
 	out.User = new(User)
+	for key := range out.ExtraData {
+		delete(out.ExtraData, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -295,7 +297,10 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo2(in *jlexer.Lexer, out
 				in.Delim(']')
 			}
 		default:
-			in.SkipRecursive()
+			if out.ExtraData == nil {
+				out.ExtraData = make(map[string]interface{})
+			}
+			out.ExtraData[key] = in.Interface()
 		}
 		in.WantComma()
 	}
@@ -318,37 +323,35 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo2(out *jwriter.Writer, 
 		}
 		out.String(string(in.ID))
 	}
-	{
+	if in.Name != "" {
 		const prefix string = ",\"name\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
-	{
+	if in.Image != "" {
 		const prefix string = ",\"image\":"
 		out.RawString(prefix)
 		out.String(string(in.Image))
 	}
-	{
+	if in.Role != "" {
 		const prefix string = ",\"role\":"
 		out.RawString(prefix)
 		out.String(string(in.Role))
 	}
-	{
+	if in.Online {
 		const prefix string = ",\"online\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Online))
 	}
-	{
+	if in.Invisible {
 		const prefix string = ",\"invisible\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Invisible))
 	}
-	{
+	if len(in.Mutes) != 0 {
 		const prefix string = ",\"mutes\":"
 		out.RawString(prefix)
-		if in.Mutes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
+		{
 			out.RawByte('[')
 			for v6, v7 := range in.Mutes {
 				if v6 > 0 {
@@ -361,6 +364,22 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo2(out *jwriter.Writer, 
 				}
 			}
 			out.RawByte(']')
+		}
+	}
+	for k, v := range in.ExtraData {
+		switch k {
+		case "id", "name", "image", "role", "online", "invisible", "mutes":
+			continue // don't allow field overwrites
+		}
+		out.RawByte(',')
+		out.String(string(k))
+		out.RawByte(':')
+		if m, ok := v.(easyjson.Marshaler); ok {
+			m.MarshalEasyJSON(out)
+		} else if m, ok := v.(json.Marshaler); ok {
+			out.Raw(m.MarshalJSON())
+		} else {
+			out.Raw(json.Marshal(v))
 		}
 	}
 	out.RawByte('}')
@@ -2169,6 +2188,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo18(in *jlexer.Lexer, ou
 		in.Skip()
 		return
 	}
+	for key := range out.ExtraData {
+		delete(out.ExtraData, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -2177,9 +2199,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo18(in *jlexer.Lexer, ou
 			in.Skip()
 			in.WantComma()
 			continue
-		}
-		for key := range out.ExtraData {
-			delete(out.ExtraData, key)
 		}
 		switch key {
 		case "text":
@@ -3046,6 +3065,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo25(in *jlexer.Lexer, ou
 		in.Skip()
 		return
 	}
+	for key := range out.ExtraData {
+		delete(out.ExtraData, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -3054,9 +3076,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo25(in *jlexer.Lexer, ou
 			in.Skip()
 			in.WantComma()
 			continue
-		}
-		for key := range out.ExtraData {
-			delete(out.ExtraData, key)
 		}
 		switch key {
 		case "id":
@@ -3071,6 +3090,18 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo25(in *jlexer.Lexer, ou
 			out.Online = bool(in.Bool())
 		case "invisible":
 			out.Invisible = bool(in.Bool())
+		case "created_at":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+			}
+		case "updated_at":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
+			}
+		case "last_active":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.LastActive).UnmarshalJSON(data))
+			}
 		case "mutes":
 			if in.IsNull() {
 				in.Skip()
@@ -3102,18 +3133,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo25(in *jlexer.Lexer, ou
 				}
 				in.Delim(']')
 			}
-		case "created_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.CreatedAt).UnmarshalJSON(data))
-			}
-		case "updated_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
-			}
-		case "last_active":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.LastActive).UnmarshalJSON(data))
-			}
 		default:
 			if out.ExtraData == nil {
 				out.ExtraData = make(map[string]interface{})
@@ -3136,37 +3155,50 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo25(out *jwriter.Writer,
 		out.RawString(prefix[1:])
 		out.String(string(in.ID))
 	}
-	{
+	if in.Name != "" {
 		const prefix string = ",\"name\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
-	{
+	if in.Image != "" {
 		const prefix string = ",\"image\":"
 		out.RawString(prefix)
 		out.String(string(in.Image))
 	}
-	{
+	if in.Role != "" {
 		const prefix string = ",\"role\":"
 		out.RawString(prefix)
 		out.String(string(in.Role))
 	}
-	{
+	if in.Online {
 		const prefix string = ",\"online\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Online))
 	}
-	{
+	if in.Invisible {
 		const prefix string = ",\"invisible\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Invisible))
 	}
-	{
+	if true {
+		const prefix string = ",\"created_at\":"
+		out.RawString(prefix)
+		out.Raw((in.CreatedAt).MarshalJSON())
+	}
+	if true {
+		const prefix string = ",\"updated_at\":"
+		out.RawString(prefix)
+		out.Raw((in.UpdatedAt).MarshalJSON())
+	}
+	if true {
+		const prefix string = ",\"last_active\":"
+		out.RawString(prefix)
+		out.Raw((in.LastActive).MarshalJSON())
+	}
+	if len(in.Mutes) != 0 {
 		const prefix string = ",\"mutes\":"
 		out.RawString(prefix)
-		if in.Mutes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
+		{
 			out.RawByte('[')
 			for v67, v68 := range in.Mutes {
 				if v67 > 0 {
@@ -3181,24 +3213,9 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo25(out *jwriter.Writer,
 			out.RawByte(']')
 		}
 	}
-	{
-		const prefix string = ",\"created_at\":"
-		out.RawString(prefix)
-		out.Raw((in.CreatedAt).MarshalJSON())
-	}
-	{
-		const prefix string = ",\"updated_at\":"
-		out.RawString(prefix)
-		out.Raw((in.UpdatedAt).MarshalJSON())
-	}
-	{
-		const prefix string = ",\"last_active\":"
-		out.RawString(prefix)
-		out.Raw((in.LastActive).MarshalJSON())
-	}
 	for k, v := range in.ExtraData {
 		switch k {
-		case "id", "name", "image", "role", "online", "invisible", "mutes", "created_at", "updated_at", "last_active":
+		case "id", "name", "image", "role", "online", "invisible", "created_at", "updated_at", "last_active", "mutes":
 			continue // don't allow field overwrites
 		}
 		out.RawByte(',')
@@ -3453,6 +3470,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo28(in *jlexer.Lexer, ou
 		in.Skip()
 		return
 	}
+	for key := range out.ExtraData {
+		delete(out.ExtraData, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -3461,9 +3481,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo28(in *jlexer.Lexer, ou
 			in.Skip()
 			in.WantComma()
 			continue
-		}
-		for key := range out.ExtraData {
-			delete(out.ExtraData, key)
 		}
 		switch key {
 		case "message_id":
@@ -3555,6 +3572,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo29(in *jlexer.Lexer, ou
 		in.Skip()
 		return
 	}
+	for key := range out.Filter {
+		delete(out.Filter, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -3563,9 +3583,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo29(in *jlexer.Lexer, ou
 			in.Skip()
 			in.WantComma()
 			continue
-		}
-		for key := range out.Filter {
-			delete(out.Filter, key)
 		}
 		switch key {
 		case "limit":
@@ -6101,6 +6118,9 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo45(in *jlexer.Lexer, ou
 		in.Skip()
 		return
 	}
+	for key := range out.ExtraData {
+		delete(out.ExtraData, key)
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -6109,9 +6129,6 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo45(in *jlexer.Lexer, ou
 			in.Skip()
 			in.WantComma()
 			continue
-		}
-		for key := range out.ExtraData {
-			delete(out.ExtraData, key)
 		}
 		switch key {
 		case "type":

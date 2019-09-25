@@ -219,11 +219,15 @@ type usersResponse struct {
 }
 
 type usersRequest struct {
-	Users map[string]userRequest `json:"Users"`
+	Users map[string]userRequest `json:"users"`
 }
 
 type userRequest struct {
 	*User
+
+	// extra data doesn't work for embedded structs
+	ExtraData map[string]interface{} `json:"-,extra"`
+
 	// readonly fields
 	CreatedAt  time.Time `json:"-"`
 	UpdatedAt  time.Time `json:"-"`
@@ -244,7 +248,7 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 
 	req := usersRequest{Users: make(map[string]userRequest, len(users))}
 	for _, u := range users {
-		req.Users[u.ID] = userRequest{User: u}
+		req.Users[u.ID] = userRequest{User: u, ExtraData: u.ExtraData}
 	}
 
 	var resp usersResponse
