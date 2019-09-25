@@ -1,3 +1,4 @@
+//nolint: golint
 package stream_chat
 
 import (
@@ -78,12 +79,12 @@ type Policy struct {
 type AppConfig struct {
 	Name                 string                    `json:"name"`
 	OrganizationName     string                    `json:"organization"`
-	PushNotifications    PushNotificationFields    `json:"push_notifications"`
 	WebhookURL           string                    `json:"webhook_url"`
+	SuspendedExplanation string                    `json:"suspended_explanation"`
+	PushNotifications    PushNotificationFields    `json:"push_notifications"`
 	ConfigNameMap        map[string]*ChannelConfig `json:"channel_configs"`
 	Policies             map[string][]Policy       `json:"policies"`
 	Suspended            bool                      `json:"suspended"`
-	SuspendedExplanation string                    `json:"suspended_explanation"`
 	DisableAuth          bool                      `json:"disable_auth_checks"`
 	DisablePermissions   bool                      `json:"disable_permissions_checks"`
 }

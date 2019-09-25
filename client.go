@@ -133,7 +133,9 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 // VerifyWebhook validates if hmac signature is correct for message body
 func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
+	//nolint: errcheck
 	mac.Write(body)
+
 	expectedMAC := mac.Sum(nil)
 	return hmac.Equal(signature, expectedMAC)
 }

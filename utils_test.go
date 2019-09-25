@@ -21,6 +21,7 @@ var (
 	testUsers  []*User
 )
 
+//nolint: gochecknoinits
 func init() {
 	rand.Seed(time.Now().Unix())
 
