@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -31,10 +33,12 @@ func TestClient_CreateChannel(t *testing.T) {
 	}{
 		{"create channel with ID", "messaging", randomString(12), serverUser.ID, nil, false},
 		{"create channel without ID and members", "messaging", "", serverUser.ID, nil, true},
-		{"create channel without ID but with members", "messaging", "", serverUser.ID, map[string]interface{}{"members": []string{testUsers[0].ID, testUsers[1].ID}}, false},
+		{"create channel without ID but with members", "messaging", "", serverUser.ID,
+			map[string]interface{}{"members": []string{testUsers[0].ID, testUsers[1].ID}}, false},
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.CreateChannel(tt._type, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
@@ -61,7 +65,9 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
@@ -83,7 +89,9 @@ func TestChannel_Moderation(t *testing.T) {
 	chanID := randomString(12)
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
@@ -111,7 +119,9 @@ func TestChannel_Moderation(t *testing.T) {
 func TestChannel_BanUser(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 
@@ -132,14 +142,15 @@ func TestChannel_Delete(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	err := ch.Delete()
-	mustNoError(t, err, "delete channel")
+	mustNoError(t, ch.Delete(), "delete channel")
 }
 
 func TestChannel_GetReplies(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 
@@ -149,7 +160,7 @@ func TestChannel_GetReplies(t *testing.T) {
 	mustNoError(t, err, "send message")
 
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
-	reply, err = ch.SendMessage(reply, serverUser.ID)
+	_, err = ch.SendMessage(reply, serverUser.ID)
 	mustNoError(t, err, "send reply")
 
 	replies, err := ch.GetReplies(msg.ID, nil)
@@ -164,7 +175,9 @@ func TestChannel_MarkRead(t *testing.T) {
 func TestChannel_RemoveMembers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	err := ch.RemoveMembers(user.ID)
@@ -183,7 +196,9 @@ func TestChannel_SendEvent(t *testing.T) {
 func TestChannel_SendMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -201,7 +216,9 @@ func TestChannel_SendMessage(t *testing.T) {
 func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{

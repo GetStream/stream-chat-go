@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -23,14 +25,14 @@ type devicesResponse struct {
 	Devices []*Device `json:"devices"`
 }
 
-// Get list of devices for user
-func (c *Client) GetDevices(userId string) (devices []*Device, err error) {
-	if userId == "" {
+// GetDevices retrieves the list of devices for user
+func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
+	if userID == "" {
 		return nil, errors.New("user ID is empty")
 	}
 
 	params := url.Values{}
-	params.Set("user_id", userId)
+	params.Set("user_id", userID)
 
 	var resp devicesResponse
 

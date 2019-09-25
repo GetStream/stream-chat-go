@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -19,7 +21,9 @@ func TestClient_GetChannelType(t *testing.T) {
 	c := initClient(t)
 
 	ct := prepareChannelType(t, c)
-	defer c.DeleteChannelType(ct.Name)
+	defer func() {
+		mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
+	}()
 
 	got, err := c.GetChannelType(ct.Name)
 	mustNoError(t, err, "get channel type")
@@ -33,7 +37,9 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	c := initClient(t)
 
 	ct := prepareChannelType(t, c)
-	defer c.DeleteChannelType(ct.Name)
+	defer func() {
+		mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
+	}()
 
 	got, err := c.ListChannelTypes()
 	mustNoError(t, err, "list channel types")

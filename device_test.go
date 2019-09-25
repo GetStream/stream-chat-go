@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -17,9 +19,10 @@ func TestClient_Devices(t *testing.T) {
 	}
 
 	for _, dev := range devices {
-		err := c.AddDevice(dev)
-		defer c.DeleteDevice(user.ID, dev.ID)
-		mustNoError(t, err, "add device")
+		mustNoError(t, c.AddDevice(dev), "add device")
+		defer func(dev *Device) {
+			mustNoError(t, c.DeleteDevice(user.ID, dev.ID), "delete device")
+		}(dev)
 
 		resp, err := c.GetDevices(user.ID)
 		mustNoError(t, err, "get devices")

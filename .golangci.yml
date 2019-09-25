@@ -1,0 +1,20 @@
+# all available settings of specific linters
+linters-settings:
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: github.com/GetStream/stream-chat-go
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+
+run:
+  skip-dirs:
+    - hack
+  skip-files:
+    - ".*_easyjson\\.go"
+  # include test files
+  tests: true
+
+linters:
+  enable-all: true

@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -13,7 +15,6 @@ import (
 	"time"
 
 	"github.com/getstream/easyjson"
-
 	"github.com/pascaldekloe/jwt"
 )
 
@@ -45,7 +46,8 @@ func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler)
 
 	if resp.StatusCode >= 399 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("chat-client: HTTP %s %s status %s: %s", resp.Request.Method, resp.Request.URL, resp.Status, string(msg))
+		return fmt.Errorf("chat-client: HTTP %s %s status %s: %s",
+			resp.Request.Method, resp.Request.URL, resp.Status, string(msg))
 	}
 
 	if result != nil {
@@ -72,7 +74,8 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method string, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
+func (c *Client) makeRequest(method, path string,
+	params url.Values, data interface{}, result easyjson.Unmarshaler) error {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return err
@@ -130,7 +133,9 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 // VerifyWebhook validates if hmac signature is correct for message body
 func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
+	//nolint: errcheck
 	mac.Write(body)
+
 	expectedMAC := mac.Sum(nil)
 	return hmac.Equal(signature, expectedMAC)
 }

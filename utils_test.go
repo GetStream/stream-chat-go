@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -9,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint: gochecknoglobals
 var (
 	APIKey     = os.Getenv("STREAM_API_KEY")
 	APISecret  = os.Getenv("STREAM_API_SECRET")
@@ -18,6 +21,7 @@ var (
 	testUsers  []*User
 )
 
+//nolint: gochecknoinits
 func init() {
 	rand.Seed(time.Now().Unix())
 

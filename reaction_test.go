@@ -1,3 +1,5 @@
+// Package stream_chat provides chat via stream api
+//nolint: golint
 package stream_chat
 
 import (
@@ -9,7 +11,9 @@ import (
 func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -43,7 +47,9 @@ func reactionExistsCondition(reactions []*Reaction, searchType string) func() bo
 func TestChannel_DeleteReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -68,7 +74,9 @@ func TestChannel_DeleteReaction(t *testing.T) {
 func TestChannel_GetReactions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-	defer ch.Delete()
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
 
 	user := randomUser()
 	msg := &Message{
@@ -91,4 +99,5 @@ func TestChannel_GetReactions(t *testing.T) {
 	mustNoError(t, err, "get reactions")
 
 	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
+
 }
