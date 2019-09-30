@@ -66,6 +66,8 @@ type StreamClient interface {
 	UnmuteUsers(targetIDs []string, userID string) error
 	UpdateUser(user *User) (*User, error)
 	UpdateUsers(users ...*User) (map[string]*User, error)
+	PartialUpdateUser(update PartialUserUpdate) (*User, error)
+	PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error)
 }
 
 // StreamChannel is a channel of communication
