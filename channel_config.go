@@ -1,6 +1,4 @@
-// Package stream_chat provides chat via stream api
-//nolint: golint
-package stream_chat
+package stream_chat //nolint: golint
 
 // ChannelConfig is the configuration for a channel
 type ChannelConfig struct {
@@ -28,7 +26,7 @@ type ChannelConfig struct {
 }
 
 // DefaultChannelConfig is the default channel configuration
-//nolint: gochecknoglobals
+// nolint: gochecknoglobals
 var DefaultChannelConfig = ChannelConfig{
 	Automod:          AutoModDisabled,
 	ModBehavior:      ModBehaviourFlag,

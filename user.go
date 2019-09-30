@@ -1,6 +1,4 @@
-// Package stream_chat provides chat via stream api
-//nolint: golint
-package stream_chat
+package stream_chat //nolint: golint
 
 import (
 	"errors"

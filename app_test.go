@@ -1,5 +1,4 @@
-//nolint: golint
-package stream_chat
+package stream_chat //nolint: golint
 
 import (
 	"testing"

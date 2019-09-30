@@ -1,7 +1,7 @@
-// Package stream_chat provides chat via stream API
-//nolint: golint
 //go:generate go run github.com/getstream/easyjson/easyjson -pkg -all
-package stream_chat
+
+// Package stream_chat provides chat via stream API
+package stream_chat // nolint: golint
 
 import (
 	"time"
