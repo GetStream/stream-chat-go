@@ -4,6 +4,7 @@ package stream_chat
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -257,6 +258,37 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return resp.Users, err
+}
+
+type PartialUserUpdate struct {
+	ID    string                 `json:"id"`
+	Set   map[string]interface{} `json:"set,omitempty"`
+	Unset []string               `json:"unset,omitempty"`
+}
+
+func (c *Client) PartialUpdateUser(update PartialUserUpdate) (*User, error) {
+	res, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
+	if err != nil {
+		return nil, err
+	}
+
+	if user, ok := res[update.ID]; ok {
+		return user, nil
+	}
+
+	return nil, fmt.Errorf("response error: no user with such ID in response: %s", update.ID)
+}
+
+type partialUserUpdateReq struct {
+	Users []PartialUserUpdate `json:"users"`
+}
+
+func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error) {
+	var resp usersResponse
+
+	err := c.makeRequest(http.MethodPatch, "users", nil, partialUserUpdateReq{Users: updates}, &resp)
 
 	return resp.Users, err
 }

@@ -61,43 +61,46 @@ func TestClient_UpdateUsers(t *testing.T) {
 
 	user := randomUser()
 
-	t.Run("update users", func(t *testing.T) {
-		resp, err := c.UpdateUsers(user)
-		mustNoError(t, err, "update users")
+	resp, err := c.UpdateUsers(user)
+	mustNoError(t, err, "update users")
 
-		assert.Contains(t, resp, user.ID)
-		assert.NotEmpty(t, resp[user.ID].CreatedAt)
-		assert.NotEmpty(t, resp[user.ID].UpdatedAt)
+	assert.Contains(t, resp, user.ID)
+	assert.NotEmpty(t, resp[user.ID].CreatedAt)
+	assert.NotEmpty(t, resp[user.ID].UpdatedAt)
+}
+
+func TestClient_PartialUpdateUsers(t *testing.T) {
+	c := initClient(t)
+
+	user := randomUser()
+
+	update := PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"test": map[string]interface{}{
+				"passed": true,
+			},
+		},
+	}
+
+	got, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
+	mustNoError(t, err, "partial update user")
+
+	assert.Contains(t, got, user.ID)
+	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	assert.Equal(t, got[user.ID].ExtraData["test"], map[string]interface{}{
+		"passed": true,
 	})
 
-	t.Run("partial update", func(t *testing.T) {
-		extra := map[string]interface{}{
-			"test":   true,
-			"random": randomString(12),
-		}
+	update = PartialUserUpdate{
+		ID:    user.ID,
+		Unset: []string{"test.passed"},
+	}
 
-		resp, err := c.UpdateUsers(&User{ID: user.ID, ExtraData: extra})
-		mustNoError(t, err, "update users")
+	got, err = c.PartialUpdateUsers([]PartialUserUpdate{update})
+	mustNoError(t, err, "partial update user")
 
-		assert.Contains(t, resp, user.ID)
-		assert.Contains(t, resp[user.ID].ExtraData, "test", "extra data contains", resp[user.ID].ExtraData)
-		assert.Contains(t, resp[user.ID].ExtraData, "random", "extra data contains", resp[user.ID].ExtraData)
-		assert.Equal(t, extra["test"], resp[user.ID].ExtraData["test"], "extra data equal", resp[user.ID].ExtraData)
-		assert.Equal(t, extra["random"], resp[user.ID].ExtraData["random"], "extra data equal", resp[user.ID].ExtraData)
-	})
-
-	t.Run("remove custom field", func(t *testing.T) {
-		extra := map[string]interface{}{
-			"test":   true,
-			"random": randomString(12),
-		}
-
-		_, err := c.UpdateUsers(&User{ID: user.ID, ExtraData: extra})
-		mustNoError(t, err, "update users")
-
-		resp, err := c.UpdateUsers(&User{ID: user.ID, ExtraData: map[string]interface{}{"test": nil, "1": 1}})
-		assert.Contains(t, resp, user.ID)
-		assert.NotContains(t, resp[user.ID].ExtraData, "test")
-		assert.Contains(t, resp[user.ID].ExtraData, "random")
-	})
+	assert.Contains(t, got, user.ID)
+	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
 }
