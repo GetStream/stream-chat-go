@@ -2,6 +2,7 @@ package stream_chat //nolint: golint
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -17,20 +18,20 @@ type Mute struct {
 
 type User struct {
 	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Image string `json:"image"`
-	Role  string `json:"role"`
+	Name  string `json:"name,omitempty"`
+	Image string `json:"image,omitempty"`
+	Role  string `json:"role,omitempty"`
 
-	Online    bool `json:"online"`
-	Invisible bool `json:"invisible"`
+	Online    bool `json:"online,omitempty"`
+	Invisible bool `json:"invisible,omitempty"`
 
-	Mutes []*Mute `json:"mutes"`
-
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	LastActive time.Time `json:"last_active"`
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	UpdatedAt  time.Time `json:"updated_at,omitempty"`
+	LastActive time.Time `json:"last_active,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-,extra"`
+
+	Mutes []*Mute `json:"mutes,omitempty"`
 }
 
 // Create a mute
@@ -255,6 +256,42 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return resp.Users, err
+}
+
+// PartialUserUpdate request; Set and Unset fields can be set at same time, but should not be same field,
+// for example you cannot set 'field.path.name' and unset 'field.path' at the same time.
+// Field path should not contain spaces or dots (dot is path separator)
+type PartialUserUpdate struct {
+	ID    string                 `json:"id"`              // User ID, required
+	Set   map[string]interface{} `json:"set,omitempty"`   // map of field.name => value; optional
+	Unset []string               `json:"unset,omitempty"` // list of field names to unset
+}
+
+// PartialUpdateUser makes partial update for single user
+func (c *Client) PartialUpdateUser(update PartialUserUpdate) (*User, error) {
+	res, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
+	if err != nil {
+		return nil, err
+	}
+
+	if user, ok := res[update.ID]; ok {
+		return user, nil
+	}
+
+	return nil, fmt.Errorf("response error: no user with such ID in response: %s", update.ID)
+}
+
+type partialUserUpdateReq struct {
+	Users []PartialUserUpdate `json:"users"`
+}
+
+// PartialUpdateUsers makes partial update for users
+func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error) {
+	var resp usersResponse
+
+	err := c.makeRequest(http.MethodPatch, "users", nil, partialUserUpdateReq{Users: updates}, &resp)
 
 	return resp.Users, err
 }

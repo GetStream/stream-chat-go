@@ -62,6 +62,43 @@ func TestClient_UpdateUsers(t *testing.T) {
 	resp, err := c.UpdateUsers(user)
 	mustNoError(t, err, "update users")
 
+	assert.Contains(t, resp, user.ID)
 	assert.NotEmpty(t, resp[user.ID].CreatedAt)
 	assert.NotEmpty(t, resp[user.ID].UpdatedAt)
+}
+
+func TestClient_PartialUpdateUsers(t *testing.T) {
+	c := initClient(t)
+
+	user := randomUser()
+
+	update := PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"test": map[string]interface{}{
+				"passed": true,
+			},
+		},
+	}
+
+	got, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
+	mustNoError(t, err, "partial update user")
+
+	assert.Contains(t, got, user.ID)
+	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	assert.Equal(t, got[user.ID].ExtraData["test"], map[string]interface{}{
+		"passed": true,
+	})
+
+	update = PartialUserUpdate{
+		ID:    user.ID,
+		Unset: []string{"test.passed"},
+	}
+
+	got, err = c.PartialUpdateUsers([]PartialUserUpdate{update})
+	mustNoError(t, err, "partial update user")
+
+	assert.Contains(t, got, user.ID)
+	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
 }
