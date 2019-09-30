@@ -262,12 +262,16 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	return resp.Users, err
 }
 
+// PartialUserUpdate request; Set and Unset fields can be set at same time, but should not be same field,
+// for example you cannot set 'field.path.name' and unset 'field.path' at the same time.
+// Field path should not contain spaces or dots (dot is path separator)
 type PartialUserUpdate struct {
-	ID    string                 `json:"id"`
-	Set   map[string]interface{} `json:"set,omitempty"`
-	Unset []string               `json:"unset,omitempty"`
+	ID    string                 `json:"id"`              // User ID, required
+	Set   map[string]interface{} `json:"set,omitempty"`   // map of field.name => value; optional
+	Unset []string               `json:"unset,omitempty"` // list of field names to unset
 }
 
+// PartialUpdateUser makes partial update for single user
 func (c *Client) PartialUpdateUser(update PartialUserUpdate) (*User, error) {
 	res, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
 	if err != nil {
@@ -285,6 +289,7 @@ type partialUserUpdateReq struct {
 	Users []PartialUserUpdate `json:"users"`
 }
 
+// PartialUpdateUsers makes partial update for users
 func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error) {
 	var resp usersResponse
 
