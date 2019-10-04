@@ -295,3 +295,21 @@ func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*Us
 
 	return resp.Users, err
 }
+
+type getOrCreateUserReq struct {
+	Users []userRequest `json:"users"`
+}
+
+// GetOrCreateUsers returns map of users; if user doesn't exist it will be created
+func (c *Client) GetOrCreateUsers(users []*User) (map[string]*User, error) {
+	var resp usersResponse
+
+	req := getOrCreateUserReq{Users: make([]userRequest, 0, len(users))}
+	for _, u := range users {
+		req.Users = append(req.Users, userRequest{User: u, ExtraData: u.ExtraData})
+	}
+
+	err := c.makeRequest(http.MethodPut, "users", nil, req, &resp)
+
+	return resp.Users, err
+}
