@@ -266,6 +266,28 @@ func (ch *Channel) Query(data map[string]interface{}) error {
 	return ch.query(options, data)
 }
 
+// Show makes channel visible for userID
+func (ch *Channel) Show(userID string) error {
+	data := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "show")
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+}
+
+// Hide makes channel hidden for userID
+func (ch *Channel) Hide(userID string) error {
+	data := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "hide")
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+}
+
 // CreateChannel creates new channel of given type and id or returns already created one
 func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]interface{}) (*Channel, error) {
 	_, membersPresent := data["members"]
