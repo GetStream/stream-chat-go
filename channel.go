@@ -325,6 +325,20 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 	return ch, err
 }
 
+// SendFile sends file to the channel. Returns file url or error
+func (ch *Channel) SendFile(request SendFileRequest) (string, error) {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
+
+	return ch.client.sendFile(p, request)
+}
+
+// SendFile sends image to the channel. Returns file url or error
+func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
+
+	return ch.client.sendFile(p, request)
+}
+
 // todo: cleanup this
 func (ch *Channel) refresh() error {
 	options := map[string]interface{}{

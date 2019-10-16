@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"time"
@@ -80,9 +82,13 @@ func (c *Client) makeRequest(method, path string,
 	}
 
 	var body []byte
-	if m, ok := data.(easyjson.Marshaler); ok {
-		body, err = easyjson.Marshal(m)
-	} else {
+
+	switch t := data.(type) {
+	case easyjson.Marshaler:
+		body, err = easyjson.Marshal(t)
+	case []byte:
+		body = t
+	default:
 		body, err = json.Marshal(data)
 	}
 
@@ -136,6 +142,50 @@ func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
 
 	expectedMAC := mac.Sum(nil)
 	return hmac.Equal(signature, expectedMAC)
+}
+
+type SendFileRequest struct {
+	Reader      io.Reader `json:"-"`
+	FileName    string
+	User        *User
+	ContentType string
+}
+
+type sendFileResponse struct {
+	File string `json:"file"`
+}
+
+func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
+	if options.User == nil {
+		return "", errors.New("user is nil")
+	}
+
+	body := new(bytes.Buffer)
+	form := multipart.NewWriter(body)
+	file, err := form.CreateFormFile("file", options.FileName)
+	if err != nil {
+		return "", err
+	}
+	_, err = io.Copy(file, options.Reader)
+	if err != nil {
+		return "", err
+	}
+	user, err := form.CreateFormField("user")
+	if err != nil {
+		return "", err
+	}
+	_, err = easyjson.MarshalToWriter(options.User, user)
+	if err != nil {
+		return "", err
+	}
+	err = form.Close()
+	if err != nil {
+		return "", err
+	}
+
+	var resp sendFileResponse
+	err = c.makeRequest(http.MethodPost, url, nil, body, &resp)
+	return resp.File, err
 }
 
 // NewClient creates new stream chat api client
