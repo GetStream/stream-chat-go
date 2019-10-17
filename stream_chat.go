@@ -86,6 +86,8 @@ type StreamChannel interface {
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
+	SendFile(request SendFileRequest) (url string, err error)
+	SendImage(request SendFileRequest) (url string, err error)
 	DeleteFile(location string) error
 	DeleteImage(location string) error
 
