@@ -339,6 +339,26 @@ func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
 	return ch.client.sendFile(p, request)
 }
 
+// DeleteFile removes uploaded file
+func (ch *Channel) DeleteFile(location string) error {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
+
+	var params = url.Values{}
+	params.Set("url", location)
+
+	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+}
+
+// DeleteImage removes uploaded image
+func (ch *Channel) DeleteImage(location string) error {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
+
+	var params = url.Values{}
+	params.Set("url", location)
+
+	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+}
+
 // todo: cleanup this
 func (ch *Channel) refresh() error {
 	options := map[string]interface{}{

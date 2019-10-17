@@ -86,6 +86,8 @@ type StreamChannel interface {
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
+	DeleteFile(location string) error
+	DeleteImage(location string) error
 
 	// event.go
 	SendEvent(event *Event, userID string) error
