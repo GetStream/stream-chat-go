@@ -144,13 +144,6 @@ func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
 	return hmac.Equal(signature, expectedMAC)
 }
 
-type SendFileRequest struct {
-	Reader      io.Reader `json:"-"`
-	FileName    string
-	User        *User
-	ContentType string
-}
-
 type sendFileResponse struct {
 	File string `json:"file"`
 }

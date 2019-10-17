@@ -2,6 +2,7 @@ package stream_chat //nolint: golint
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -323,6 +324,16 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 	err := ch.query(options, data)
 
 	return ch, err
+}
+
+type SendFileRequest struct {
+	Reader io.Reader `json:"-"`
+	// name of the file would be stored
+	FileName string
+	// User object; required
+	User *User
+	// file content type, optional
+	ContentType string
 }
 
 // SendFile sends file to the channel. Returns file url or error
