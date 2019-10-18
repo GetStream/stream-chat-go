@@ -150,6 +150,7 @@ type sendFileResponse struct {
 	File string `json:"file"`
 }
 
+//nolint:gochecknoglobals
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 func escapeQuotes(s string) string {
