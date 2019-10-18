@@ -11,7 +11,9 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/getstream/easyjson"
@@ -148,14 +150,43 @@ type sendFileResponse struct {
 	File string `json:"file"`
 }
 
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
+}
+
+// this adds possible to set content type
+type multipartForm struct {
+	*multipart.Writer
+}
+
+// CreateFormFile is a convenience wrapper around CreatePart. It creates
+// a new form-data header with the provided field name, file name and content type
+func (form *multipartForm) CreateFormFile(fieldName, filename, contentType string) (io.Writer, error) {
+	h := make(textproto.MIMEHeader)
+
+	h.Set("Content-Disposition",
+		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldName), escapeQuotes(filename)))
+
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	h.Set("Content-Type", contentType)
+
+	return form.Writer.CreatePart(h)
+}
+
 func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
 	if options.User == nil {
 		return "", errors.New("user is nil")
 	}
 
 	body := new(bytes.Buffer)
-	form := multipart.NewWriter(body)
-	file, err := form.CreateFormFile("file", options.FileName)
+	form := multipartForm{multipart.NewWriter(body)}
+	file, err := form.CreateFormFile("file", options.FileName, options.ContentType)
 	if err != nil {
 		return "", err
 	}
