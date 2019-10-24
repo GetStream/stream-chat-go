@@ -189,6 +189,21 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
+// InviteMembers invites users with given IDs to the channel
+func (ch *Channel) InviteMembers(userIDs ...string) error {
+	if len(userIDs) == 0 {
+		return errors.New("user IDs are empty")
+	}
+
+	data := map[string]interface{}{
+		"invites": userIDs,
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+}
+
 // DemoteModerators moderators with given IDs from the channel
 func (ch *Channel) DemoteModerators(userIDs ...string) error {
 	if len(userIDs) == 0 {
