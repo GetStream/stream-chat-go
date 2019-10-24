@@ -103,8 +103,8 @@ func TestChannel_InviteMembers(t *testing.T) {
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 	assert.Equal(t, true, ch.Members[0].Invited, "member is invited")
-	assert.Equal(t, nil, ch.Members[0].InviteAcceptedAt, "member is invited")
-	assert.Equal(t, nil, ch.Members[0].InviteRejectedAt, "member is invited")
+	assert.Equal(t, nil, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
+	assert.Equal(t, nil, ch.Members[0].InviteRejectedAt, "invite is not rejected")
 }
 
 func TestChannel_Moderation(t *testing.T) {
