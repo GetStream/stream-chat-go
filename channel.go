@@ -2,6 +2,7 @@ package stream_chat //nolint: golint
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -323,6 +324,50 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 	err := ch.query(options, data)
 
 	return ch, err
+}
+
+type SendFileRequest struct {
+	Reader io.Reader `json:"-"`
+	// name of the file would be stored
+	FileName string
+	// User object; required
+	User *User
+	// file content type, required for SendImage
+	ContentType string
+}
+
+// SendFile sends file to the channel. Returns file url or error
+func (ch *Channel) SendFile(request SendFileRequest) (string, error) {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
+
+	return ch.client.sendFile(p, request)
+}
+
+// SendFile sends image to the channel. Returns file url or error
+func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
+
+	return ch.client.sendFile(p, request)
+}
+
+// DeleteFile removes uploaded file
+func (ch *Channel) DeleteFile(location string) error {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
+
+	var params = url.Values{}
+	params.Set("url", location)
+
+	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+}
+
+// DeleteImage removes uploaded image
+func (ch *Channel) DeleteImage(location string) error {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
+
+	var params = url.Values{}
+	params.Set("url", location)
+
+	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
 }
 
 // todo: cleanup this
