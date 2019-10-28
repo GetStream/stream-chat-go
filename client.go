@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -76,34 +77,49 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	return _url.String(), nil
 }
 
-func (c *Client) makeRequest(method, path string,
-	params url.Values, data interface{}, result easyjson.Unmarshaler) error {
+func (c *Client) newRequest(method, path string, params url.Values, data interface{}) (*http.Request, error) {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var body []byte
-
-	switch t := data.(type) {
-	case easyjson.Marshaler:
-		body, err = easyjson.Marshal(t)
-	case []byte:
-		body = t
-	default:
-		body, err = json.Marshal(data)
-	}
-
+	r, err := http.NewRequest(method, _url, nil)
 	if err != nil {
-		return err
-	}
-
-	r, err := http.NewRequest(method, _url, bytes.NewReader(body))
-	if err != nil {
-		return err
+		return nil, err
 	}
 
 	c.setHeaders(r)
+
+	switch t := data.(type) {
+	case easyjson.Marshaler:
+		b, err := easyjson.Marshal(t)
+		if err != nil {
+			return nil, err
+		}
+		r.Body = ioutil.NopCloser(bytes.NewReader(b))
+
+	case io.ReadCloser:
+		r.Body = t
+
+	case io.Reader:
+		r.Body = ioutil.NopCloser(t)
+
+	default:
+		b, err := json.Marshal(data)
+		if err != nil {
+			return nil, err
+		}
+		r.Body = ioutil.NopCloser(bytes.NewReader(b))
+	}
+
+	return r, nil
+}
+
+func (c *Client) makeRequest(method, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
+	r, err := c.newRequest(method, path, params, data)
+	if err != nil {
+		return err
+	}
 
 	resp, err := c.HTTP.Do(r)
 	if err != nil {
@@ -185,16 +201,18 @@ func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
 		return "", errors.New("user is nil")
 	}
 
-	body := new(bytes.Buffer)
-	form := multipartForm{multipart.NewWriter(body)}
-	file, err := form.CreateFormFile("file", options.FileName, options.ContentType)
+	tmpfile, err := ioutil.TempFile("", options.FileName)
 	if err != nil {
 		return "", err
 	}
-	_, err = io.Copy(file, options.Reader)
-	if err != nil {
-		return "", err
-	}
+
+	defer func() {
+		_ = tmpfile.Close()
+		_ = os.Remove(tmpfile.Name())
+	}()
+
+	form := multipartForm{multipart.NewWriter(tmpfile)}
+
 	user, err := form.CreateFormField("user")
 	if err != nil {
 		return "", err
@@ -203,13 +221,43 @@ func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	file, err := form.CreateFormFile("file", options.FileName, options.ContentType)
+	if err != nil {
+		return "", err
+	}
+	_, err = io.Copy(file, options.Reader)
+	if err != nil {
+		return "", err
+	}
+
 	err = form.Close()
 	if err != nil {
 		return "", err
 	}
 
+	if _, err = tmpfile.Seek(0, 0); err != nil {
+		return "", err
+	}
+
+	r, err := c.newRequest(http.MethodPost, url, nil, tmpfile)
+	if err != nil {
+		return "", err
+	}
+
+	r.Header.Set("Content-Type", form.FormDataContentType())
+
+	res, err := c.HTTP.Do(r)
+	if err != nil {
+		return "", err
+	}
+
 	var resp sendFileResponse
-	err = c.makeRequest(http.MethodPost, url, nil, body, &resp)
+	err = c.parseResponse(res, &resp)
+	if err != nil {
+		return "", err
+	}
+
 	return resp.File, err
 }
 
