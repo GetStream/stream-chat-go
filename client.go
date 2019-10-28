@@ -115,7 +115,9 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	return r, nil
 }
 
-func (c *Client) makeRequest(method, path string, params url.Values, data interface{}, result easyjson.Unmarshaler) error {
+func (c *Client) makeRequest(method, path string, params url.Values,
+	data interface{}, result easyjson.Unmarshaler) error {
+
 	r, err := c.newRequest(method, path, params, data)
 	if err != nil {
 		return err
@@ -196,12 +198,31 @@ func (form *multipartForm) CreateFormFile(fieldName, filename, contentType strin
 	return form.Writer.CreatePart(h)
 }
 
-func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
-	if options.User == nil {
+func (form *multipartForm) setData(fieldName string, data easyjson.Marshaler) error {
+	field, err := form.CreateFormField(fieldName)
+	if err != nil {
+		return err
+	}
+	_, err = easyjson.MarshalToWriter(data, field)
+	return err
+}
+
+func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, contentType string) error {
+	file, err := form.CreateFormFile(fieldName, fileName, contentType)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(file, r)
+
+	return err
+}
+
+func (c *Client) sendFile(url string, opts SendFileRequest) (string, error) {
+	if opts.User == nil {
 		return "", errors.New("user is nil")
 	}
 
-	tmpfile, err := ioutil.TempFile("", options.FileName)
+	tmpfile, err := ioutil.TempFile("", opts.FileName)
 	if err != nil {
 		return "", err
 	}
@@ -213,20 +234,11 @@ func (c *Client) sendFile(url string, options SendFileRequest) (string, error) {
 
 	form := multipartForm{multipart.NewWriter(tmpfile)}
 
-	user, err := form.CreateFormField("user")
-	if err != nil {
-		return "", err
-	}
-	_, err = easyjson.MarshalToWriter(options.User, user)
-	if err != nil {
+	if err = form.setData("user", opts.User); err != nil {
 		return "", err
 	}
 
-	file, err := form.CreateFormFile("file", options.FileName, options.ContentType)
-	if err != nil {
-		return "", err
-	}
-	_, err = io.Copy(file, options.Reader)
+	err = form.setFile("file", opts.Reader, opts.FileName, opts.ContentType)
 	if err != nil {
 		return "", err
 	}
