@@ -332,7 +332,7 @@ type SendFileRequest struct {
 	FileName string
 	// User object; required
 	User *User
-	// file content type, optional
+	// file content type, required for SendImage
 	ContentType string
 }
 
