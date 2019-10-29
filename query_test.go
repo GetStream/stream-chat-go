@@ -49,20 +49,42 @@ func TestClient_Search(t *testing.T) {
 
 	text := randomString(10)
 
-	msg1, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
+	_, err := ch.SendMessage(&Message{
+		Text:      text + " " + randomString(25),
+		ExtraData: map[string]interface{}{"color": "green"},
+	}, user1.ID)
 	mustNoError(t, err)
 
-	msg2, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
+	_, err = ch.SendMessage(&Message{
+		Text:      text + " " + randomString(25),
+		ExtraData: map[string]interface{}{"color": "red"},
+	}, user2.ID)
 	mustNoError(t, err)
 
-	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
-		"members": map[string][]string{
-			"$in": {user1.ID, user2.ID},
-		},
-	}})
+	t.Run("search message text", func(t *testing.T) {
+		got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
+			"members": map[string][]string{
+				"$in": {user1.ID, user2.ID},
+			},
+		}})
 
-	mustNoError(t, err)
+		mustNoError(t, err)
+		assert.Len(t, got, 2)
+	})
 
-	assert.Len(t, got, 2)
-	_, _, _ = msg1, msg2, got
+	t.Run("search text and custom props via message filters", func(t *testing.T) {
+		got, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				}},
+			MessageFilters: map[string]interface{}{
+				"text":  map[string]interface{}{"$q": text},
+				"color": "green",
+			},
+		})
+
+		mustNoError(t, err)
+		assert.Len(t, got, 1)
+	})
 }

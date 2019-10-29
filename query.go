@@ -105,9 +105,9 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 
 type SearchRequest struct {
 	// Required
-	Query   string                 `json:"query"`
-	Filters map[string]interface{} `json:"filter_conditions"`
-
+	Query          string                 `json:"query"`
+	Filters        map[string]interface{} `json:"filter_conditions"`
+	MessageFilters map[string]interface{} `json:"message_filters"`
 	// Pagination, optional
 	Limit  int `json:"limit,omitempty"`
 	Offset int `json:"offset,omitempty"`
