@@ -11,9 +11,9 @@ import (
 
 //nolint: gochecknoglobals
 var (
-	APIKey     = os.Getenv("STREAM_API_KEY")
-	APISecret  = os.Getenv("STREAM_API_SECRET")
-	StreamHost = os.Getenv("STREAM_HOST")
+	APIKey     = os.Getenv("STREAM_CHAT_API_KEY")
+	APISecret  = os.Getenv("STREAM_CHAT_API_SECRET")
+	StreamHost = os.Getenv("STREAM_CHAT_API_HOST")
 
 	serverUser *User
 	testUsers  []*User

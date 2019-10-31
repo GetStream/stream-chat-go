@@ -1,6 +1,8 @@
 package stream_chat // nolint: golint
 
 import (
+	"os"
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -281,4 +283,73 @@ func TestChannel_DemoteModerators(t *testing.T) {
 
 func TestChannel_UnBanUser(t *testing.T) {
 
+}
+
+func TestChannel_SendFile(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	var url string
+
+	t.Run("Send file", func(t *testing.T) {
+		file, err := os.Open(path.Join("testdata", "helloworld.txt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		url, err = ch.SendFile(SendFileRequest{
+			Reader:   file,
+			FileName: "HelloWorld.txt",
+			User:     randomUser(),
+		})
+		if err != nil {
+			t.Fatalf("send file failed: %s", err)
+		}
+		if url == "" {
+			t.Fatal("upload file returned empty url")
+		}
+	})
+
+	t.Run("Delete file", func(t *testing.T) {
+		err := ch.DeleteFile(url)
+		if err != nil {
+			t.Fatalf("delete file failed: %s", err.Error())
+		}
+	})
+}
+
+func TestChannel_SendImage(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	var url string
+
+	t.Run("Send image", func(t *testing.T) {
+		file, err := os.Open(path.Join("testdata", "helloworld.jpg"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		url, err = ch.SendImage(SendFileRequest{
+			Reader:      file,
+			FileName:    "HelloWorld.jpg",
+			User:        randomUser(),
+			ContentType: "image/jpeg",
+		})
+
+		if err != nil {
+			t.Fatalf("Send image failed: %s", err.Error())
+		}
+
+		if url == "" {
+			t.Fatal("upload image returned empty url")
+		}
+	})
+
+	t.Run("Delete image", func(t *testing.T) {
+		err := ch.DeleteImage(url)
+		if err != nil {
+			t.Fatalf("delete image failed: %s", err.Error())
+		}
+	})
 }
