@@ -1,12 +1,12 @@
 package stream_chat // nolint: golint
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_CreateChannel(t *testing.T) {
