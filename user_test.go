@@ -45,6 +45,16 @@ func TestClient_MuteUser(t *testing.T) {
 	assert.NotEmpty(t, mute.Target, "mute has target")
 }
 
+func TestClient_MuteUsers(t *testing.T) {
+	c := initClient(t)
+	initChannel(t, c)
+
+	users := []string{randomUser().ID, randomUser().ID}
+
+	err := c.MuteUsers(users, serverUser.ID)
+	mustNoError(t, err, "mute user")
+}
+
 func TestClient_UnBanUser(t *testing.T) {
 }
 
@@ -52,6 +62,18 @@ func TestClient_UnFlagUser(t *testing.T) {
 }
 
 func TestClient_UnmuteUser(t *testing.T) {
+	c := initClient(t)
+	err := c.UnmuteUser(randomUser().ID, serverUser.ID)
+	assert.NoError(t, err)
+}
+
+func TestClient_UnmuteUsers(t *testing.T) {
+	c := initClient(t)
+
+	users := []string{randomUser().ID, randomUser().ID}
+
+	err := c.UnmuteUsers(users, serverUser.ID)
+	assert.NoError(t, err, "unmute users")
 }
 
 func TestClient_UpdateUsers(t *testing.T) {

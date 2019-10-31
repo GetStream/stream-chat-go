@@ -102,12 +102,12 @@ func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 		return errors.New("user ID is empty")
 	}
 
-	data := url.Values{
+	data := map[string]interface{}{
 		"target_ids": targetIDs,
+		"user_id":    userID,
 	}
-	data.Set("user_id", userID)
 
-	return c.makeRequest(http.MethodPost, "moderation/unmute", data, nil, nil)
+	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
