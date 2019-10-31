@@ -86,6 +86,7 @@ type StreamChannel interface {
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
+	InviteMembers(userIDs ...string) error
 
 	// event.go
 	SendEvent(event *Event, userID string) error
