@@ -13,7 +13,7 @@ import (
 var (
 	APIKey     = os.Getenv("STREAM_CHAT_API_KEY")
 	APISecret  = os.Getenv("STREAM_CHAT_API_SECRET")
-	StreamHost = os.Getenv("STREAM_CHAT_HOST")
+	StreamHost = os.Getenv("STREAM_CHAT_API_HOST")
 
 	serverUser *User
 	testUsers  []*User

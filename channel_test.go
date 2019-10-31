@@ -1,6 +1,8 @@
 package stream_chat // nolint: golint
 
 import (
+	"os"
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -78,6 +80,33 @@ func TestChannel_AddMembers(t *testing.T) {
 	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+}
+
+func TestChannel_InviteMembers(t *testing.T) {
+	c := initClient(t)
+
+	chanID := randomString(12)
+
+	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	mustNoError(t, err, "create channel")
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
+
+	assert.Empty(t, ch.Members, "members are empty")
+
+	user := randomUser()
+
+	err = ch.InviteMembers(user.ID)
+	mustNoError(t, err, "invite members")
+
+	// refresh channel state
+	mustNoError(t, ch.refresh(), "refresh channel")
+
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+	assert.Equal(t, true, ch.Members[0].Invited, "member is invited")
+	assert.Equal(t, nil, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
+	assert.Equal(t, nil, ch.Members[0].InviteRejectedAt, "invite is not rejected")
 }
 
 func TestChannel_Moderation(t *testing.T) {
@@ -254,4 +283,73 @@ func TestChannel_DemoteModerators(t *testing.T) {
 
 func TestChannel_UnBanUser(t *testing.T) {
 
+}
+
+func TestChannel_SendFile(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	var url string
+
+	t.Run("Send file", func(t *testing.T) {
+		file, err := os.Open(path.Join("testdata", "helloworld.txt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		url, err = ch.SendFile(SendFileRequest{
+			Reader:   file,
+			FileName: "HelloWorld.txt",
+			User:     randomUser(),
+		})
+		if err != nil {
+			t.Fatalf("send file failed: %s", err)
+		}
+		if url == "" {
+			t.Fatal("upload file returned empty url")
+		}
+	})
+
+	t.Run("Delete file", func(t *testing.T) {
+		err := ch.DeleteFile(url)
+		if err != nil {
+			t.Fatalf("delete file failed: %s", err.Error())
+		}
+	})
+}
+
+func TestChannel_SendImage(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	var url string
+
+	t.Run("Send image", func(t *testing.T) {
+		file, err := os.Open(path.Join("testdata", "helloworld.jpg"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		url, err = ch.SendImage(SendFileRequest{
+			Reader:      file,
+			FileName:    "HelloWorld.jpg",
+			User:        randomUser(),
+			ContentType: "image/jpeg",
+		})
+
+		if err != nil {
+			t.Fatalf("Send image failed: %s", err.Error())
+		}
+
+		if url == "" {
+			t.Fatal("upload image returned empty url")
+		}
+	})
+
+	t.Run("Delete image", func(t *testing.T) {
+		err := ch.DeleteImage(url)
+		if err != nil {
+			t.Fatalf("delete image failed: %s", err.Error())
+		}
+	})
 }

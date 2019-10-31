@@ -84,6 +84,13 @@ type StreamChannel interface {
 	UnBanUser(targetID string, options map[string]string) error
 	Update(options map[string]interface{}, message string) error
 	Query(data map[string]interface{}) error
+	Show(userID string) error
+	Hide(userID string) error
+	InviteMembers(userIDs ...string) error
+	SendFile(request SendFileRequest) (url string, err error)
+	SendImage(request SendFileRequest) (url string, err error)
+	DeleteFile(location string) error
+	DeleteImage(location string) error
 
 	// event.go
 	SendEvent(event *Event, userID string) error
