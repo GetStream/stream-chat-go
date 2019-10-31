@@ -82,6 +82,33 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
+func TestChannel_InviteMembers(t *testing.T) {
+	c := initClient(t)
+
+	chanID := randomString(12)
+
+	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	mustNoError(t, err, "create channel")
+	defer func() {
+		mustNoError(t, ch.Delete(), "delete channel")
+	}()
+
+	assert.Empty(t, ch.Members, "members are empty")
+
+	user := randomUser()
+
+	err = ch.InviteMembers(user.ID)
+	mustNoError(t, err, "invite members")
+
+	// refresh channel state
+	mustNoError(t, ch.refresh(), "refresh channel")
+
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+	assert.Equal(t, true, ch.Members[0].Invited, "member is invited")
+	assert.Equal(t, nil, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
+	assert.Equal(t, nil, ch.Members[0].InviteRejectedAt, "invite is not rejected")
+}
+
 func TestChannel_Moderation(t *testing.T) {
 	c := initClient(t)
 
