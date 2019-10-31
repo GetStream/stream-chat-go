@@ -24,7 +24,7 @@ type Message struct {
 	Text string `json:"text"`
 	HTML string `json:"html"`
 
-	Type MessageType `json:"type"` // one of MessageType* constants
+	Type MessageType `json:"type,omitempty"` // one of MessageType* constants
 
 	User            *User          `json:"user"`
 	Attachments     []*Attachment  `json:"attachments"`
@@ -35,12 +35,12 @@ type Message struct {
 	ParentID      string `json:"parent_id"`       // id of parent message if it's reply
 	ShowInChannel bool   `json:"show_in_channel"` // show reply message also in channel
 
-	ReplyCount int `json:"reply_count"`
+	ReplyCount int `json:"reply_count,omitempty"`
 
 	MentionedUsers []*User `json:"mentioned_users"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 
 	// any other fields the user wants to attach a message
 	ExtraData map[string]interface{}

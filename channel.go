@@ -111,10 +111,13 @@ func (ch *Channel) query(options map[string]interface{}, data map[string]interfa
 //
 // options: the object to update the custom properties of this channel with
 // message: optional update message
-func (ch *Channel) Update(options map[string]interface{}, message string) error {
+func (ch *Channel) Update(options map[string]interface{}, message *Message) error {
 	payload := map[string]interface{}{
-		"data":    options,
-		"message": message,
+		"data": options,
+	}
+
+	if message != nil {
+		payload["message"] = message
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
@@ -137,7 +140,7 @@ func (ch *Channel) Truncate() error {
 }
 
 // AddMembers adds members with given user IDs to the channel
-func (ch *Channel) AddMembers(userIDs ...string) error {
+func (ch *Channel) AddMembers(userIDs []string, message *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -146,13 +149,17 @@ func (ch *Channel) AddMembers(userIDs ...string) error {
 		"add_members": userIDs,
 	}
 
+	if message != nil {
+		data["message"] = message
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
 //  RemoveMembers deletes members with given IDs from the channel
-func (ch *Channel) RemoveMembers(userIDs ...string) error {
+func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -161,6 +168,9 @@ func (ch *Channel) RemoveMembers(userIDs ...string) error {
 		"remove_members": userIDs,
 	}
 
+	if message != nil {
+		data["message"] = message
+	}
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	var resp queryResponse
@@ -368,6 +378,44 @@ func (ch *Channel) DeleteImage(location string) error {
 	params.Set("url", location)
 
 	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+}
+
+func (ch *Channel) AcceptInvite(userID string, message *Message) error {
+	if userID == "" {
+		return errors.New("user ID must be not empty")
+	}
+
+	data := map[string]interface{}{
+		"accept_invite": true,
+		"user_id":       userID,
+	}
+
+	if message != nil {
+		data["message"] = message
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+}
+
+func (ch *Channel) RejectInvite(userID string, message *Message) error {
+	if userID == "" {
+		return errors.New("user ID must be not empty")
+	}
+
+	data := map[string]interface{}{
+		"reject_invite": true,
+		"user_id":       userID,
+	}
+
+	if message != nil {
+		data["message"] = message
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
 // todo: cleanup this
