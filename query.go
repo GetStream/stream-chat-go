@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -125,6 +126,9 @@ type searchMessageResponse struct {
 func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	var buf strings.Builder
 
+	if request.Query == "" && request.Filters == nil && request.MessageFilters == nil {
+		return nil, errors.New("either query or filters must be provided")
+	}
 	_, err := easyjson.MarshalToWriter(request, &buf)
 	if err != nil {
 		return nil, err
