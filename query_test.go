@@ -49,10 +49,10 @@ func TestClient_Search(t *testing.T) {
 
 	text := randomString(10)
 
-	msg1, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
+	_, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
 	mustNoError(t, err)
 
-	msg2, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
+	_, err = ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
 	mustNoError(t, err)
 
 	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
@@ -64,5 +64,4 @@ func TestClient_Search(t *testing.T) {
 	mustNoError(t, err)
 
 	assert.Len(t, got, 2)
-	_, _, _ = msg1, msg2, got
 }

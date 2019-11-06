@@ -433,6 +433,7 @@ func (ch *Channel) RejectInvite(userID string, message *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
+//nolint: godox
 // todo: cleanup this
 func (ch *Channel) refresh() error {
 	options := map[string]interface{}{
@@ -441,7 +442,5 @@ func (ch *Channel) refresh() error {
 		"presence": false,
 	}
 
-	err := ch.query(options, nil)
-
-	return err
+	return ch.query(options, nil)
 }

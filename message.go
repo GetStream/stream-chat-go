@@ -79,7 +79,7 @@ type messageRequestMessage struct {
 	MentionedUsers []string               `json:"mentioned_users"`
 	ParentID       string                 `json:"parent_id"`
 	ShowInChannel  bool                   `json:"show_in_channel"`
-	ExtraData      map[string]interface{} `json:"-,extra"`
+	ExtraData      map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 }
 
 type messageRequestUser struct {
@@ -103,7 +103,7 @@ type Attachment struct {
 	AssetURL    string `json:"asset_url,omitempty"`
 	OGScrapeURL string `json:"og_scrape_url,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 }
 
 // SendMessage sends a message to the channel. Returns full message details from server

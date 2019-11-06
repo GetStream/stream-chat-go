@@ -29,7 +29,7 @@ type User struct {
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	LastActive *time.Time `json:"last_active,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
 	Mutes []*Mute `json:"mutes,omitempty"`
 }
@@ -225,7 +225,7 @@ type userRequest struct {
 	*User
 
 	// extra data doesn't work for embedded structs
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
 	// readonly fields
 	CreatedAt  time.Time `json:"-"`

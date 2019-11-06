@@ -13,7 +13,7 @@ type Reaction struct {
 	Type      string `json:"type"`
 
 	// any other fields the user wants to attach a reaction
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 }
 
 type reactionResponse struct {
