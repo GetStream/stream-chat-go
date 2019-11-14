@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_CreateChannel(t *testing.T) {
@@ -73,7 +74,10 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.AddMembers(user.ID)
+	err = ch.AddMembers(
+		[]string{user.ID},
+		&Message{Text: "some members", User: &User{ID: user.ID}},
+	)
 	mustNoError(t, err, "add members")
 
 	// refresh channel state
@@ -207,7 +211,10 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	}()
 
 	user := randomUser()
-	err := ch.RemoveMembers(user.ID)
+	err := ch.RemoveMembers(
+		[]string{user.ID},
+		&Message{Text: "some members", User: &User{ID: user.ID}},
+	)
 
 	mustNoError(t, err, "remove members")
 
@@ -270,7 +277,12 @@ func TestChannel_Truncate(t *testing.T) {
 }
 
 func TestChannel_Update(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
 
+	err := ch.Update(map[string]interface{}{"color": "blue"},
+		&Message{Text: "color is blue", User: &User{ID: testUsers[0].ID}})
+	require.NoError(t, err)
 }
 
 func TestChannel_AddModerators(t *testing.T) {
@@ -352,4 +364,46 @@ func TestChannel_SendImage(t *testing.T) {
 			t.Fatalf("delete image failed: %s", err.Error())
 		}
 	})
+}
+
+func TestChannel_AcceptInvite(t *testing.T) {
+	c := initClient(t)
+
+	_, err := c.UpdateUsers(testUsers...)
+	mustNoError(t, err, "update users")
+
+	members := make([]string, 0, len(testUsers))
+	for i := range testUsers {
+		members = append(members, testUsers[i].ID)
+	}
+
+	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+		"members": members,
+		"invites": []string{members[0]},
+	})
+
+	require.NoError(t, err, "create channel")
+	err = ch.AcceptInvite(members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
+	require.NoError(t, err, "accept invite")
+}
+
+func TestChannel_RejectInvite(t *testing.T) {
+	c := initClient(t)
+
+	_, err := c.UpdateUsers(testUsers...)
+	mustNoError(t, err, "update users")
+
+	members := make([]string, 0, len(testUsers))
+	for i := range testUsers {
+		members = append(members, testUsers[i].ID)
+	}
+
+	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+		"members": members,
+		"invites": []string{members[0]},
+	})
+
+	require.NoError(t, err, "create channel")
+	err = ch.RejectInvite(members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
+	require.NoError(t, err, "reject invite")
 }

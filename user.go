@@ -25,9 +25,9 @@ type User struct {
 	Online    bool `json:"online,omitempty"`
 	Invisible bool `json:"invisible,omitempty"`
 
-	CreatedAt  time.Time `json:"created_at,omitempty"`
-	UpdatedAt  time.Time `json:"updated_at,omitempty"`
-	LastActive time.Time `json:"last_active,omitempty"`
+	CreatedAt  *time.Time `json:"created_at,omitempty"`
+	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
+	LastActive *time.Time `json:"last_active,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-,extra"`
 
