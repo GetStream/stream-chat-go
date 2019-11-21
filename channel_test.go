@@ -101,7 +101,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.InviteMembers(user.ID)
+	err = ch.InviteMembers([]string{user.ID}, nil)
 	mustNoError(t, err, "invite members")
 
 	// refresh channel state
@@ -128,7 +128,11 @@ func TestChannel_Moderation(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.AddModerators(user.ID)
+	err = ch.AddModerators(
+		[]string{user.ID},
+		&AddModeratorsOptions{&Message{Text: "accepted", User: &User{ID: user.ID}}},
+	)
+
 	mustNoError(t, err, "add moderators")
 
 	// refresh channel state
@@ -137,7 +141,7 @@ func TestChannel_Moderation(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
-	err = ch.DemoteModerators(user.ID)
+	err = ch.DemoteModerators([]string{user.ID}, nil)
 	mustNoError(t, err, "demote moderators")
 
 	// refresh channel state

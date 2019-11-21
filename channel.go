@@ -77,6 +77,19 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 }
 
+type InviteMembersOptions struct {
+	// Optional system message to
+	Message *Message
+}
+
+type AddModeratorsOptions struct {
+	Message *Message
+}
+
+type DemoteModeratorsOptions struct {
+	Message *Message
+}
+
 // query makes request to channel api and updates channel internal state
 func (ch *Channel) query(options map[string]interface{}, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
@@ -186,7 +199,7 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 }
 
 // AddModerators adds moderators with given IDs to the channel
-func (ch *Channel) AddModerators(userIDs ...string) error {
+func (ch *Channel) AddModerators(userIDs []string, opts *AddModeratorsOptions) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -195,13 +208,19 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 		"add_moderators": userIDs,
 	}
 
+	if opts != nil {
+		if opts.Message != nil {
+			data["message"] = opts.Message
+		}
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
 // InviteMembers invites users with given IDs to the channel
-func (ch *Channel) InviteMembers(userIDs ...string) error {
+func (ch *Channel) InviteMembers(userIDs []string, opts *InviteMembersOptions) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -210,19 +229,31 @@ func (ch *Channel) InviteMembers(userIDs ...string) error {
 		"invites": userIDs,
 	}
 
+	if opts != nil {
+		if opts.Message != nil {
+			data["message"] = opts.Message
+		}
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
 // DemoteModerators moderators with given IDs from the channel
-func (ch *Channel) DemoteModerators(userIDs ...string) error {
+func (ch *Channel) DemoteModerators(userIDs []string, opts *DemoteModeratorsOptions) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
 
 	data := map[string]interface{}{
 		"demote_moderators": userIDs,
+	}
+
+	if opts != nil {
+		if opts.Message != nil {
+			data["message"] = opts.Message
+		}
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))

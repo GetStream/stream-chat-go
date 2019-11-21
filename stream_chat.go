@@ -74,10 +74,10 @@ type StreamClient interface {
 type StreamChannel interface {
 	// channel.go
 	AddMembers(userIDs []string, message *Message) error
-	AddModerators(userIDs ...string) error
+	AddModerators(userIDs []string, opts *AddModeratorsOptions) error
 	BanUser(targetID string, userID string, options map[string]interface{}) error
 	Delete() error
-	DemoteModerators(userIDs ...string) error
+	DemoteModerators(userIDs []string, opts *DemoteModeratorsOptions) error
 	MarkRead(userID string, options map[string]interface{}) error
 	RemoveMembers(userIDs []string, message *Message) error
 	Truncate() error
@@ -86,7 +86,7 @@ type StreamChannel interface {
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
-	InviteMembers(userIDs ...string) error
+	InviteMembers(userIDs []string, opts *InviteMembersOptions) error
 	SendFile(request SendFileRequest) (url string, err error)
 	SendImage(request SendFileRequest) (url string, err error)
 	DeleteFile(location string) error
