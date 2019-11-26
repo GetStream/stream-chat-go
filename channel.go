@@ -77,19 +77,6 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 }
 
-type InviteMembersOptions struct {
-	// Optional system message to
-	Message *Message
-}
-
-type AddModeratorsOptions struct {
-	Message *Message
-}
-
-type DemoteModeratorsOptions struct {
-	Message *Message
-}
-
 // query makes request to channel api and updates channel internal state
 func (ch *Channel) query(options map[string]interface{}, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
@@ -199,7 +186,17 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 }
 
 // AddModerators adds moderators with given IDs to the channel
-func (ch *Channel) AddModerators(userIDs []string, opts *AddModeratorsOptions) error {
+func (ch *Channel) AddModerators(userIDs ...string) error {
+	return ch.addModerators(userIDs, nil)
+}
+
+// AddModerators adds moderators with given IDs to the channel and produce system message
+func (ch *Channel) AddModeratorsWithMessage(userIDs []string, msg *Message) error {
+	return ch.addModerators(userIDs, msg)
+}
+
+// AddModerators adds moderators with given IDs to the channel
+func (ch *Channel) addModerators(userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -208,10 +205,8 @@ func (ch *Channel) AddModerators(userIDs []string, opts *AddModeratorsOptions) e
 		"add_moderators": userIDs,
 	}
 
-	if opts != nil {
-		if opts.Message != nil {
-			data["message"] = opts.Message
-		}
+	if msg != nil {
+		data["message"] = msg
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
@@ -220,7 +215,17 @@ func (ch *Channel) AddModerators(userIDs []string, opts *AddModeratorsOptions) e
 }
 
 // InviteMembers invites users with given IDs to the channel
-func (ch *Channel) InviteMembers(userIDs []string, opts *InviteMembersOptions) error {
+func (ch *Channel) InviteMembers(userIDs ...string) error {
+	return ch.inviteMembers(userIDs, nil)
+}
+
+// InviteMembers invites users with given IDs to the channel and produce system message
+func (ch *Channel) InviteMembersWithMessage(userIDs []string, msg *Message) error {
+	return ch.inviteMembers(userIDs, msg)
+}
+
+// InviteMembers invites users with given IDs to the channel
+func (ch *Channel) inviteMembers(userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -229,10 +234,8 @@ func (ch *Channel) InviteMembers(userIDs []string, opts *InviteMembersOptions) e
 		"invites": userIDs,
 	}
 
-	if opts != nil {
-		if opts.Message != nil {
-			data["message"] = opts.Message
-		}
+	if msg != nil {
+		data["message"] = msg
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
@@ -241,7 +244,17 @@ func (ch *Channel) InviteMembers(userIDs []string, opts *InviteMembersOptions) e
 }
 
 // DemoteModerators moderators with given IDs from the channel
-func (ch *Channel) DemoteModerators(userIDs []string, opts *DemoteModeratorsOptions) error {
+func (ch *Channel) DemoteModerators(userIDs ...string) error {
+	return ch.demoteModerators(userIDs, nil)
+}
+
+// DemoteModerators moderators with given IDs from the channel and produce system message
+func (ch *Channel) DemoteModeratorsWithMessage(userIDs []string, msg *Message) error {
+	return ch.demoteModerators(userIDs, msg)
+}
+
+// DemoteModerators moderators with given IDs from the channel
+func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -250,10 +263,8 @@ func (ch *Channel) DemoteModerators(userIDs []string, opts *DemoteModeratorsOpti
 		"demote_moderators": userIDs,
 	}
 
-	if opts != nil {
-		if opts.Message != nil {
-			data["message"] = opts.Message
-		}
+	if msg != nil {
+		data["message"] = msg
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
