@@ -97,5 +97,4 @@ func TestChannel_GetReactions(t *testing.T) {
 	mustNoError(t, err, "get reactions")
 
 	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
-
 }

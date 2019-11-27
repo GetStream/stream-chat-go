@@ -18,3 +18,7 @@ run:
 
 linters:
   enable-all: true
+  disable:
+    - stylecheck
+    - wsl
+    - whitespace
