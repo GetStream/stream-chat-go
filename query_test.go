@@ -49,14 +49,12 @@ func TestClient_Search(t *testing.T) {
 
 	text := randomString(10)
 
-	_, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
 	_, err := ch.SendMessage(&Message{
 		Text:      text + " " + randomString(25),
 		ExtraData: map[string]interface{}{"color": "green"},
 	}, user1.ID)
 	mustNoError(t, err)
 
-	_, err = ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
 	_, err = ch.SendMessage(&Message{
 		Text:      text + " " + randomString(25),
 		ExtraData: map[string]interface{}{"color": "red"},
@@ -70,9 +68,9 @@ func TestClient_Search(t *testing.T) {
 			},
 		}})
 
-	mustNoError(t, err)
+		mustNoError(t, err)
 
-	assert.Len(t, got, 2)
+		assert.Len(t, got, 2)
 		mustNoError(t, err)
 		assert.Len(t, got, 2)
 	})
