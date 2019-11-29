@@ -25,11 +25,11 @@ type User struct {
 	Online    bool `json:"online,omitempty"`
 	Invisible bool `json:"invisible,omitempty"`
 
-	CreatedAt  time.Time `json:"created_at,omitempty"`
-	UpdatedAt  time.Time `json:"updated_at,omitempty"`
-	LastActive time.Time `json:"last_active,omitempty"`
+	CreatedAt  *time.Time `json:"created_at,omitempty"`
+	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
+	LastActive *time.Time `json:"last_active,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
 	Mutes []*Mute `json:"mutes,omitempty"`
 }
@@ -102,12 +102,12 @@ func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 		return errors.New("user ID is empty")
 	}
 
-	data := url.Values{
+	data := map[string]interface{}{
 		"target_ids": targetIDs,
+		"user_id":    userID,
 	}
-	data.Set("user_id", userID)
 
-	return c.makeRequest(http.MethodPost, "moderation/unmute", data, nil, nil)
+	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
 func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
@@ -225,7 +225,7 @@ type userRequest struct {
 	*User
 
 	// extra data doesn't work for embedded structs
-	ExtraData map[string]interface{} `json:"-,extra"`
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
 	// readonly fields
 	CreatedAt  time.Time `json:"-"`

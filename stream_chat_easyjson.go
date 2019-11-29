@@ -3316,16 +3316,40 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo28(in *jlexer.Lexer, ou
 		case "invisible":
 			out.Invisible = bool(in.Bool())
 		case "created_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.CreatedAt = nil
+			} else {
+				if out.CreatedAt == nil {
+					out.CreatedAt = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.CreatedAt).UnmarshalJSON(data))
+				}
 			}
 		case "updated_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.UpdatedAt = nil
+			} else {
+				if out.UpdatedAt == nil {
+					out.UpdatedAt = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.UpdatedAt).UnmarshalJSON(data))
+				}
 			}
 		case "last_active":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.LastActive).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.LastActive = nil
+			} else {
+				if out.LastActive == nil {
+					out.LastActive = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.LastActive).UnmarshalJSON(data))
+				}
 			}
 		case "mutes":
 			if in.IsNull() {
@@ -3405,20 +3429,20 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo28(out *jwriter.Writer,
 		out.RawString(prefix)
 		out.Bool(bool(in.Invisible))
 	}
-	if true {
+	if in.CreatedAt != nil {
 		const prefix string = ",\"created_at\":"
 		out.RawString(prefix)
-		out.Raw((in.CreatedAt).MarshalJSON())
+		out.Raw((*in.CreatedAt).MarshalJSON())
 	}
-	if true {
+	if in.UpdatedAt != nil {
 		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
-		out.Raw((in.UpdatedAt).MarshalJSON())
+		out.Raw((*in.UpdatedAt).MarshalJSON())
 	}
-	if true {
+	if in.LastActive != nil {
 		const prefix string = ",\"last_active\":"
 		out.RawString(prefix)
-		out.Raw((in.LastActive).MarshalJSON())
+		out.Raw((*in.LastActive).MarshalJSON())
 	}
 	if len(in.Mutes) != 0 {
 		const prefix string = ",\"mutes\":"
@@ -4897,12 +4921,28 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGo39(in *jlexer.Lexer, ou
 				in.Delim(']')
 			}
 		case "created_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.CreatedAt = nil
+			} else {
+				if out.CreatedAt == nil {
+					out.CreatedAt = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.CreatedAt).UnmarshalJSON(data))
+				}
 			}
 		case "updated_at":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.UpdatedAt = nil
+			} else {
+				if out.UpdatedAt == nil {
+					out.UpdatedAt = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.UpdatedAt).UnmarshalJSON(data))
+				}
 			}
 		case "ExtraData":
 			if in.IsNull() {
@@ -4959,7 +4999,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo39(out *jwriter.Writer,
 		out.RawString(prefix)
 		out.String(string(in.HTML))
 	}
-	{
+	if in.Type != "" {
 		const prefix string = ",\"type\":"
 		out.RawString(prefix)
 		out.String(string(in.Type))
@@ -5064,7 +5104,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo39(out *jwriter.Writer,
 		out.RawString(prefix)
 		out.Bool(bool(in.ShowInChannel))
 	}
-	{
+	if in.ReplyCount != 0 {
 		const prefix string = ",\"reply_count\":"
 		out.RawString(prefix)
 		out.Int(int(in.ReplyCount))
@@ -5089,15 +5129,15 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGo39(out *jwriter.Writer,
 			out.RawByte(']')
 		}
 	}
-	{
+	if in.CreatedAt != nil {
 		const prefix string = ",\"created_at\":"
 		out.RawString(prefix)
-		out.Raw((in.CreatedAt).MarshalJSON())
+		out.Raw((*in.CreatedAt).MarshalJSON())
 	}
-	{
+	if in.UpdatedAt != nil {
 		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
-		out.Raw((in.UpdatedAt).MarshalJSON())
+		out.Raw((*in.UpdatedAt).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"ExtraData\":"

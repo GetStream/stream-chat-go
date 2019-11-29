@@ -12,7 +12,7 @@ You can use this library to access chat API endpoints server-side, for the clien
 ### Installation
 
 ```bash
-go get github.com/GetStream/stream-chat-go
+go get github.com/GetStream/stream-chat-go@v2
 ```
 
 ### Documentation
@@ -40,7 +40,7 @@ package main
 import (
 	"os"
 
-	stream "github.com/GetStream/stream-chat-go"
+	stream "github.com/GetStream/stream-chat-go/v2"
 )
 
 var APIKey = os.Getenv("STREAM_API_KEY")
