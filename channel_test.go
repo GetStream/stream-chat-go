@@ -128,7 +128,11 @@ func TestChannel_Moderation(t *testing.T) {
 
 	user := randomUser()
 
-	err = ch.AddModerators(user.ID)
+	err = ch.AddModeratorsWithMessage(
+		[]string{user.ID},
+		&Message{Text: "accepted", User: &User{ID: user.ID}},
+	)
+
 	mustNoError(t, err, "add moderators")
 
 	// refresh channel state
