@@ -347,8 +347,18 @@ func (ch *Channel) Show(userID string) error {
 
 // Hide makes channel hidden for userID
 func (ch *Channel) Hide(userID string) error {
+	return ch.hide(userID, false)
+}
+
+// HideWithHistory clear marks channel as hidden and remove all messages for user
+func (ch *Channel) HideWithHistoryClear(userID string) error {
+	return ch.hide(userID, true)
+}
+
+func (ch *Channel) hide(userID string, clearHistory bool) error {
 	data := map[string]interface{}{
-		"user_id": userID,
+		"user_id":       userID,
+		"clear_history": clearHistory,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "hide")

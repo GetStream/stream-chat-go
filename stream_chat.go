@@ -88,6 +88,7 @@ type StreamChannel interface {
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
+	HideWithHistoryClear(userID string) error
 	InviteMembers(userIDs ...string) error
 	InviteMembersWithMessage(userIDs []string, msg *Message) error
 	SendFile(request SendFileRequest) (url string, err error)
