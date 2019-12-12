@@ -110,6 +110,7 @@ type SearchRequest struct {
 	Query          string                 `json:"query"`
 	Filters        map[string]interface{} `json:"filter_conditions"`
 	MessageFilters map[string]interface{} `json:"message_filters"`
+	Sort           []*SortOption          `json:"sort,omitempty"`
 	// Pagination, optional
 	Limit  int `json:"limit,omitempty"`
 	Offset int `json:"offset,omitempty"`

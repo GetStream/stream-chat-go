@@ -85,6 +85,7 @@ func TestClient_Search(t *testing.T) {
 				"text":  map[string]interface{}{"$q": text},
 				"color": "green",
 			},
+			Sort: []*SortOption{{Field: "created_at", Direction: -1}},
 		})
 
 		mustNoError(t, err)
