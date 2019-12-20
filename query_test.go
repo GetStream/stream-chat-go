@@ -50,13 +50,13 @@ func TestClient_Search(t *testing.T) {
 	text := randomString(10)
 
 	_, err := ch.SendMessage(&Message{
-		Text:      text + " " + randomString(25),
+		Text:      text + " 1" + randomString(25),
 		ExtraData: map[string]interface{}{"color": "green"},
 	}, user1.ID)
 	mustNoError(t, err)
 
 	_, err = ch.SendMessage(&Message{
-		Text:      text + " " + randomString(25),
+		Text:      text + " 2" + randomString(25),
 		ExtraData: map[string]interface{}{"color": "red"},
 	}, user2.ID)
 	mustNoError(t, err)
@@ -72,7 +72,6 @@ func TestClient_Search(t *testing.T) {
 
 		assert.Len(t, got, 2)
 		mustNoError(t, err)
-		assert.Len(t, got, 2)
 	})
 
 	t.Run("search text and custom props via message filters", func(t *testing.T) {
@@ -85,10 +84,24 @@ func TestClient_Search(t *testing.T) {
 				"text":  map[string]interface{}{"$q": text},
 				"color": "green",
 			},
-			Sort: []*SortOption{{Field: "created_at", Direction: -1}},
 		})
 
 		mustNoError(t, err)
 		assert.Len(t, got, 1)
+	})
+
+	t.Run("sorting test", func(t *testing.T) {
+		got, err := c.Search(SearchRequest{
+			MessageFilters: map[string]interface{}{
+				"text": map[string]interface{}{"$q": text},
+			},
+			Sort: []*SortOption{{Field: "created_at", Direction: -1}},
+		})
+
+		mustNoError(t, err)
+		assert.Len(t, got, 2)
+
+		assert.Equal(t, got[0].Text, text+" 2")
+		assert.Equal(t, got[0].Text, text+" 1")
 	})
 }
