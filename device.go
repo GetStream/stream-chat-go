@@ -14,9 +14,9 @@ const (
 type pushProvider = string
 
 type Device struct {
-	ID           string       `json:"id"`            //The device ID.
-	UserID       string       `json:"user_id"`       //The user ID for this device.
-	PushProvider pushProvider `json:"push_provider"` //The push provider for this device. One of constants PushProvider*
+	ID           string       `json:"id"`            // The device ID.
+	UserID       string       `json:"user_id"`       // The user ID for this device.
+	PushProvider pushProvider `json:"push_provider"` // The push provider for this device. One of constants PushProvider*
 }
 
 type devicesResponse struct {
@@ -55,8 +55,8 @@ func (c *Client) AddDevice(device *Device) error {
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
-// Delete a device from the user
-func (c *Client) DeleteDevice(userID string, deviceID string) error {
+// DeleteDevice deletes a device from the user
+func (c *Client) DeleteDevice(userID, deviceID string) error {
 	switch {
 	case userID == "":
 		return errors.New("user ID is empty")

@@ -155,7 +155,7 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 }
 
 // VerifyWebhook validates if hmac signature is correct for message body
-func (c *Client) VerifyWebhook(body []byte, signature []byte) (valid bool) {
+func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
 	//nolint: errcheck
 	mac.Write(body)
@@ -217,7 +217,7 @@ func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, cont
 	return err
 }
 
-func (c *Client) sendFile(url string, opts SendFileRequest) (string, error) {
+func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
 	if opts.User == nil {
 		return "", errors.New("user is nil")
 	}
@@ -234,7 +234,7 @@ func (c *Client) sendFile(url string, opts SendFileRequest) (string, error) {
 
 	form := multipartForm{multipart.NewWriter(tmpfile)}
 
-	if err = form.setData("user", opts.User); err != nil {
+	if err := form.setData("user", opts.User); err != nil {
 		return "", err
 	}
 
@@ -252,7 +252,7 @@ func (c *Client) sendFile(url string, opts SendFileRequest) (string, error) {
 		return "", err
 	}
 
-	r, err := c.newRequest(http.MethodPost, url, nil, tmpfile)
+	r, err := c.newRequest(http.MethodPost, link, nil, tmpfile)
 	if err != nil {
 		return "", err
 	}

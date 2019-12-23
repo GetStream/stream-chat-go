@@ -78,7 +78,7 @@ func (q queryResponse) updateChannel(ch *Channel) {
 }
 
 // query makes request to channel api and updates channel internal state
-func (ch *Channel) query(options map[string]interface{}, data map[string]interface{}) (err error) {
+func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
 		"state": true,
 	}

@@ -37,10 +37,10 @@ func randomUser() *User {
 	return testUsers[rand.Intn(len(testUsers)-1)]
 }
 
-func randomString(len int) string {
-	bytes := make([]byte, len)
-	for i := 0; i < len; i++ {
-		bytes[i] = byte(65 + rand.Intn(25)) //A=65 and Z = 65+25
+func randomString(n int) string {
+	bytes := make([]byte, n)
+	for i := 0; i < n; i++ {
+		bytes[i] = byte(65 + rand.Intn(25)) // A=65 and Z = 65+25
 	}
 	return string(bytes)
 }
