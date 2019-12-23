@@ -34,10 +34,10 @@ type User struct {
 	Mutes []*Mute `json:"mutes,omitempty"`
 }
 
-// Create a mute
+// MuteUser create a mute
 // targetID: the user getting muted
 // userID: the user muting the target
-func (c *Client) MuteUser(targetID string, userID string) error {
+func (c *Client) MuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID is empty")
@@ -53,7 +53,7 @@ func (c *Client) MuteUser(targetID string, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
-// Create a mute
+// MuteUsers creates a mute
 // targetID: the user getting muted
 // userID: the user muting the target
 func (c *Client) MuteUsers(targetIDs []string, userID string) error {
@@ -72,10 +72,10 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
-// Removes a mute
+// UnmuteUser removes a mute
 // targetID: the user getting un-muted
 // userID: the user muting the target
-func (c *Client) UnmuteUser(targetID string, userID string) error {
+func (c *Client) UnmuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
 		return errors.New("target IDs is empty")
@@ -91,8 +91,8 @@ func (c *Client) UnmuteUser(targetID string, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
-// Removes a mute
-// targetID: the user getting un-muted
+// UnmuteUsers removes a mute
+// targetID: the users getting un-muted
 // userID: the user muting the target
 func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 	switch {
@@ -136,7 +136,7 @@ func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) err
 	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (c *Client) BanUser(targetID string, userID string, options map[string]interface{}) error {
+func (c *Client) BanUser(targetID, userID string, options map[string]interface{}) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID is empty")

@@ -26,7 +26,7 @@ type reactionRequest struct {
 }
 
 // SendReaction sends a reaction to message with given ID
-func (ch *Channel) SendReaction(reaction *Reaction, messageID string, userID string) (*Message, error) {
+func (ch *Channel) SendReaction(reaction *Reaction, messageID, userID string) (*Message, error) {
 	switch {
 	case reaction == nil:
 		return nil, errors.New("reaction is nil")
@@ -49,7 +49,7 @@ func (ch *Channel) SendReaction(reaction *Reaction, messageID string, userID str
 }
 
 // DeleteReaction removes a reaction from message with given ID
-func (ch *Channel) DeleteReaction(messageID string, reactionType string, userID string) (*Message, error) {
+func (ch *Channel) DeleteReaction(messageID, reactionType, userID string) (*Message, error) {
 	switch {
 	case messageID == "":
 		return nil, errors.New("message ID is empty")
