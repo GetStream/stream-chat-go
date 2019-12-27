@@ -50,13 +50,13 @@ func TestClient_Search(t *testing.T) {
 	text := randomString(10)
 
 	_, err := ch.SendMessage(&Message{
-		Text:      text + " 1" + randomString(25),
+		Text:      text + " 1",
 		ExtraData: map[string]interface{}{"color": "green"},
 	}, user1.ID)
 	mustNoError(t, err)
 
 	_, err = ch.SendMessage(&Message{
-		Text:      text + " 2" + randomString(25),
+		Text:      text + " 2",
 		ExtraData: map[string]interface{}{"color": "red"},
 	}, user2.ID)
 	mustNoError(t, err)
@@ -92,6 +92,10 @@ func TestClient_Search(t *testing.T) {
 
 	t.Run("sorting test", func(t *testing.T) {
 		got, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				}},
 			MessageFilters: map[string]interface{}{
 				"text": map[string]interface{}{"$q": text},
 			},
@@ -102,6 +106,6 @@ func TestClient_Search(t *testing.T) {
 		assert.Len(t, got, 2)
 
 		assert.Equal(t, got[0].Text, text+" 2")
-		assert.Equal(t, got[0].Text, text+" 1")
+		assert.Equal(t, got[1].Text, text+" 1")
 	})
 }

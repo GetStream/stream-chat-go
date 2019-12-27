@@ -128,7 +128,7 @@ type searchMessageResponse struct {
 func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	var buf strings.Builder
 
-	if request.Query == "" && request.Filters == nil && request.MessageFilters == nil {
+	if request.Query == "" && len(request.Filters) == 0 && len(request.MessageFilters) == 0 {
 		return nil, errors.New("either query or filters must be provided")
 	}
 	_, err := easyjson.MarshalToWriter(request, &buf)
