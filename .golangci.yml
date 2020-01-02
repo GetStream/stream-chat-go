@@ -19,6 +19,7 @@ run:
 linters:
   enable-all: true
   disable:
+    - gomnd
     - stylecheck
     - wsl
     - whitespace
