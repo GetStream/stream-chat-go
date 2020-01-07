@@ -14,7 +14,7 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
 
-      - name: Test
+      - name: Lint and Test
         env:
           STREAM_CHAT_API_KEY: ${{ secrets.STREAM_CHAT_API_KEY }}
           STREAM_CHAT_API_SECRET: ${{ secrets.STREAM_CHAT_API_SECRET }}
