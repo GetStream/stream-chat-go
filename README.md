@@ -1,6 +1,6 @@
 # stream-chat-go
 
-[![Actions Status](https://github.com/GetStream/stream-chat-go/workflows/go/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
+[![Actions Status](https://github.com/GetStream/stream-chat-go/workflows/Go/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
 [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/GetStream/stream-chat-go)
 
 the official Golang API client for [Stream chat](https://getstream.io/chat/) a service for building chat applications.
