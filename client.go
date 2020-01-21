@@ -89,8 +89,10 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	}
 
 	c.setHeaders(r)
-
 	switch t := data.(type) {
+	case nil:
+		r.Body = nil
+
 	case easyjson.Marshaler:
 		b, err := easyjson.Marshal(t)
 		if err != nil {
