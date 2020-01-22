@@ -350,7 +350,7 @@ func (ch *Channel) Hide(userID string) error {
 	return ch.hide(userID, false)
 }
 
-// HideWithHistory clear marks channel as hidden and remove all messages for user
+// HideWithHistoryClear clear marks channel as hidden and remove all messages for user
 func (ch *Channel) HideWithHistoryClear(userID string) error {
 	return ch.hide(userID, true)
 }
