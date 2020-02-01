@@ -54,7 +54,7 @@ func main() {
 	// create channel with users
 	users := []string{"id1", "id2", "id3"}
 	channel, err := client.CreateChannel("messaging", "channel-id", userID, map[string]interface{}{
-		"users": users,
+		"members": users,
 	})
 
 	// use channel methods
