@@ -12,7 +12,7 @@ You can use this library to access chat API endpoints server-side, for the clien
 ### Installation
 
 ```bash
-go get github.com/GetStream/stream-chat-go@v2
+go get github.com/GetStream/stream-chat-go/v2
 ```
 
 ### Documentation
