@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"log"
 	"os"
 	"path"
 	"testing"
@@ -84,6 +85,20 @@ func TestChannel_AddMembers(t *testing.T) {
 	mustNoError(t, ch.refresh(), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+}
+
+// See https://getstream.io/chat/docs/channel_members/ for more details.
+func ExampleChannel_AddModerators() {
+	var err error
+	channel := &Channel{}
+	newModerators := []string{"bob", "sue"}
+
+	err = channel.AddModerators("thierry", "josh")
+	err = channel.AddModerators(newModerators...)
+	err = channel.DemoteModerators(newModerators...)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 }
 
 func TestChannel_InviteMembers(t *testing.T) {
@@ -410,4 +425,34 @@ func TestChannel_RejectInvite(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	err = ch.RejectInvite(members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
 	require.NoError(t, err, "reject invite")
+}
+
+// See https://getstream.io/chat/docs/channel_features/ for more details.
+func ExampleClient_CreateChannelType() {
+	client := &Client{}
+
+	newChannelType := &ChannelType{
+		// Copy the default settings.
+		ChannelConfig: DefaultChannelConfig,
+	}
+
+	newChannelType.Name = "public"
+	newChannelType.Mutes = false
+	newChannelType.Reactions = false
+	newChannelType.Permissions = append(newChannelType.Permissions,
+		&Permission{
+			Name:      "Allow reads for all",
+			Priority:  999,
+			Resources: []string{"ReadChannel", "CreateMessage"},
+			Action:    "Allow",
+		},
+		&Permission{
+			Name:      "Deny all",
+			Priority:  1,
+			Resources: []string{"*"},
+			Action:    "Deny",
+		},
+	)
+
+	client.CreateChannelType(newChannelType)
 }
