@@ -456,3 +456,52 @@ func ExampleClient_CreateChannelType() {
 
 	client.CreateChannelType(newChannelType)
 }
+
+func ExampleClient_ListChannelTypes() {
+	client := &Client{}
+	client.ListChannelTypes()
+}
+
+func ExampleClient_GetChannelType() {
+	client := &Client{}
+	client.GetChannelType("public")
+}
+
+func ExampleClient_UpdateChannelType() {
+	client := &Client{}
+
+	client.UpdateChannelType("public", map[string]interface{}{
+		"permissions": []map[string]interface{}{
+			map[string]interface{}{
+				"name":      "Allow reads for all",
+				"priority":  999,
+				"resources": []string{"ReadChannel", "CreateMessage"},
+				"role":      "*",
+				"action":    "Allow",
+			},
+			map[string]interface{}{
+				"name":      "Deny all",
+				"priority":  1,
+				"resources": []string{"*"},
+				"role":      "*",
+				"action":    "Deny",
+			},
+		},
+		"replies":  false,
+		"commands": []string{"all"},
+	})
+}
+
+func ExampleClient_UpdateChannelType_bool() {
+	client := &Client{}
+
+	client.UpdateChannelType("public", map[string]interface{}{
+		"typing_events":  false,
+		"read_events":    true,
+		"connect_events": true,
+		"search":         false,
+		"reactions":      true,
+		"replies":        false,
+		"mutes":          true,
+	})
+}
