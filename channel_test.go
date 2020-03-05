@@ -428,6 +428,7 @@ func TestChannel_RejectInvite(t *testing.T) {
 }
 
 func ExampleChannel_Update() {
+	// https://getstream.io/chat/docs/channel_permissions/?language=python
 	client := &Client{}
 
 	data := map[string]interface{}{
@@ -436,6 +437,7 @@ func ExampleChannel_Update() {
 		"roles":      map[string]string{"elon": "admin", "gwynne": "moderator"},
 	}
 
+	// TODO: upload this to documents website after we publish the change.
 	spacexChannel := client.Channel("team", "spacex")
 	if err := spacexChannel.Update(data, nil); err != nil {
 		log.Fatalf("Error: %v", err)

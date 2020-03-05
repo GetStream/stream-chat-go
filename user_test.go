@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -123,4 +124,17 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	assert.Contains(t, got, user.ID)
 	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
 	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
+}
+
+func ExampleClient_UpdateUser() {
+	client := &Client{}
+
+	_, err := client.UpdateUser(&User{
+		ID:   "tommaso",
+		Name: "Tommaso",
+		Role: "Admin",
+	})
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
 }
