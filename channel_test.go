@@ -435,12 +435,9 @@ func ExampleChannel_Update() {
 		"created_by": "elon",
 		"roles":      map[string]string{"elon": "admin", "gwynne": "moderator"},
 	}
-	_, _ = client, data
 
-	// TODO: we don't seem to have a GetChannel or Channel function.
-	//spacexChannel, err := client.GetChannel("team", "spacex")
-	//	if err != nil {
-	//		log.Fatalf("Error: %v", err)
-	//	}
-	//spacexChannel.update(data)
+	spacexChannel := client.Channel("team", "spacex")
+	if err := spacexChannel.Update(data, nil); err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 }
