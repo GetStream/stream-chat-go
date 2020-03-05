@@ -89,16 +89,12 @@ func TestChannel_AddMembers(t *testing.T) {
 
 // See https://getstream.io/chat/docs/channel_members/ for more details.
 func ExampleChannel_AddModerators() {
-	var err error
 	channel := &Channel{}
 	newModerators := []string{"bob", "sue"}
 
-	err = channel.AddModerators("thierry", "josh")
-	err = channel.AddModerators(newModerators...)
-	err = channel.DemoteModerators(newModerators...)
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
+	_ = channel.AddModerators("thierry", "josh")
+	_ = channel.AddModerators(newModerators...)
+	_ = channel.DemoteModerators(newModerators...)
 }
 
 func TestChannel_InviteMembers(t *testing.T) {
@@ -437,9 +433,18 @@ func ExampleChannel_Update() {
 		"roles":      map[string]string{"elon": "admin", "gwynne": "moderator"},
 	}
 
-	// TODO: upload this to documents website after we publish the change.
 	spacexChannel := client.Channel("team", "spacex")
 	if err := spacexChannel.Update(data, nil); err != nil {
 		log.Fatalf("Error: %v", err)
 	}
+}
+
+func (c *Client) ExampleClient_CreateChannel() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	channel, _ := client.CreateChannel("team", "stream", "tommaso", nil)
+	_, _ = channel.SendMessage(&Message{
+		User: &User{ID: "tomosso"},
+		Text: "hi there!",
+	}, "tomosso")
 }

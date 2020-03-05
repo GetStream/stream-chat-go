@@ -45,7 +45,7 @@ func ExampleClient_UpdateAppSettings_disable_auth() {
 }
 
 func ExampleClient_UpdateAppSettings_disable_permission() {
-	client, err := NewClient("XXXXXXXXXXXX", []byte("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"))
+	client, err := NewClient("XXXX", []byte("XXXX"))
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}

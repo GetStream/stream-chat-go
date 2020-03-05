@@ -72,32 +72,32 @@ func ExampleClient_CreateChannelType() {
 		},
 	)
 
-	client.CreateChannelType(newChannelType)
+	_, _ = client.CreateChannelType(newChannelType)
 }
 
 func ExampleClient_ListChannelTypes() {
 	client := &Client{}
-	client.ListChannelTypes()
+	_, _ = client.ListChannelTypes()
 }
 
 func ExampleClient_GetChannelType() {
 	client := &Client{}
-	client.GetChannelType("public")
+	_, _ = client.GetChannelType("public")
 }
 
 func ExampleClient_UpdateChannelType() {
 	client := &Client{}
 
-	client.UpdateChannelType("public", map[string]interface{}{
+	_ = client.UpdateChannelType("public", map[string]interface{}{
 		"permissions": []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"name":      "Allow reads for all",
 				"priority":  999,
 				"resources": []string{"ReadChannel", "CreateMessage"},
 				"role":      "*",
 				"action":    "Allow",
 			},
-			map[string]interface{}{
+			{
 				"name":      "Deny all",
 				"priority":  1,
 				"resources": []string{"*"},
@@ -113,7 +113,7 @@ func ExampleClient_UpdateChannelType() {
 func ExampleClient_UpdateChannelType_bool() {
 	client := &Client{}
 
-	client.UpdateChannelType("public", map[string]interface{}{
+	_ = client.UpdateChannelType("public", map[string]interface{}{
 		"typing_events":  false,
 		"read_events":    true,
 		"connect_events": true,
@@ -127,7 +127,7 @@ func ExampleClient_UpdateChannelType_bool() {
 func ExampleClient_UpdateChannelType_other() {
 	client := &Client{}
 
-	client.UpdateChannelType(
+	_ = client.UpdateChannelType(
 		"public",
 		map[string]interface{}{
 			"automod":            "disabled",
@@ -141,7 +141,7 @@ func ExampleClient_UpdateChannelType_other() {
 func ExampleClient_UpdateChannelType_permissions() {
 	client := &Client{}
 
-	client.UpdateChannelType(
+	_ = client.UpdateChannelType(
 		"public",
 		map[string]interface{}{
 			"permissions": []map[string]interface{}{
@@ -166,5 +166,5 @@ func ExampleClient_UpdateChannelType_permissions() {
 func ExampleClient_DeleteChannelType() {
 	client := &Client{}
 
-	client.DeleteChannelType("public")
+	_ = client.DeleteChannelType("public")
 }
