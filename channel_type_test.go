@@ -2,17 +2,9 @@ package stream_chat // nolint: golint
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func channelTypeDeleteHelper(t *testing.T, client *Client, name string) {
-	// Deleting the channel sometimes fails. Adding a delay to hopefully
-	// prevent this.
-	time.Sleep(time.Second / 2)
-	mustNoError(t, client.DeleteChannelType(name), "delete channel type")
-}
 
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	ct := NewChannelType(randomString(10))
@@ -28,7 +20,7 @@ func TestClient_GetChannelType(t *testing.T) {
 
 	ct := prepareChannelType(t, c)
 	defer func() {
-		channelTypeDeleteHelper(t, c, ct.Name)
+		_ = c.DeleteChannelType(ct.Name)
 	}()
 
 	got, err := c.GetChannelType(ct.Name)
@@ -44,7 +36,7 @@ func TestClient_ListChannelTypes(t *testing.T) {
 
 	ct := prepareChannelType(t, c)
 	defer func() {
-		channelTypeDeleteHelper(t, c, ct.Name)
+		_ = c.DeleteChannelType(ct.Name)
 	}()
 
 	got, err := c.ListChannelTypes()

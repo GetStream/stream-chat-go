@@ -5,16 +5,10 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func channelDeleteHelper(t *testing.T, channel *Channel) {
-	time.Sleep(time.Second / 4)
-	mustNoError(t, channel.Delete(), "delete channel")
-}
 
 func TestClient_CreateChannel(t *testing.T) {
 	c := initClient(t)
@@ -74,7 +68,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -111,7 +105,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -138,7 +132,7 @@ func TestChannel_Moderation(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -172,7 +166,7 @@ func TestChannel_BanUser(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -201,7 +195,7 @@ func TestChannel_GetReplies(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -228,7 +222,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -252,7 +246,7 @@ func TestChannel_SendMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -272,7 +266,7 @@ func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		channelDeleteHelper(t, ch)
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
