@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,6 +21,9 @@ func TestClient_GetChannelType(t *testing.T) {
 
 	ct := prepareChannelType(t, c)
 	defer func() {
+		// Deleting the channel sometimes fails. Adding a delay to hopefully
+		// prevent this.
+		time.Sleep(time.Second / 2)
 		mustNoError(t, c.DeleteChannelType(ct.Name), "delete channel type")
 	}()
 
