@@ -193,6 +193,7 @@ func (c *Client) DeactivateUser(targetID string, options map[string]interface{})
 	return c.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
+// ReactivateUser reactivates targetID.
 func (c *Client) ReactivateUser(targetID string, options map[string]interface{}) error {
 	if targetID == "" {
 		return errors.New("target ID is empty")
@@ -203,14 +204,16 @@ func (c *Client) ReactivateUser(targetID string, options map[string]interface{})
 	return c.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
-func (c *Client) DeleteUser(targetID string, options map[string][]string) error {
+// DeleteUser deletes the targetID. See the UserOptions documentation for more
+// details on the options that can be set.
+func (c *Client) DeleteUser(targetID string, options UserOptions) error {
 	if targetID == "" {
 		return errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID))
 
-	return c.makeRequest(http.MethodDelete, p, options, nil, nil)
+	return c.makeRequest(http.MethodDelete, p, options.URLValues(), nil, nil)
 }
 
 type usersResponse struct {

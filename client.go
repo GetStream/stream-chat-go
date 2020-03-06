@@ -117,9 +117,12 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	return r, nil
 }
 
-func (c *Client) makeRequest(method, path string, params url.Values,
-	data interface{}, result easyjson.Unmarshaler) error {
-
+func (c *Client) makeRequest(
+	method, path string,
+	params url.Values,
+	data interface{},
+	result easyjson.Unmarshaler,
+) error {
 	r, err := c.newRequest(method, path, params, data)
 	if err != nil {
 		return err
