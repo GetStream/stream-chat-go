@@ -1,4 +1,4 @@
-package stream_chat // nolint: golint
+package stream
 
 import (
 	"net/http"
