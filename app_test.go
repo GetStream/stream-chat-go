@@ -3,6 +3,8 @@ package stream
 import (
 	"log"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_GetApp(t *testing.T) {
@@ -19,7 +21,7 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 		SetDisablePermissions(true)
 
 	err := c.UpdateAppSettings(settings)
-	mustNoError(t, err)
+	require.NoError(t, err)
 }
 
 // See https://getstream.io/chat/docs/app_settings_auth/ for

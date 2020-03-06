@@ -40,9 +40,9 @@ type User struct {
 func (c *Client) MuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	case userID == "":
-		return errors.New("user ID is empty")
+		return ErrorMissingUserID
 	}
 
 	data := map[string]interface{}{
@@ -61,7 +61,7 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 	case len(targetIDs) == 0:
 		return errors.New("target IDs are empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return ErrorMissingUserID
 	}
 
 	data := map[string]interface{}{
@@ -78,9 +78,9 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 func (c *Client) UnmuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
-		return errors.New("target IDs is empty")
+		return ErrorMissingTargetID
 	case userID == "":
-		return errors.New("user ID is empty")
+		return ErrorMissingUserID
 	}
 
 	data := map[string]interface{}{
@@ -97,9 +97,9 @@ func (c *Client) UnmuteUser(targetID, userID string) error {
 func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 	switch {
 	case len(targetIDs) == 0:
-		return errors.New("target IDs is empty")
+		return ErrorEmptyTargetID
 	case userID == "":
-		return errors.New("user ID is empty")
+		return ErrorMissingUserID
 	}
 
 	data := map[string]interface{}{
@@ -110,110 +110,101 @@ func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
-func (c *Client) FlagUser(targetID string, options map[string]interface{}) error {
+func (c *Client) FlagUser(targetID string, options ...Option) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	case len(options) == 0:
 		return errors.New("flag user: options must be not empty")
 	}
 
-	options["target_user_id"] = targetID
+	options = append(options, NewOption(optionKeyTargetUserID, targetID))
 
-	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
+	return c.makeRequestWithOptions(http.MethodPost, "moderation/flag", nil, options, nil)
 }
 
-func (c *Client) UnFlagUser(targetID string, options map[string]interface{}) error {
+func (c *Client) UnFlagUser(targetID string, options ...Option) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return ErrorMissingTargetID
 	}
 
-	options["target_user_id"] = targetID
+	options = append(options, NewOption(optionKeyTargetUserID, targetID))
 
-	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
+	return c.makeRequestWithOptions(http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (c *Client) BanUser(targetID, userID string, options map[string]interface{}) error {
+func (c *Client) BanUser(targetID, userID string, options ...Option) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	case userID == "":
-		return errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return ErrorMissingUserID
 	}
 
-	options["target_user_id"] = targetID
-	options["user_id"] = userID
+	options = append(options,
+		makeTargetID(targetID),
+		makeUserID(userID),
+	)
 
-	return c.makeRequest(http.MethodPost, "moderation/ban", nil, options, nil)
+	return c.makeRequestWithOptions(http.MethodPost, "moderation/ban", nil, options, nil)
 }
 
-func (c *Client) UnBanUser(targetID string, options map[string]string) error {
+func (c *Client) UnBanUser(targetID string, options ...Option) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
-	case options == nil:
-		options = map[string]string{}
+		return ErrorMissingTargetID
 	}
 
-	params := url.Values{}
+	options = append(options, makeTargetID(targetID))
 
-	for k, v := range options {
-		params.Add(k, v)
-	}
-	params.Set("target_user_id", targetID)
-
-	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
+	return c.makeRequestWithOptions(http.MethodDelete, "moderation/ban", options, nil, nil)
 }
 
-func (c *Client) ExportUser(targetID string, options map[string][]string) (user *User, err error) {
+func (c *Client) ExportUser(targetID string, options ...Option) (*User, error) {
 	if targetID == "" {
-		return user, errors.New("target ID is empty")
+		return nil, ErrorMissingTargetID
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "export")
-	user = &User{}
 
-	err = c.makeRequest(http.MethodGet, p, options, nil, user)
+	user := &User{}
+	err := c.makeRequestWithOptions(http.MethodGet, p, options, nil, user)
 
 	return user, err
 }
 
-func (c *Client) DeactivateUser(targetID string, options map[string]interface{}) error {
+func (c *Client) DeactivateUser(targetID string, options ...Option) error {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "deactivate")
 
-	return c.makeRequest(http.MethodPost, p, nil, options, nil)
+	return c.makeRequestWithOptions(http.MethodPost, p, nil, options, nil)
 }
 
 // ReactivateUser reactivates targetID.
-func (c *Client) ReactivateUser(targetID string, options map[string]interface{}) error {
+func (c *Client) ReactivateUser(targetID string, options ...Option) error {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "reactivate")
 
-	return c.makeRequest(http.MethodPost, p, nil, options, nil)
+	return c.makeRequestWithOptions(http.MethodPost, p, nil, options, nil)
 }
 
-// DeleteUser deletes the targetID. See the UserOptions documentation for more
+// DeleteUser deletes the targetID. See the Option documentation for more
 // details on the options that can be set.
-func (c *Client) DeleteUser(targetID string, options UserOptions) error {
+func (c *Client) DeleteUser(targetID string, options ...Option) error {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	}
 
 	p := path.Join("users", url.PathEscape(targetID))
 
-	return c.makeRequest(http.MethodDelete, p, options.URLValues(), nil, nil)
+	return c.makeRequestWithOptions(http.MethodDelete, p, options, nil, nil)
 }
 
 type usersResponse struct {

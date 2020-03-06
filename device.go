@@ -26,7 +26,7 @@ type devicesResponse struct {
 // GetDevices retrieves the list of devices for user
 func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
 	if userID == "" {
-		return nil, errors.New("user ID is empty")
+		return nil, ErrorMissingUserID
 	}
 
 	params := url.Values{}
@@ -45,7 +45,7 @@ func (c *Client) AddDevice(device *Device) error {
 	case device == nil:
 		return errors.New("device is nil")
 	case device.ID == "":
-		return errors.New("device ID is empty")
+		return ErrorMissingDeviceID
 	case device.UserID == "":
 		return errors.New("device user ID is empty")
 	case device.PushProvider == "":
@@ -59,14 +59,15 @@ func (c *Client) AddDevice(device *Device) error {
 func (c *Client) DeleteDevice(userID, deviceID string) error {
 	switch {
 	case userID == "":
-		return errors.New("user ID is empty")
+		return ErrorMissingUserID
 	case deviceID == "":
-		return errors.New("device ID is empty")
+		return ErrorMissingDeviceID
 	}
 
-	params := url.Values{}
-	params.Set("id", deviceID)
-	params.Set("user_id", userID)
+	options := []Option{
+		NewOption("id", deviceID),
+		NewOption("user_id", userID),
+	}
 
-	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)
+	return c.makeRequestWithOptions(http.MethodDelete, "devices", options, nil, nil)
 }

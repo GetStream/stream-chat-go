@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -174,10 +175,10 @@ func TestChannel_BanUser(t *testing.T) {
 	err := ch.BanUser(user.ID, serverUser.ID, nil)
 	mustNoError(t, err, "ban user")
 
-	err = ch.BanUser(user.ID, serverUser.ID, map[string]interface{}{
-		"timeout": 3600,
-		"reason":  "offensive language is not allowed here",
-	})
+	err = ch.BanUser(user.ID, serverUser.ID,
+		OptionTimeout(time.Minute),
+		NewOption("reason", "offensive language is not allowed here"),
+	)
 	mustNoError(t, err, "ban user")
 
 	err = ch.UnBanUser(user.ID, nil)

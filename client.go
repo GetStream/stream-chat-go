@@ -19,6 +19,7 @@ import (
 
 	"github.com/getstream/easyjson"
 	"github.com/pascaldekloe/jwt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -28,7 +29,8 @@ const (
 
 type Client struct {
 	BaseURL string
-	HTTP    *http.Client `json:"-"`
+	HTTP    *http.Client   `json:"-"`
+	Logger  *logrus.Logger `json:"-"`
 
 	apiKey    string
 	apiSecret []byte
@@ -117,12 +119,34 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	return r, nil
 }
 
+// log makes sure we don't attempt to log with a nil logger. Call this instead
+// of calling logger directly.
+//
+// e.g. c.log().WithField("foo", "bar").Info("test message")
+func (c *Client) log() *logrus.Logger {
+	// set the logger if it isn't already set.
+	if c.Logger == nil {
+		c.Logger = logrus.New()
+		c.Logger.SetLevel(logrus.InfoLevel)
+	}
+
+	return c.Logger
+}
+
 func (c *Client) makeRequest(
 	method, path string,
 	params url.Values,
 	data interface{},
 	result easyjson.Unmarshaler,
 ) error {
+	// TODO:
+	// c.log().WithFields(logrus.Fields{
+	// 	"params": params,
+	// 	"method": method,
+	// 	"path":   path,
+	// 	"data":   data,
+	// }).Info("makeRequest")
+
 	r, err := c.newRequest(method, path, params, data)
 	if err != nil {
 		return err
@@ -136,10 +160,22 @@ func (c *Client) makeRequest(
 	return c.parseResponse(resp, result)
 }
 
+// makeRequestWithOptions is just like makeRequests except it takes `Option`s
+// instead of params.
+func (c *Client) makeRequestWithOptions(
+	method, path string,
+	options []Option,
+	data interface{},
+	result easyjson.Unmarshaler,
+) error {
+	params := compileOptions(options...)
+	return c.makeRequest(method, path, params, data, result)
+}
+
 // CreateToken creates new token for user with optional expire time
 func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
 	if userID == "" {
-		return nil, errors.New("user ID is empty")
+		return nil, ErrorMissingUserID
 	}
 
 	params := map[string]interface{}{

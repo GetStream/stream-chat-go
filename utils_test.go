@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"log"
 	"math/rand"
 	"os"
 	"testing"
@@ -30,6 +31,11 @@ func init() {
 		{ID: randomString(10), Name: "Samwise Gamgee", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 38}},
 		{ID: randomString(10), Name: "Legolas", ExtraData: map[string]interface{}{"race": "Elf", "age": 500}},
 		serverUser,
+	}
+
+	if APIKey == "" || APISecret == "" {
+		log.Println("STREAM_CHAT_API_KEY and STREAM_CHAT_API_SECRET must be set")
+		os.Exit(-1)
 	}
 }
 

@@ -56,7 +56,7 @@ func (ch *Channel) DeleteReaction(messageID, reactionType, userID string) (*Mess
 	case reactionType == "":
 		return nil, errors.New("reaction type is empty")
 	case userID == "":
-		return nil, errors.New("user ID is empty")
+		return nil, ErrorMissingUserID
 	}
 
 	p := path.Join("messages", url.PathEscape(messageID), "reaction", url.PathEscape(reactionType))

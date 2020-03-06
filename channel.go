@@ -158,7 +158,7 @@ func (ch *Channel) AddMembers(userIDs []string, message *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-//  RemoveMembers deletes members with given IDs from the channel
+// RemoveMembers deletes members with given IDs from the channel
 func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
@@ -190,7 +190,7 @@ func (ch *Channel) AddModerators(userIDs ...string) error {
 	return ch.addModerators(userIDs, nil)
 }
 
-// AddModerators adds moderators with given IDs to the channel and produce system message
+// AddModeratorsWithMessage adds moderators with given IDs to the channel and produce system message
 func (ch *Channel) AddModeratorsWithMessage(userIDs []string, msg *Message) error {
 	return ch.addModerators(userIDs, msg)
 }
@@ -219,7 +219,7 @@ func (ch *Channel) InviteMembers(userIDs ...string) error {
 	return ch.inviteMembers(userIDs, nil)
 }
 
-// InviteMembers invites users with given IDs to the channel and produce system message
+// InviteMembersWithMessage invites users with given IDs to the channel and produce system message
 func (ch *Channel) InviteMembersWithMessage(userIDs []string, msg *Message) error {
 	return ch.inviteMembers(userIDs, msg)
 }
@@ -248,7 +248,7 @@ func (ch *Channel) DemoteModerators(userIDs ...string) error {
 	return ch.demoteModerators(userIDs, nil)
 }
 
-// DemoteModerators moderators with given IDs from the channel and produce system message
+// DemoteModeratorsWithMessage moderators with given IDs from the channel and produce system message
 func (ch *Channel) DemoteModeratorsWithMessage(userIDs []string, msg *Message) error {
 	return ch.demoteModerators(userIDs, msg)
 }
@@ -272,55 +272,49 @@ func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-//  MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
-//  options: additional data, ie {"messageID": last_messageID}
+// MarkRead sends the mark read event for user with given ID, only works if the `read_events` setting is enabled
+// options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
 	switch {
 	case userID == "":
-		return errors.New("user ID must be not empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return ErrorMissingUserID
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
 	options["user"] = map[string]interface{}{"id": userID}
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
+	return ch.client.makeRequestWithOptions(http.MethodPost, p, nil, options, nil)
 }
 
 // BanUser bans target user ID from this channel
 // userID: user who bans target
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
-func (ch *Channel) BanUser(targetID, userID string, options map[string]interface{}) error {
+func (ch *Channel) BanUser(targetID, userID string, options ...Option) error {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return ErrorMissingTargetID
 	case userID == "":
-		return errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return ErrorMissingUserID
 	}
 
-	options["type"] = ch.Type
-	options["id"] = ch.ID
+	options = append(options, NewOption(optionKeyType, ch.Type))
+	options = append(options, NewOption(optionKeyID, ch.ID))
 
-	return ch.client.BanUser(targetID, userID, options)
+	return ch.client.BanUser(targetID, userID, options...)
 }
 
 // UnBanUser removes the ban for target user ID on this channel
-func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
+func (ch *Channel) UnBanUser(targetID string, options ...Option) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID must be not empty")
-	case options == nil:
-		options = map[string]string{}
 	}
 
-	options["type"] = ch.Type
-	options["id"] = ch.ID
+	options = append(options, NewOption(optionKeyType, ch.Type))
+	options = append(options, NewOption(optionKeyID, ch.ID))
 
-	return ch.client.UnBanUser(targetID, options)
+	return ch.client.UnBanUser(targetID, options...)
 }
 
 // Query fills channel info without state (messages, members, reads)
@@ -372,11 +366,11 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 
 	switch {
 	case chanType == "":
-		return nil, errors.New("channel type is empty")
+		return nil, ErrorMissingChannelType
 	case chanID == "" && !membersPresent:
 		return nil, errors.New("either channel ID or members must be provided")
 	case userID == "":
-		return nil, errors.New("user ID is empty")
+		return nil, ErrorMissingUserID
 	}
 
 	ch := &Channel{
@@ -431,20 +425,18 @@ func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
 func (ch *Channel) DeleteFile(location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
 
-	var params = url.Values{}
-	params.Set("url", location)
+	options := []Option{optionURL(location)}
 
-	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+	return ch.client.makeRequestWithOptions(http.MethodDelete, p, options, nil, nil)
 }
 
 // DeleteImage removes uploaded image
 func (ch *Channel) DeleteImage(location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
 
-	var params = url.Values{}
-	params.Set("url", location)
+	options := []Option{optionURL(location)}
 
-	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+	return ch.client.makeRequestWithOptions(http.MethodDelete, p, options, nil, nil)
 }
 
 func (ch *Channel) AcceptInvite(userID string, message *Message) error {
