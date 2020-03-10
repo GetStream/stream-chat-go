@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"log"
 	"os"
 	"path"
 	"testing"
@@ -67,7 +68,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -86,6 +87,16 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
+// See https://getstream.io/chat/docs/channel_members/ for more details.
+func ExampleChannel_AddModerators() {
+	channel := &Channel{}
+	newModerators := []string{"bob", "sue"}
+
+	_ = channel.AddModerators("thierry", "josh")
+	_ = channel.AddModerators(newModerators...)
+	_ = channel.DemoteModerators(newModerators...)
+}
+
 func TestChannel_InviteMembers(t *testing.T) {
 	c := initClient(t)
 
@@ -94,7 +105,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -121,7 +132,7 @@ func TestChannel_Moderation(t *testing.T) {
 	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
 	mustNoError(t, err, "create channel")
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -155,7 +166,7 @@ func TestChannel_BanUser(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -184,7 +195,7 @@ func TestChannel_GetReplies(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -211,7 +222,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -235,7 +246,7 @@ func TestChannel_SendMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -255,7 +266,7 @@ func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		_ = ch.Delete()
 	}()
 
 	user := randomUser()
@@ -410,4 +421,30 @@ func TestChannel_RejectInvite(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	err = ch.RejectInvite(members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
 	require.NoError(t, err, "reject invite")
+}
+
+func ExampleChannel_Update() {
+	// https://getstream.io/chat/docs/channel_permissions/?language=python
+	client := &Client{}
+
+	data := map[string]interface{}{
+		"image":      "https://path/to/image",
+		"created_by": "elon",
+		"roles":      map[string]string{"elon": "admin", "gwynne": "moderator"},
+	}
+
+	spacexChannel := client.Channel("team", "spacex")
+	if err := spacexChannel.Update(data, nil); err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+}
+
+func (c *Client) ExampleClient_CreateChannel() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	channel, _ := client.CreateChannel("team", "stream", "tommaso", nil)
+	_, _ = channel.SendMessage(&Message{
+		User: &User{ID: "tomosso"},
+		Text: "hi there!",
+	}, "tomosso")
 }

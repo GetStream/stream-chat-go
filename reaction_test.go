@@ -1,10 +1,26 @@
 package stream_chat // nolint: golint
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func ExampleChannel_SendReaction() {
+	channel := &Channel{}
+	msgID := "123"
+	userID := "bob-1"
+
+	reaction := &Reaction{
+		Type:      "love",
+		ExtraData: map[string]interface{}{"my_custom_field": 123},
+	}
+	_, err := channel.SendReaction(reaction, msgID, userID)
+	if err != nil {
+		log.Fatalf("Found Error: %v", err)
+	}
+}
 
 func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)

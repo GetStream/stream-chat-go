@@ -302,3 +302,14 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 
 	return client, nil
 }
+
+// Channel prepares a Channel object for future API calls. This does not in and
+// of itself call the API.
+func (c *Client) Channel(channelType string, channelID string) *Channel {
+	return &Channel{
+		client: c,
+
+		ID:   channelID,
+		Type: channelType,
+	}
+}

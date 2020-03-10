@@ -37,3 +37,21 @@ func deviceIDExists(dev []*Device, id string) bool {
 	}
 	return false
 }
+
+func ExampleClient_AddDevice() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	_ = client.AddDevice(&Device{
+		ID:           "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207",
+		UserID:       "elon",
+		PushProvider: PushProviderAPNS,
+	})
+}
+
+func ExampleClient_DeleteDevice() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	deviceID := "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207"
+	userID := "elon"
+	_ = client.DeleteDevice(userID, deviceID)
+}

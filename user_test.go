@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -123,4 +124,73 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	assert.Contains(t, got, user.ID)
 	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
 	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
+}
+
+func ExampleClient_UpdateUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	_, err := client.UpdateUser(&User{
+		ID:   "tommaso",
+		Name: "Tommaso",
+		Role: "Admin",
+	})
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+}
+
+func ExampleClient_ExportUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	user, _ := client.ExportUser("userID", nil)
+	log.Printf("%#v", user)
+}
+
+func ExampleClient_DeactivateUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	_ = client.DeactivateUser("userID", nil)
+}
+
+func ExampleClient_ReactivateUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	_ = client.ReactivateUser("userID", nil)
+}
+
+func ExampleClient_DeleteUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	_ = client.DeleteUser("userID", nil)
+}
+
+func ExampleClient_DeleteUser_hard() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	options := map[string][]string{
+		"mark_messages_deleted": {"true"},
+		"hard_delete":           {"true"},
+	}
+
+	_ = client.DeleteUser("userID", options)
+}
+
+func ExampleClient_BanUser() {
+	client, _ := NewClient("XXXX", []byte("XXXX"))
+
+	// ban a user for 60 minutes from all channel
+	_ = client.BanUser("eviluser", "modUser",
+		map[string]interface{}{"timeout": 60, "reason": "Banned for one hour"})
+
+	// ban a user from the livestream:fortnite channel
+	channel := client.Channel("livestream", "fortnite")
+	_ = channel.BanUser("eviluser", "modUser",
+		map[string]interface{}{"reason": "Profanity is not allowed here"})
+
+	// remove ban from channel
+	channel = client.Channel("livestream", "fortnite")
+	_ = channel.UnBanUser("eviluser", nil)
+
+	// remove global ban
+	_ = client.UnBanUser("eviluser", nil)
 }
