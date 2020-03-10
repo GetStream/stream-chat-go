@@ -1,4 +1,4 @@
-package stream_chat
+package stream_chat // nolint: golint
 
 import (
 	"bytes"
@@ -8,14 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var messageReadJSON = ``
-
 // TestEventSupportsAllFields that we can decode all of the keys in the
 // examples. We do this via the DisallowUnknownFields flag.
+//nolint:lll
 func TestEventSupportsAllFields(t *testing.T) {
 	// Tests are taken from https://getstream.io/chat/docs/webhook_events/ and
 	// compressed with `jq -c .`
-	events := map[string]string{
+	events := map[EventType]string{
 		"message.new":      `{"cid":"messaging:fun","type":"message.new","message":{"id":"fff0d7c0-60bd-4835-833b-3843007817bf","text":"8b780762-4830-4e2a-aa43-18aabaf1732d","html":"<p>8b780762-4830-4e2a-aa43-18aabaf1732d</p>\n","type":"regular","user":{"id":"97b49906-0b98-463b-aa47-0aa945677eb2","role":"user","created_at":"2019-04-24T08:48:38.440123Z","updated_at":"2019-04-24T08:48:38.440708Z","online":false},"attachments":[],"latest_reactions":[],"own_reactions":[],"reaction_counts":null,"reply_count":0,"created_at":"2019-04-24T08:48:39.918761Z","updated_at":"2019-04-24T08:48:39.918761Z","mentioned_users":[]},"user":{"id":"97b49906-0b98-463b-aa47-0aa945677eb2","role":"user","created_at":"2019-04-24T08:48:38.440123Z","updated_at":"2019-04-24T08:48:38.440708Z","online":false,"channel_unread_count":1,"channel_last_read_at":"2019-04-24T08:48:39.900585Z","total_unread_count":1,"unread_channels":1,"unread_count":1},"created_at":"2019-04-24T08:48:38.949986Z","members":[{"user_id":"97b49906-0b98-463b-aa47-0aa945677eb2","user":{"id":"97b49906-0b98-463b-aa47-0aa945677eb2","role":"user","created_at":"2019-04-24T08:48:38.440123Z","updated_at":"2019-04-24T08:48:38.440708Z","online":false,"channel_unread_count":1,"channel_last_read_at":"2019-04-24T08:48:39.900585Z","total_unread_count":1,"unread_channels":1,"unread_count":1},"created_at":"2019-04-24T08:48:39.652296Z","updated_at":"2019-04-24T08:48:39.652296Z"}]}`,
 		"message.read":     `{"cid":"messaging:fun","type":"message.read","user":{"id":"a6e21b36-798b-408a-9cd1-0cf6c372fc7f","role":"user","created_at":"2019-04-24T08:49:58.170034Z","updated_at":"2019-04-24T08:49:59.345304Z","last_active":"2019-04-24T08:49:59.344201Z","online":true,"total_unread_count":0,"unread_channels":0,"unread_count":0,"channel_unread_count":0,"channel_last_read_at":"2019-04-24T08:49:59.365498Z"},"created_at":"2019-04-24T08:49:59.365489Z"}`,
 		"message.updated":  `{"cid":"messaging:fun","type":"message.updated","message":{"id":"93163f53-4174-4be8-90cd-e59bef78da00","text":"new stuff","html":"<p>new stuff</p>\n","type":"regular","user":{"id":"75af03a7-fe83-4a2a-a447-9ed4fac2ea36","role":"user","created_at":"2019-04-24T08:51:26.846395Z","updated_at":"2019-04-24T08:51:27.973941Z","last_active":"2019-04-24T08:51:27.972713Z","online":false},"attachments":[],"latest_reactions":[],"own_reactions":[],"reaction_counts":null,"reply_count":0,"created_at":"2019-04-24T08:51:28.005691Z","updated_at":"2019-04-24T08:51:28.138422Z","mentioned_users":[]},"user":{"id":"75af03a7-fe83-4a2a-a447-9ed4fac2ea36","role":"user","created_at":"2019-04-24T08:51:26.846395Z","updated_at":"2019-04-24T08:51:27.973941Z","last_active":"2019-04-24T08:51:27.972713Z","online":true,"channel_unread_count":1,"channel_last_read_at":"2019-04-24T08:51:27.994245Z","total_unread_count":2,"unread_channels":2,"unread_count":2},"created_at":"2019-04-24T10:51:28.142291+02:00"}`,
@@ -39,6 +38,6 @@ func TestEventSupportsAllFields(t *testing.T) {
 			t.Errorf("Error unmarshaling %q: %v", name, err)
 		}
 
-		assert.Equal(t, string(name), string(result.Type))
+		assert.Equal(t, name, result.Type)
 	}
 }
