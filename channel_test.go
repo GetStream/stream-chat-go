@@ -172,7 +172,7 @@ func TestChannel_BanUser(t *testing.T) {
 
 	user := randomUser()
 
-	err := ch.BanUser(user.ID, serverUser.ID, nil)
+	err := ch.BanUser(user.ID, serverUser.ID)
 	mustNoError(t, err, "ban user")
 
 	err = ch.BanUser(user.ID, serverUser.ID,

@@ -28,7 +28,7 @@ type StreamClient interface {
 	DeleteChannelType(chType string) error
 	GetChannelType(chanType string) (ct *ChannelType, err error)
 	ListChannelTypes() (map[string]*ChannelType, error)
-	UpdateChannelType(name string, options map[string]interface{}) error
+	UpdateChannelType(name string, data map[string]interface{}) error
 
 	CreateToken(userID string, expire time.Time) ([]byte, error)
 	VerifyWebhook(body []byte, signature []byte) (valid bool)
@@ -71,11 +71,11 @@ type StreamChannel interface {
 	Delete() error
 	DemoteModerators(userIDs ...string) error
 	DemoteModeratorsWithMessage(userIDs []string, msg *Message) error
-	MarkRead(userID string, options map[string]interface{}) error
+	MarkRead(userID string, options ...Option) error
 	RemoveMembers(userIDs []string, message *Message) error
 	Truncate() error
 	UnBanUser(targetID string, options ...Option) error
-	Update(options map[string]interface{}, message *Message) error
+	Update(data map[string]interface{}, message *Message) error
 	Query(data map[string]interface{}) error
 	Show(userID string) error
 	Hide(userID string) error
@@ -92,10 +92,10 @@ type StreamChannel interface {
 	SendEvent(event *Event, userID string) error
 
 	SendMessage(message *Message, userID string) (*Message, error)
-	GetReplies(parentID string, options map[string][]string) (replies []*Message, err error)
+	GetReplies(parentID string, options ...Option) (replies []*Message, err error)
 	SendAction(msgID string, formData map[string]string) (*Message, error)
 
 	DeleteReaction(messageID string, reactionType string, userID string) (*Message, error)
-	GetReactions(messageID string, options map[string][]string) ([]*Reaction, error)
+	GetReactions(messageID string, options ...Option) ([]*Reaction, error)
 	SendReaction(reaction *Reaction, messageID string, userID string) (*Message, error)
 }

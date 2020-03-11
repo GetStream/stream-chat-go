@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -151,6 +152,8 @@ func (c *Client) makeRequest(
 	if err != nil {
 		return err
 	}
+
+	log.Printf("%v", r.URL.String())
 
 	resp, err := c.HTTP.Do(r)
 	if err != nil {

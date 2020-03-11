@@ -135,19 +135,61 @@ func (c *Client) UnFlagUser(targetID string, options ...Option) error {
 }
 
 func (c *Client) BanUser(targetID, userID string, options ...Option) error {
+	return c.banUser(&banUserInput{
+		TargetID: targetID,
+		UserID:   userID,
+	}, options...)
+}
+
+type banUserInput struct {
+	// TargetID is the ID of the person to be banned.
+	TargetID string `json:"target_user_id,omitempty"`
+
+	// UserID is the ID of the person doing the banning.
+	UserID string `json:"user_id,omitempty"`
+
+	Reason  *string `json:"reason,omitempty"`
+	Timeout *int    `json:"timeout,omitempty"`
+
+	// ChannelType and ChannelID are used if the ban is channel specific.
+	ChannelType *string `json:"type,omitempty"`
+	ChannelID   *string `json:"id,omitempty"`
+
+	Extra map[string]interface{} `json:"-"`
+}
+
+func (b *banUserInput) AddOptions(options []Option) {
+	for _, opt := range options {
+		switch opt.Key() {
+		case optionKeyTimeout:
+			seconds := opt.Value().(int)
+			b.Timeout = &seconds
+		case optionKeyReason:
+			reason := optionAsString(opt)
+			b.Reason = &reason
+		}
+	}
+}
+
+func (b banUserInput) validate() error {
 	switch {
-	case targetID == "":
+	case b.TargetID == "":
 		return ErrorMissingTargetID
-	case userID == "":
+	case b.UserID == "":
 		return ErrorMissingUserID
 	}
 
-	options = append(options,
-		makeTargetID(targetID),
-		makeUserID(userID),
-	)
+	return nil
+}
 
-	return c.makeRequestWithOptions(http.MethodPost, "moderation/ban", nil, options, nil)
+func (c *Client) banUser(input *banUserInput, options ...Option) error {
+	if err := input.validate(); err != nil {
+		return err
+	}
+
+	input.AddOptions(options)
+
+	return c.makeRequestWithOptions(http.MethodPost, "moderation/ban", nil, input, nil)
 }
 
 func (c *Client) UnBanUser(targetID string, options ...Option) error {

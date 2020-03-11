@@ -111,9 +111,9 @@ func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 //
 // options: the object to update the custom properties of this channel with
 // message: optional update message
-func (ch *Channel) Update(options map[string]interface{}, message *Message) error {
+func (ch *Channel) Update(data map[string]interface{}, message *Message) error {
 	payload := map[string]interface{}{
-		"data": options,
+		"data": data,
 	}
 
 	if message != nil {
@@ -274,34 +274,31 @@ func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 
 // MarkRead sends the mark read event for user with given ID, only works if the `read_events` setting is enabled
 // options: additional data, ie {"messageID": last_messageID}
-func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
+func (ch *Channel) MarkRead(userID string, options ...Option) error {
 	switch {
 	case userID == "":
 		return ErrorMissingUserID
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
-
-	options["user"] = map[string]interface{}{"id": userID}
+	options = append([]Option{}, NewOption(optionKeyID, userID))
 
 	return ch.client.makeRequestWithOptions(http.MethodPost, p, nil, options, nil)
 }
 
 // BanUser bans target user ID from this channel
 // userID: user who bans target
-// options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}
+// options: additional ban options, e.g. BanUser("badUser", "admin",
+// OptionTimeout(time.Hour), NewOption("reason", "offensive language is
+// not allowed here"))
 func (ch *Channel) BanUser(targetID, userID string, options ...Option) error {
-	switch {
-	case targetID == "":
-		return ErrorMissingTargetID
-	case userID == "":
-		return ErrorMissingUserID
-	}
+	return ch.client.banUser(&banUserInput{
+		TargetID: targetID,
+		UserID:   userID,
 
-	options = append(options, NewOption(optionKeyType, ch.Type))
-	options = append(options, NewOption(optionKeyID, ch.ID))
-
-	return ch.client.BanUser(targetID, userID, options...)
+		ChannelType: &ch.Type,
+		ChannelID:   &ch.ID,
+	}, options...)
 }
 
 // UnBanUser removes the ban for target user ID on this channel

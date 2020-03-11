@@ -129,11 +129,11 @@ func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
 	return resp.ChannelTypes, err
 }
 
-func (c *Client) UpdateChannelType(name string, options map[string]interface{}) error {
+func (c *Client) UpdateChannelType(name string, data map[string]interface{}) error {
 	switch {
 	case name == "":
 		return errors.New("channel type name is empty")
-	case len(options) == 0:
+	case len(data) == 0:
 		return errors.New("options are empty")
 	}
 

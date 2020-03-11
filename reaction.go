@@ -82,8 +82,8 @@ type reactionsResponse struct {
 }
 
 // GetReactions returns list of the reactions for message with given ID.
-// options: Pagination params, ie {"limit":{"10"}, "idlte": {"10"}}
-func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]*Reaction, error) {
+// options: Pagination params, e.g. GetReactions(msgID, PaginateLimit(50), PaginateOffset(50))
+func (ch *Channel) GetReactions(messageID string, options ...Option) ([]*Reaction, error) {
 	if messageID == "" {
 		return nil, errors.New("message ID is empty")
 	}
@@ -92,7 +92,7 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 
 	var resp reactionsResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.makeRequestWithOptions(http.MethodGet, p, options, nil, &resp)
 
 	return resp.Reactions, err
 }

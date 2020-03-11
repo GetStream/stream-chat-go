@@ -3,6 +3,7 @@ package stream
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -167,12 +168,10 @@ func ExampleClient_DeleteUser() {
 func ExampleClient_DeleteUser_hard() {
 	client, _ := NewClient("XXXX", []byte("XXXX"))
 
-	options := map[string][]string{
-		"mark_messages_deleted": {"true"},
-		"hard_delete":           {"true"},
-	}
-
-	_ = client.DeleteUser("userID", options)
+	_ = client.DeleteUser("userID",
+		OptionHardDelete,
+		OptionMarkMessagesDeleted,
+	)
 }
 
 func ExampleClient_BanUser() {
@@ -180,12 +179,14 @@ func ExampleClient_BanUser() {
 
 	// ban a user for 60 minutes from all channel
 	_ = client.BanUser("eviluser", "modUser",
-		map[string]interface{}{"timeout": 60, "reason": "Banned for one hour"})
+		OptionTimeout(60*time.Second),
+		NewOption("reason", "Banned for one hour"),
+	)
 
 	// ban a user from the livestream:fortnite channel
 	channel := client.Channel("livestream", "fortnite")
 	_ = channel.BanUser("eviluser", "modUser",
-		map[string]interface{}{"reason": "Profanity is not allowed here"})
+		NewOption("reason", "Profanity is not allowed here"))
 
 	// remove ban from channel
 	channel = client.Channel("livestream", "fortnite")

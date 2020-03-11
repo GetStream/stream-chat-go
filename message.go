@@ -223,7 +223,7 @@ type repliesResponse struct {
 
 // GetReplies returns list of the message replies for a parent message
 // options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
+func (ch *Channel) GetReplies(parentID string, options ...Option) ([]*Message, error) {
 	if parentID == "" {
 		return nil, errors.New("parent ID is empty")
 	}
@@ -232,7 +232,7 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*
 
 	var resp repliesResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.makeRequestWithOptions(http.MethodGet, p, options, nil, &resp)
 
 	return resp.Messages, err
 }

@@ -1,3 +1,6 @@
+github.com/GetStream/stream-chat-go v1.0.0 h1:PeKKanqDOODBAZZfrNtyrFbXMJjotuC/WxEA0Q0wJiY=
+github.com/GetStream/stream-chat-go/v2 v2.1.0 h1:+7pg0i3hOLESwnY++c1Y/BeJohB42eZOjb9c4b1IetE=
+github.com/GetStream/stream-chat-go/v2 v2.1.0/go.mod h1:Ay39DkmZNsJRABfHLgoVMPtI96vx3iSn86YGY/xdEYY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -6,6 +9,8 @@ github.com/getstream/easyjson v0.0.0-20190923162548-5adc7b1f33fa/go.mod h1:hVXbN
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/json-iterator/go v1.1.7 h1:KfgG9LzI+pYjr4xvmz/5H4FXjokeP+rlHLhv3iH62Fo=
 github.com/json-iterator/go v1.1.7/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
+github.com/keyneston/racedetector v0.0.0-20200309152621-90296942492f h1:Syyi9XRyQZkIH46VY4CrDBcqYKOtxyKdESumRvgMViQ=
+github.com/keyneston/racedetector v0.0.0-20200309152621-90296942492f/go.mod h1:rrvjXP8MVG3j/ppNXvZinHPtYv7LB4mMXX2eCgEus/c=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
