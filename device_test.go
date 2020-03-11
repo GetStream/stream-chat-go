@@ -39,7 +39,7 @@ func deviceIDExists(dev []*Device, id string) bool {
 }
 
 func ExampleClient_AddDevice() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_ = client.AddDevice(&Device{
 		ID:           "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207",
@@ -49,7 +49,7 @@ func ExampleClient_AddDevice() {
 }
 
 func ExampleClient_DeleteDevice() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	deviceID := "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207"
 	userID := "elon"

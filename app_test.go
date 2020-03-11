@@ -27,7 +27,7 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 // See https://getstream.io/chat/docs/app_settings_auth/ for
 // more details.
 func ExampleClient_UpdateAppSettings_disable_auth() {
-	client, err := NewClient("XXXXXXXXXXXX", []byte("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"))
+	client, err := NewClient("XXXX", "XXXX")
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -47,7 +47,7 @@ func ExampleClient_UpdateAppSettings_disable_auth() {
 }
 
 func ExampleClient_UpdateAppSettings_disable_permission() {
-	client, err := NewClient("XXXX", []byte("XXXX"))
+	client, err := NewClient("XXXX", "XXXX")
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}

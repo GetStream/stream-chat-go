@@ -34,7 +34,7 @@ type Client struct {
 	Logger  *logrus.Logger `json:"-"`
 
 	apiKey    string
-	apiSecret []byte
+	apiSecret string
 	authToken string
 }
 
@@ -195,12 +195,12 @@ func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([
 
 	claims.Expires = jwt.NewNumericTime(expire.Round(time.Second))
 
-	return claims.HMACSign(jwt.HS256, c.apiSecret)
+	return claims.HMACSign(jwt.HS256, []byte(c.apiSecret))
 }
 
 // VerifyWebhook validates if hmac signature is correct for message body
 func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
-	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
+	mac := hmac.New(crypto.SHA256.New, []byte(c.apiSecret))
 	//nolint: errcheck
 	mac.Write(body)
 
@@ -318,7 +318,7 @@ func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
 }
 
 // NewClient creates new stream chat api client
-func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
+func NewClient(apiKey string, apiSecret string) (*Client, error) {
 	switch {
 	case apiKey == "":
 		return nil, errors.New("API key is empty")

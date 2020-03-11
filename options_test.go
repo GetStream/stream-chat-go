@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleNewOption() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 	opt := NewOption("new_awesome_feature", true)
 
 	client.BanUser("badUser", "awesomeMod", opt)

@@ -10,7 +10,7 @@ import (
 )
 
 func initClient(t *testing.T) *Client {
-	c, err := NewClient(APIKey, []byte(APISecret))
+	c, err := NewClient(APIKey, APISecret)
 	mustNoError(t, err, "new client")
 
 	c.Logger = logrus.New()
@@ -48,7 +48,7 @@ func TestNewClient(t *testing.T) {
 	c := initClient(t)
 
 	assert.Equal(t, c.apiKey, APIKey)
-	assert.Equal(t, c.apiSecret, []byte(APISecret))
+	assert.Equal(t, c.apiSecret, APISecret)
 	assert.NotEmpty(t, c.authToken)
 	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
 }
@@ -77,7 +77,7 @@ func TestClient_CreateToken(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			c, _ := NewClient("key", []byte("secret"))
+			c, _ := NewClient("key", "secret")
 			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)

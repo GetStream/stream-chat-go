@@ -128,7 +128,7 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 }
 
 func ExampleClient_UpdateUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_, err := client.UpdateUser(&User{
 		ID:   "tommaso",
@@ -141,32 +141,32 @@ func ExampleClient_UpdateUser() {
 }
 
 func ExampleClient_ExportUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	user, _ := client.ExportUser("userID", nil)
 	log.Printf("%#v", user)
 }
 
 func ExampleClient_DeactivateUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_ = client.DeactivateUser("userID", nil)
 }
 
 func ExampleClient_ReactivateUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_ = client.ReactivateUser("userID", nil)
 }
 
 func ExampleClient_DeleteUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_ = client.DeleteUser("userID", nil)
 }
 
 func ExampleClient_DeleteUser_hard() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	_ = client.DeleteUser("userID",
 		OptionHardDelete,
@@ -175,7 +175,7 @@ func ExampleClient_DeleteUser_hard() {
 }
 
 func ExampleClient_BanUser() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	// ban a user for 60 minutes from all channel
 	_ = client.BanUser("eviluser", "modUser",
