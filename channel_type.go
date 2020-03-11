@@ -21,6 +21,24 @@ const (
 	MessageRetentionForever = "infinite"
 )
 
+// ChannelTypeLabel marks a string as a type of channel. The builtin settings are all
+// available as consts.
+// TODO: This needs a better name.
+type ChannelTypeLabel = string
+
+const (
+	// ChannelTypeLabelLivestream is sensible defaults in case you want to build chat like YouTube or Twitch.
+	ChannelTypeLabelLivestream = "livestream"
+	// ChannelTypeLabelMessaging is configured for apps such as WhatsApp or Facebook Messenger.
+	ChannelTypeLabelMessaging = "messaging"
+	// ChannelTypeLabelTeam is for If you want to build your own version of Slack or something similar.
+	ChannelTypeLabelTeam = "team"
+	// ChannelTypeLabelGaming is configured for in-game chat.
+	ChannelTypeLabelGaming = "gaming"
+	// ChannelTypeLabelCommerce is good defaults for building something like your own version of Intercom or Drift.
+	ChannelTypeLabelCommerce = "commerce"
+)
+
 // ActionPermission is a type alias to assist in making sure permissions are
 // correctly set.
 type ActionPermission = string

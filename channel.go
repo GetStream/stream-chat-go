@@ -29,9 +29,9 @@ type ChannelMember struct {
 }
 
 type Channel struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-	CID  string `json:"cid"` // full id in format channel_type:channel_ID
+	ID   string           `json:"id"`
+	Type ChannelTypeLabel `json:"type"`
+	CID  string           `json:"cid"` // full id in format channel_type:channel_ID
 
 	Config ChannelConfig `json:"config"`
 
@@ -358,7 +358,7 @@ func (ch *Channel) hide(userID string, clearHistory bool) error {
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one
-func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]interface{}) (*Channel, error) {
+func (c *Client) CreateChannel(chanType ChannelTypeLabel, chanID, userID string, data map[string]interface{}) (*Channel, error) {
 	_, membersPresent := data["members"]
 
 	switch {
@@ -474,8 +474,6 @@ func (ch *Channel) RejectInvite(userID string, message *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-//nolint: godox
-// todo: cleanup this
 func (ch *Channel) refresh() error {
 	options := map[string]interface{}{
 		"watch":    false,
