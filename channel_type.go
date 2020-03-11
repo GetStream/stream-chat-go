@@ -21,12 +21,26 @@ const (
 	MessageRetentionForever = "infinite"
 )
 
+// ActionPermission is a type alias to assist in making sure permissions are
+// correctly set.
+type ActionPermission = string
+
+const (
+	// PermissionAllow sets a permission structure to allow access to the
+	// resources to the roles in question.
+	PermissionAllow = ActionPermission("Allow")
+
+	// PermissionDeny sets a permission structure to deny access to the
+	// resources to the roles in question.
+	PermissionDeny = ActionPermission("Deny")
+)
+
 type modType string
 type modBehaviour string
 
 type Permission struct {
-	Name   string `json:"name"`   // required
-	Action string `json:"action"` // one of: Deny Allow
+	Name   string           `json:"name"`   // required
+	Action ActionPermission `json:"action"` // one of: Deny Allow
 
 	Resources []string `json:"resources"` // required
 	Roles     []string `json:"roles"`
@@ -49,6 +63,20 @@ type ChannelType struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// AddPermissions helps to add permissions when building a channel type.
+func (ct *ChannelType) AddPermissions(perms ...*Permission) *ChannelType {
+	ct.Permissions = append(ct.Permissions, perms...)
+
+	return ct
+}
+
+// AddCommands is a helper function to assist when building a channel type.
+func (ct *ChannelType) AddCommands(cmds ...*Command) *ChannelType {
+	ct.Commands = append(ct.Commands, cmds...)
+
+	return ct
 }
 
 func (ct *ChannelType) toRequest() channelTypeRequest {
