@@ -8,17 +8,45 @@ import (
 	"github.com/getstream/easyjson"
 )
 
+// QueryOption helps to build queries see
+// https://getstream.io/chat/docs/#query_syntax
+// for full details of the syntax.
 type QueryOption struct {
-	// https://getstream.io/chat/docs/#query_syntax
 	Filter map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
 	Limit  int `json:"limit,omitempty"`  // pagination option: limit number of results
 	Offset int `json:"offset,omitempty"` // pagination option: offset to return items from
 }
 
+type SortDirection = int
+
+const (
+	// SortAscending sets the specified field to sort in an ascending manner.
+	SortAscending SortDirection = 1
+	// SortDescending sets the specified field to sort in a descending manner.
+	SortDescending SortDirection = -1
+)
+
+// SortField designates a string as being a sortable field. The default sort fields
+// are all declared as constants.
+type SortField = string
+
+const (
+	// SortFieldUserID lets you sort by the user's ID.
+	SortFieldUserID SortField = "user_id"
+
+	// SortFieldLastActive lets you sort by when the user was last active.
+	SortFieldLastActive SortField = "last_active"
+)
+
+// SortOption is used to configure a sort field.
 type SortOption struct {
-	Field     string `json:"field"`     // field name to sort by,from json tags(in camel case), for example created_at
-	Direction int    `json:"direction"` // [-1, 1]
+	// Field is the naem of the field to sort by. This should be snake case.
+	Field SortField `json:"field"`
+
+	// Direction is the direction to sort the field by. This can be either
+	// SortAscending (i.e. 1) or SortDescending (i.e. -1).
+	Direction SortDirection `json:"direction"`
 }
 
 type queryUsersRequest struct {

@@ -3,6 +3,10 @@ package stream
 import (
 	"testing"
 
+	"log"
+	"os"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -64,4 +68,54 @@ func TestClient_Search(t *testing.T) {
 	mustNoError(t, err)
 
 	assert.Len(t, got, 2)
+}
+
+func ExampleQueryOption() {
+	client, err := NewClient(
+		os.Getenv("STREAM_CHAT_API_KEY"),
+		os.Getenv("STREAM_CHAT_API_SECRET"),
+	)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+
+	prefix := time.Now().UTC().Format("2006-01-02-15-04-")
+	chName := prefix + "awesome_sauce"
+
+	ch, err := client.CreateChannel(
+		ChannelTypeLabelTeam,
+		chName,
+		"calvin",
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+
+	ch.SendMessage(&Message{
+		Text: "Hello Calvin",
+		User: &User{
+			ID: "hobbes",
+		},
+	}, "hobbes")
+
+	ch.SendMessage(&Message{
+		Text: "Hello Hobbes",
+		User: &User{
+			ID: "calvin",
+		},
+	}, "calvin")
+
+	sort := []*SortOption{
+		{Field: SortFieldUserID, Direction: SortAscending},
+	}
+
+	users, err := client.QueryUsers(&QueryOption{}, sort...)
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
+
+	for _, user := range users {
+		log.Printf("%v", user.ID)
+	}
 }
