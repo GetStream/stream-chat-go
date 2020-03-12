@@ -275,13 +275,12 @@ func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 // MarkRead sends the mark read event for user with given ID, only works if the `read_events` setting is enabled
 // options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options ...Option) error {
-	switch {
-	case userID == "":
+	if userID == "" {
 		return ErrorMissingUserID
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
-	options = append([]Option{}, NewOption(optionKeyID, userID))
+	options = append(options, NewOption(optionKeyID, userID))
 
 	return ch.client.makeRequestWithOptions(http.MethodPost, p, nil, options, nil)
 }
@@ -303,8 +302,7 @@ func (ch *Channel) BanUser(targetID, userID string, options ...Option) error {
 
 // UnBanUser removes the ban for target user ID on this channel
 func (ch *Channel) UnBanUser(targetID string, options ...Option) error {
-	switch {
-	case targetID == "":
+	if targetID == "" {
 		return errors.New("target ID must be not empty")
 	}
 

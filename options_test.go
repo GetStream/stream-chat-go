@@ -11,7 +11,7 @@ func ExampleNewOption() {
 	client, _ := NewClient("XXXX", "XXXX")
 	opt := NewOption("new_awesome_feature", true)
 
-	client.BanUser("badUser", "awesomeMod", opt)
+	_ = client.BanUser("badUser", "awesomeMod", opt)
 }
 
 func TestOptionTimeout(t *testing.T) {
@@ -21,9 +21,9 @@ func TestOptionTimeout(t *testing.T) {
 	}
 
 	for _, c := range []testCase{
-		testCase{input: 5 * time.Second, expected: 5},
-		testCase{input: 60 * time.Minute, expected: 3600},
-		testCase{input: time.Second / 2, expected: 1}, // TODO: is this correct behaviour?
+		{input: 5 * time.Second, expected: 5},
+		{input: 60 * time.Minute, expected: 3600},
+		{input: time.Second / 2, expected: 1},
 	} {
 		opt := OptionTimeout(c.input)
 

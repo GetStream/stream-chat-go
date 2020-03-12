@@ -1,10 +1,9 @@
 package stream
 
 import (
-	"testing"
-
 	"log"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -92,14 +91,14 @@ func ExampleQueryOption() {
 		log.Fatalf("Err: %v", err)
 	}
 
-	ch.SendMessage(&Message{
+	_, _ = ch.SendMessage(&Message{
 		Text: "Hello Calvin",
 		User: &User{
 			ID: "hobbes",
 		},
 	}, "hobbes")
 
-	ch.SendMessage(&Message{
+	_, _ = ch.SendMessage(&Message{
 		Text: "Hello Hobbes",
 		User: &User{
 			ID: "calvin",

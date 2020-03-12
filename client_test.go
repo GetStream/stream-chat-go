@@ -5,19 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func initClient(t *testing.T) *Client {
 	c, err := NewClient(APIKey, APISecret)
 	mustNoError(t, err, "new client")
-
-	c.Logger = logrus.New()
-	c.Logger.Level = logrus.TraceLevel
-	c.Logger.Formatter = &logrus.JSONFormatter{
-		PrettyPrint: true,
-	}
 
 	// set hostname to client from env if present
 	if StreamHost != "" {

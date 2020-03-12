@@ -23,3 +23,5 @@ linters:
     - stylecheck
     - wsl
     - whitespace
+    - gochecknoglobals
+    - lll

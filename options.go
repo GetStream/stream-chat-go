@@ -19,7 +19,6 @@ var (
 const (
 	optionKeyType         = "type"
 	optionKeyID           = "id"
-	optionKeyUserID       = "user_id"
 	optionKeyTargetUserID = "target_user_id"
 	optionKeyTimeout      = "timeout"
 	optionKeyLocation     = "url"
@@ -37,20 +36,6 @@ func compileOptions(opts ...Option) url.Values {
 	}
 
 	return val
-}
-
-func compileOptionsMap(options []Option) map[string]interface{} {
-	results := map[string]interface{}{}
-
-	for _, opt := range options {
-		if opt == nil {
-			continue
-		}
-
-		results[opt.Key()] = optionAsString(opt)
-	}
-
-	return results
 }
 
 func optionAsString(o Option) string {
@@ -79,15 +64,9 @@ func makeTargetID(targetID string) Option {
 	return NewOption(optionKeyTargetUserID, targetID)
 }
 
-// makeTargetID is a helper function for making a userID option.
-func makeUserID(userID string) Option {
-	return NewOption(optionKeyUserID, userID)
-}
-
 // OptionTimeout returns a timeout option for banning or muting a user. If the
 // time is less than one second then
 func OptionTimeout(duration time.Duration) Option {
-	// TODO: something here!!!! fatal or round up?
 	if duration < time.Second {
 		duration = time.Second
 	}

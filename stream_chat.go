@@ -14,7 +14,7 @@ var (
 )
 
 // StreamClient is a client for chat
-type StreamClient interface {
+type StreamClient interface { //nolint:golint
 	GetAppConfig() (*AppConfig, error)
 	UpdateAppSettings(settings *AppSettings) error
 
@@ -63,7 +63,8 @@ type StreamClient interface {
 }
 
 // StreamChannel is a channel of communication
-type StreamChannel interface {
+type StreamChannel interface { //nolint:golint
+
 	AddMembers(userIDs []string, message *Message) error
 	AddModerators(userIDs ...string) error
 	AddModeratorsWithMessage(userIDs []string, msg *Message) error

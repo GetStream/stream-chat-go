@@ -124,8 +124,7 @@ func (c *Client) FlagUser(targetID string, options ...Option) error {
 }
 
 func (c *Client) UnFlagUser(targetID string, options ...Option) error {
-	switch {
-	case targetID == "":
+	if targetID == "" {
 		return ErrorMissingTargetID
 	}
 
@@ -193,8 +192,7 @@ func (c *Client) banUser(input *banUserInput, options ...Option) error {
 }
 
 func (c *Client) UnBanUser(targetID string, options ...Option) error {
-	switch {
-	case targetID == "":
+	if targetID == "" {
 		return ErrorMissingTargetID
 	}
 

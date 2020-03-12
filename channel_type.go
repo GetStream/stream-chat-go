@@ -23,7 +23,6 @@ const (
 
 // ChannelTypeLabel marks a string as a type of channel. The builtin settings are all
 // available as consts.
-// TODO: This needs a better name.
 type ChannelTypeLabel = string
 
 const (
