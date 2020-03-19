@@ -6096,7 +6096,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV248(in *jlexer.Lexer, 
 		case "user":
 			(out.User).UnmarshalEasyJSON(in)
 		case "channel":
-			(out.Target).UnmarshalEasyJSON(in)
+			(out.Channel).UnmarshalEasyJSON(in)
 		case "expires":
 			if in.IsNull() {
 				in.Skip()
@@ -6139,7 +6139,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV248(out *jwriter.Write
 	{
 		const prefix string = ",\"channel\":"
 		out.RawString(prefix)
-		(in.Target).MarshalEasyJSON(out)
+		(in.Channel).MarshalEasyJSON(out)
 	}
 	{
 		const prefix string = ",\"expires\":"
