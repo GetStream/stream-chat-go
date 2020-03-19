@@ -43,8 +43,8 @@ import (
 	stream "github.com/GetStream/stream-chat-go/v2"
 )
 
-var APIKey = os.Getenv("STREAM_API_KEY")
-var APISecret = os.Getenv("STREAM_API_SECRET")
+var APIKey = os.Getenv("STREAM_CHAT_API_KEY")
+var APISecret = os.Getenv("STREAM_CHAT_API_SECRET")
 var userID = "" // your server user id
 
 func main() {

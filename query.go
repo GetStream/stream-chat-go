@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,8 +13,9 @@ type QueryOption struct {
 	// https://getstream.io/chat/docs/#query_syntax
 	Filter map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
-	Limit  int `json:"limit,omitempty"`  // pagination option: limit number of results
-	Offset int `json:"offset,omitempty"` // pagination option: offset to return items from
+	UserID string `json:"user_id,omitempty"`
+	Limit  int    `json:"limit,omitempty"`  // pagination option: limit number of results
+	Offset int    `json:"offset,omitempty"` // pagination option: offset to return items from
 }
 
 type SortOption struct {
@@ -57,8 +59,9 @@ type queryChannelRequest struct {
 	State    bool `json:"state"`
 	Presence bool `json:"presence"`
 
-	FilterConditions *QueryOption  `json:"filter_conditions,omitempty"`
-	Sort             []*SortOption `json:"sort,omitempty"`
+	UserID           string                 `json:"user_id,omitempty"`
+	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
+	Sort             []*SortOption          `json:"sort,omitempty"`
 }
 
 type queryChannelResponse struct {
@@ -77,11 +80,12 @@ type queryChannelResponseData struct {
 func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
 	qp := queryChannelRequest{
 		State:            true,
-		FilterConditions: q,
+		FilterConditions: q.Filter,
 		Sort:             sort,
+		UserID:           q.UserID,
 	}
 
-	data, err := easyjson.Marshal(&qp)
+	data, err := json.Marshal(&qp)
 	if err != nil {
 		return nil, err
 	}

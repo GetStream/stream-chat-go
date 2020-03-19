@@ -423,6 +423,54 @@ func TestChannel_RejectInvite(t *testing.T) {
 	require.NoError(t, err, "reject invite")
 }
 
+func TestChannel_Mute_Unmute(t *testing.T) {
+	c := initClient(t)
+
+	_, err := c.UpdateUsers(testUsers...)
+	mustNoError(t, err, "update users")
+
+	members := make([]string, 0, len(testUsers))
+	for i := range testUsers {
+		members = append(members, testUsers[i].ID)
+	}
+
+	ch, err := c.CreateChannel("messaging", randomString(12), serverUser.ID, map[string]interface{}{
+		"members": members,
+	})
+	require.NoError(t, err, "create channel")
+
+	// mute the channel
+	err = ch.Mute(members[0], nil)
+	require.NoError(t, err, "mute channel")
+
+	// query for muted the channel
+	channels, err := c.QueryChannels(&QueryOption{
+		UserID: members[0],
+		Filter: map[string]interface{}{
+			"muted": true,
+			"cid":   ch.CID,
+		},
+	})
+	require.NoError(t, err, "query muted channel")
+	require.Len(t, channels, 1)
+	require.Equal(t, channels[0].CID, ch.CID)
+
+	// unmute the channel
+	err = ch.Unmute(members[0])
+	require.NoError(t, err, "mute channel")
+
+	// query for muted the channel should return 0 results
+	channels, err = c.QueryChannels(&QueryOption{
+		UserID: members[0],
+		Filter: map[string]interface{}{
+			"muted": false,
+			"cid":   ch.CID,
+		},
+	})
+	require.NoError(t, err, "query muted channel")
+	require.Len(t, channels, 1)
+}
+
 func ExampleChannel_Update() {
 	// https://getstream.io/chat/docs/channel_permissions/?language=python
 	client := &Client{}

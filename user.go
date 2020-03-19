@@ -9,11 +9,21 @@ import (
 	"time"
 )
 
+// Mute represents an user mute
 type Mute struct {
 	User      User      `json:"user"`
 	Target    User      `json:"target"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ChannelMute represents a channel mute
+type ChannelMute struct {
+	User      User       `json:"user"`
+	Target    Channel    `json:"channel"`
+	Expires   *time.Time `json:"expires"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 }
 
 type User struct {
@@ -31,7 +41,8 @@ type User struct {
 
 	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 
-	Mutes []*Mute `json:"mutes,omitempty"`
+	Mutes       []*Mute        `json:"mutes,omitempty"`
+	ChannelMute []*ChannelMute `json:"channel_mutes,omitempty"`
 }
 
 // MuteUser create a mute
