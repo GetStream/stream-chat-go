@@ -491,7 +491,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) error {
 	}
 
 	if expiration != nil {
-		*expiration = *expiration / time.Millisecond
+		*expiration /= time.Millisecond
 	}
 
 	data := map[string]interface{}{
