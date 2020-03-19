@@ -440,9 +440,11 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.NoError(t, err, "create channel")
 
 	// mute the channel
-	err = ch.Mute(members[0], nil)
+	mute, err := ch.Mute(members[0], nil)
 	require.NoError(t, err, "mute channel")
 
+	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
+	require.Equal(t, members[0], mute.ChannelMute.User.ID)
 	// query for muted the channel
 	channels, err := c.QueryChannels(&QueryOption{
 		UserID: members[0],
@@ -459,7 +461,7 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	err = ch.Unmute(members[0])
 	require.NoError(t, err, "mute channel")
 
-	// query for muted the channel should return 0 results
+	// query for unmuted the channel should return 1 results
 	channels, err = c.QueryChannels(&QueryOption{
 		UserID: members[0],
 		Filter: map[string]interface{}{
