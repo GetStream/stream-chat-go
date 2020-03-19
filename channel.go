@@ -485,9 +485,9 @@ func (ch *Channel) RejectInvite(userID string, message *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-func (ch *Channel) Mute(userID string, expiration *time.Duration) error {
+func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteResponse, error) {
 	if userID == "" {
-		return errors.New("user ID must be not empty")
+		return nil, errors.New("user ID must be not empty")
 	}
 
 	if expiration != nil {
@@ -500,7 +500,13 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) error {
 		"expiration":  expiration,
 	}
 
-	return ch.client.makeRequest(http.MethodPost, "moderation/mute/channel", nil, data, nil)
+	var mute = &ChannelMuteResponse{}
+	err := ch.client.makeRequest(http.MethodPost, "moderation/mute/channel", nil, data, mute)
+	if err != nil {
+		return nil, err
+	}
+
+	return mute, nil
 }
 
 func (ch *Channel) Unmute(userID string) error {

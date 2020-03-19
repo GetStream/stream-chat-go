@@ -20,10 +20,14 @@ type Mute struct {
 // ChannelMute represents a channel mute
 type ChannelMute struct {
 	User      User       `json:"user"`
-	Target    Channel    `json:"channel"`
+	Channel   Channel    `json:"channel"`
 	Expires   *time.Time `json:"expires"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+type ChannelMuteResponse struct {
+	ChannelMute ChannelMute `json:"channel_mute"`
 }
 
 type User struct {
