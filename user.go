@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Mute represents an user mute
+// Mute represents a user mute
 type Mute struct {
 	User      User      `json:"user"`
 	Target    User      `json:"target"`
