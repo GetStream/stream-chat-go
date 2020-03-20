@@ -1,4 +1,4 @@
-package stream
+package stream_chat //nolint:golint
 
 import "errors"
 

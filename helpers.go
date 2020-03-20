@@ -1,4 +1,4 @@
-package stream
+package stream_chat //nolint:golint
 
 // String is a helper function for making pointers to strings.
 func String(i string) *string {

@@ -1,4 +1,4 @@
-package stream
+package stream_chat //nolint:golint
 
 import (
 	"fmt"
@@ -98,32 +98,32 @@ func (o option) Value() interface{} {
 	return o.value
 }
 
-// PaginateGreaterThan returns an Option for paginating.
-func PaginateGreaterThan(id int) Option {
-	return NewOption("id_gt", id)
-}
-
 // PaginateOffset returns an Option for paginating.
-func PaginateOffset(id int) Option {
-	return NewOption("offset", id)
+func PaginateOffset(offset int) Option {
+	return NewOption("offset", offset)
 }
 
 // PaginateLimit returns an Option for paginating.
-func PaginateLimit(id int) Option {
-	return NewOption("limit", id)
+func PaginateLimit(limit int) Option {
+	return NewOption("limit", limit)
 }
 
 // PaginateGreaterThanOrEqual returns an Option for paginating.
-func PaginateGreaterThanOrEqual(id int) Option {
+func PaginateGreaterThanOrEqual(id string) Option {
 	return NewOption("id_gte", id)
 }
 
 // PaginateLessThan returns an Option for paginating.
-func PaginateLessThan(id int) Option {
+func PaginateLessThan(id string) Option {
 	return NewOption("id_lt", id)
 }
 
 // PaginateLessThanOrEqual returns an Option for paginating.
-func PaginateLessThanOrEqual(id int) Option {
+func PaginateLessThanOrEqual(id string) Option {
 	return NewOption("id_lte", id)
+}
+
+// PaginateGreaterThan returns an Option for paginating.
+func PaginateGreaterThan(id string) Option {
+	return NewOption("id_gt", id)
 }
