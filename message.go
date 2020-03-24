@@ -1,11 +1,15 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
+
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type MessageType string
@@ -43,7 +47,29 @@ type Message struct {
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 
 	// any other fields the user wants to attach a message
-	ExtraData map[string]interface{}
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
+func (m *Message) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if m.ExtraData == nil {
+		m.ExtraData = make(map[string]interface{}, 1)
+	}
+	m.ExtraData[key] = in.Interface()
+}
+
+// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
+func (m Message) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range m.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 func (m *Message) toRequest() messageRequest {
@@ -73,13 +99,34 @@ type messageRequest struct {
 }
 
 type messageRequestMessage struct {
-	Text           string                 `json:"text"`
-	Attachments    []*Attachment          `json:"attachments"`
-	User           messageRequestUser     `json:"user"`
-	MentionedUsers []string               `json:"mentioned_users"`
-	ParentID       string                 `json:"parent_id"`
-	ShowInChannel  bool                   `json:"show_in_channel"`
-	ExtraData      map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	Text           string             `json:"text"`
+	Attachments    []*Attachment      `json:"attachments"`
+	User           messageRequestUser `json:"user"`
+	MentionedUsers []string           `json:"mentioned_users"`
+	ParentID       string             `json:"parent_id"`
+	ShowInChannel  bool               `json:"show_in_channel"`
+
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+func (s *messageRequestMessage) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if s.ExtraData == nil {
+		s.ExtraData = make(map[string]interface{}, 1)
+	}
+	s.ExtraData[key] = in.Interface()
+}
+
+func (s messageRequestMessage) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range s.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 type messageRequestUser struct {
@@ -103,7 +150,29 @@ type Attachment struct {
 	AssetURL    string `json:"asset_url,omitempty"`
 	OGScrapeURL string `json:"og_scrape_url,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
+func (a *Attachment) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if a.ExtraData == nil {
+		a.ExtraData = make(map[string]interface{}, 1)
+	}
+	a.ExtraData[key] = in.Interface()
+}
+
+// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
+func (a Attachment) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range a.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 // SendMessage sends a message to the channel. Returns full message details from server

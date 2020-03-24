@@ -1,4 +1,4 @@
-//go:generate go run github.com/getstream/easyjson/easyjson -pkg -all
+//go:generate go run github.com/mailru/easyjson/easyjson -pkg -all
 
 // Package stream_chat provides chat via stream API
 package stream_chat // nolint: golint

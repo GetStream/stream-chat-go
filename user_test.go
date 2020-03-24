@@ -108,7 +108,8 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	mustNoError(t, err, "partial update user")
 
 	assert.Contains(t, got, user.ID)
-	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	assert.Contains(t, got[user.ID].ExtraData, "test",
+		"extra data contains: %v", got[user.ID].ExtraData)
 	assert.Equal(t, got[user.ID].ExtraData["test"], map[string]interface{}{
 		"passed": true,
 	})

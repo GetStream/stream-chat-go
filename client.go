@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getstream/easyjson"
+	"github.com/mailru/easyjson"
 	"github.com/pascaldekloe/jwt"
 )
 

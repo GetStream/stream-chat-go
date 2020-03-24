@@ -1,10 +1,14 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
 	"path"
+
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type Reaction struct {
@@ -13,7 +17,27 @@ type Reaction struct {
 	Type      string `json:"type"`
 
 	// any other fields the user wants to attach a reaction
-	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+func (s *Reaction) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if s.ExtraData == nil {
+		s.ExtraData = make(map[string]interface{}, 1)
+	}
+	s.ExtraData[key] = in.Interface()
+}
+
+func (s Reaction) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range s.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 type reactionResponse struct {
