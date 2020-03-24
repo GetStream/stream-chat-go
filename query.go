@@ -1,19 +1,44 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/getstream/easyjson"
+	"github.com/mailru/easyjson"
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type QueryOption struct {
 	// https://getstream.io/chat/docs/#query_syntax
-	Filter map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	Filter map[string]interface{} `json:"-"`
 
 	Limit  int `json:"limit,omitempty"`  // pagination option: limit number of results
 	Offset int `json:"offset,omitempty"` // pagination option: offset to return items from
+}
+
+// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
+func (q *QueryOption) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if q.Filter == nil {
+		q.Filter = make(map[string]interface{}, 1)
+	}
+	q.Filter[key] = in.Interface()
+}
+
+// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
+func (q QueryOption) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range q.Filter {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 type SortOption struct {

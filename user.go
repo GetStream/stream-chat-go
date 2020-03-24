@@ -1,12 +1,16 @@
 package stream_chat //nolint: golint
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
+
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type Mute struct {
@@ -29,9 +33,31 @@ type User struct {
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	LastActive *time.Time `json:"last_active,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
-
 	Mutes []*Mute `json:"mutes,omitempty"`
+
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
+func (u *User) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if u.ExtraData == nil {
+		u.ExtraData = make(map[string]interface{}, 1)
+	}
+	u.ExtraData[key] = in.Interface()
+}
+
+// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
+func (u User) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range u.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 // MuteUser create a mute
@@ -224,9 +250,6 @@ type usersRequest struct {
 type userRequest struct {
 	*User
 
-	// extra data doesn't work for embedded structs
-	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
-
 	// readonly fields
 	CreatedAt  time.Time `json:"-"`
 	UpdatedAt  time.Time `json:"-"`
@@ -247,7 +270,7 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 
 	req := usersRequest{Users: make(map[string]userRequest, len(users))}
 	for _, u := range users {
-		req.Users[u.ID] = userRequest{User: u, ExtraData: u.ExtraData}
+		req.Users[u.ID] = userRequest{User: u}
 	}
 
 	var resp usersResponse
