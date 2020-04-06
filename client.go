@@ -37,7 +37,7 @@ type Client struct {
 
 func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Stream-Client", "stream-go-client")
+	r.Header.Set("X-Stream-Client", versionHeader())
 	r.Header.Set("Authorization", c.authToken)
 	r.Header.Set("Stream-Auth-Type", "jwt")
 }
