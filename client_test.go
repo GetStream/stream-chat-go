@@ -1,7 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
-	"reflect"
+	"bytes"
 	"testing"
 	"time"
 
@@ -76,7 +76,7 @@ func TestClient_CreateToken(t *testing.T) {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !bytes.Equal(got, tt.want) {
 				t.Errorf("createToken() got = %v, want %v", string(got), string(tt.want))
 			}
 		})
