@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] 2020-04-20
+### Fixed
+- Change jwt dependency to properly generate tokens
+
 ## [2.2.0] 2020-04-06
 ### Fixed
 - Add missing or correct wrongly named/typed fields in docs
