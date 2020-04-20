@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func initClient(t *testing.T) *Client {
@@ -60,17 +61,19 @@ func TestClient_CreateToken(t *testing.T) {
 	}{
 		{"simple without expiration",
 			args{"tommaso", time.Time{}},
-			[]byte("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.oQLtgTc9_SIr3Rvrq-eW_WrLmdO1gAAYA335qTatxrU"),
+			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.v-x-jt3ZnBXXbQ0GoWloIZtVnat2IE74U1a4Yuxd63M"),
 			false},
 		{"simple with expiration",
 			args{"tommaso", time.Unix(1566941272, 123121)},
-			[]byte("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.bkMDhCJhzKKnSZO27QcP8n3o7u9C1TpoMt0MD-JCNnY"),
+			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.jF4ZbAIEuzS2jRH0uiu3HW9n0NHwT96QkzGlywcG9HU"),
 			false},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			c, _ := NewClient("key", []byte("secret"))
+			c, err := NewClient("key", []byte("secret"))
+			require.NoError(t, err)
+
 			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
