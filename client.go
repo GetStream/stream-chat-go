@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/mailru/easyjson"
-	"github.com/pascaldekloe/jwt"
 )
 
 const (
@@ -133,27 +133,26 @@ func (c *Client) makeRequest(method, path string, params url.Values,
 	return c.parseResponse(resp, result)
 }
 
-// CreateToken creates new token for user with optional expire time
+// CreateToken creates a new token for user with optional expire time.
+// Zero time is assumed to be no expire.
 func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
 	if userID == "" {
 		return nil, errors.New("user ID is empty")
 	}
 
-	params := map[string]interface{}{
+	claims := jwt.MapClaims{
 		"user_id": userID,
 	}
-
-	return c.createToken(params, expire)
-}
-
-func (c *Client) createToken(params map[string]interface{}, expire time.Time) ([]byte, error) {
-	var claims = jwt.Claims{
-		Set: params,
+	if !expire.IsZero() {
+		claims["exp"] = expire.Unix()
 	}
 
-	claims.Expires = jwt.NewNumericTime(expire.Round(time.Second))
+	token, err := c.createToken(claims)
+	return []byte(token), err
+}
 
-	return claims.HMACSign(jwt.HS256, c.apiSecret)
+func (c *Client) createToken(claims jwt.Claims) (string, error) {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(c.apiSecret)
 }
 
 // VerifyWebhook validates if hmac signature is correct for message body
@@ -293,12 +292,12 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 		},
 	}
 
-	token, err := client.createToken(map[string]interface{}{"server": true}, time.Time{})
+	token, err := client.createToken(jwt.MapClaims{"server": true})
 	if err != nil {
 		return nil, err
 	}
 
-	client.authToken = string(token)
+	client.authToken = token
 
 	return client, nil
 }
