@@ -4,11 +4,12 @@ package stream_chat
 
 import (
 	json "encoding/json"
+	multipart "mime/multipart"
+	time "time"
+
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
-	multipart "mime/multipart"
-	time "time"
 )
 
 // suppress unused package warning
@@ -6019,7 +6020,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV246(in *jlexer.Lexer, 
 		}
 		switch key {
 		case "channel_mute":
-			(out.ChannelMutes).UnmarshalEasyJSON(in)
+			(out.ChannelMute).UnmarshalEasyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -6037,7 +6038,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV246(out *jwriter.Write
 	{
 		const prefix string = ",\"channel_mute\":"
 		out.RawString(prefix[1:])
-		(in.ChannelMutes).MarshalEasyJSON(out)
+		(in.ChannelMute).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }

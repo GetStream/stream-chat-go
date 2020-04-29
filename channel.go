@@ -498,7 +498,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 		data["expiration"] = int(expiration.Seconds())
 	}
 
-	var mute = &ChannelMuteResponse{}
+	mute := &ChannelMuteResponse{}
 	err := ch.client.makeRequest(http.MethodPost, "moderation/mute/channel", nil, data, mute)
 	if err != nil {
 		return nil, err

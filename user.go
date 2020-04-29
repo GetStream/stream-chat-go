@@ -31,7 +31,7 @@ type ChannelMute struct {
 }
 
 type ChannelMuteResponse struct {
-	ChannelMutes ChannelMute `json:"channel_mute"`
+	ChannelMute ChannelMute `json:"channel_mute"`
 }
 
 type User struct {

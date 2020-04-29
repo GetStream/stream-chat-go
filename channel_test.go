@@ -443,8 +443,8 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	mute, err := ch.Mute(members[0], nil)
 	require.NoError(t, err, "mute channel")
 
-	require.Equal(t, ch.CID, mute.ChannelMutes.Channel.CID)
-	require.Equal(t, members[0], mute.ChannelMutes.User.ID)
+	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
+	require.Equal(t, members[0], mute.ChannelMute.User.ID)
 	// query for muted the channel
 	channels, err := c.QueryChannels(&QueryOption{
 		UserID: members[0],
