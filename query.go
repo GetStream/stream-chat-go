@@ -87,9 +87,6 @@ func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error
 	return resp.Users, err
 }
 
-type queryChannelRequest struct {
-}
-
 type queryChannelResponse struct {
 	Channels []queryChannelResponseData `json:"channels"`
 }
