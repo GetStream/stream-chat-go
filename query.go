@@ -13,7 +13,8 @@ import (
 
 type QueryOption struct {
 	// https://getstream.io/chat/docs/#query_syntax
-	Filter map[string]interface{} `json:"-"`
+	Filter map[string]interface{} `json:"filter_conditions,omitempty"`
+	Sort   []*SortOption          `json:"sort,omitempty"`
 
 	UserID string `json:"user_id,omitempty"`
 	Limit  int    `json:"limit,omitempty"`  // pagination option: limit number of results
@@ -47,9 +48,17 @@ type SortOption struct {
 	Direction int    `json:"direction"` // [-1, 1]
 }
 
-type queryUsersRequest struct {
-	FilterConditions *QueryOption  `json:"filter_conditions,omitempty"`
-	Sort             []*SortOption `json:"sort,omitempty"`
+type queryRequest struct {
+	Watch    bool `json:"watch"`
+	State    bool `json:"state"`
+	Presence bool `json:"presence"`
+
+	UserID string `json:"user_id,omitempty"`
+	Limit  int    `json:"limit,omitempty"`
+	Offset int    `json:"offset,omitempty"`
+
+	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
+	Sort             []*SortOption          `json:"sort,omitempty"`
 }
 
 type queryUsersResponse struct {
@@ -59,12 +68,12 @@ type queryUsersResponse struct {
 // QueryUsers returns list of users that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error) {
-	qp := queryUsersRequest{
-		FilterConditions: q,
+	qp := queryRequest{
+		FilterConditions: q.Filter,
 		Sort:             sort,
 	}
 
-	data, err := easyjson.Marshal(&qp)
+	data, err := json.Marshal(&qp)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +88,6 @@ func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error
 }
 
 type queryChannelRequest struct {
-	Watch    bool `json:"watch"`
-	State    bool `json:"state"`
-	Presence bool `json:"presence"`
-
-	UserID           string                 `json:"user_id,omitempty"`
-	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
-	Sort             []*SortOption          `json:"sort,omitempty"`
 }
 
 type queryChannelResponse struct {
@@ -102,11 +104,13 @@ type queryChannelResponseData struct {
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
-	qp := queryChannelRequest{
+	qp := queryRequest{
 		State:            true,
 		FilterConditions: q.Filter,
 		Sort:             sort,
 		UserID:           q.UserID,
+		Limit:            q.Limit,
+		Offset:           q.Offset,
 	}
 
 	data, err := json.Marshal(&qp)

@@ -490,14 +490,12 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 		return nil, errors.New("user ID must be not empty")
 	}
 
-	if expiration != nil {
-		*expiration /= time.Millisecond
-	}
-
 	data := map[string]interface{}{
 		"user_id":     userID,
 		"channel_cid": ch.CID,
-		"expiration":  expiration,
+	}
+	if expiration != nil {
+		data["expiration"] = int(expiration.Seconds())
 	}
 
 	var mute = &ChannelMuteResponse{}
