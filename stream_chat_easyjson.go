@@ -289,17 +289,17 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV22(in *jlexer.Lexer, o
 		case "channel_mutes":
 			if in.IsNull() {
 				in.Skip()
-				out.ChannelMute = nil
+				out.ChannelMutes = nil
 			} else {
 				in.Delim('[')
-				if out.ChannelMute == nil {
+				if out.ChannelMutes == nil {
 					if !in.IsDelim(']') {
-						out.ChannelMute = make([]*ChannelMute, 0, 8)
+						out.ChannelMutes = make([]*ChannelMute, 0, 8)
 					} else {
-						out.ChannelMute = []*ChannelMute{}
+						out.ChannelMutes = []*ChannelMute{}
 					}
 				} else {
-					out.ChannelMute = (out.ChannelMute)[:0]
+					out.ChannelMutes = (out.ChannelMutes)[:0]
 				}
 				for !in.IsDelim(']') {
 					var v6 *ChannelMute
@@ -312,7 +312,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV22(in *jlexer.Lexer, o
 						}
 						(*v6).UnmarshalEasyJSON(in)
 					}
-					out.ChannelMute = append(out.ChannelMute, v6)
+					out.ChannelMutes = append(out.ChannelMutes, v6)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -384,12 +384,12 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV22(out *jwriter.Writer
 			out.RawByte(']')
 		}
 	}
-	if len(in.ChannelMute) != 0 {
+	if len(in.ChannelMutes) != 0 {
 		const prefix string = ",\"channel_mutes\":"
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v9, v10 := range in.ChannelMute {
+			for v9, v10 := range in.ChannelMutes {
 				if v9 > 0 {
 					out.RawByte(',')
 				}
@@ -3301,17 +3301,17 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV227(in *jlexer.Lexer, 
 		case "channel_mutes":
 			if in.IsNull() {
 				in.Skip()
-				out.ChannelMute = nil
+				out.ChannelMutes = nil
 			} else {
 				in.Delim('[')
-				if out.ChannelMute == nil {
+				if out.ChannelMutes == nil {
 					if !in.IsDelim(']') {
-						out.ChannelMute = make([]*ChannelMute, 0, 8)
+						out.ChannelMutes = make([]*ChannelMute, 0, 8)
 					} else {
-						out.ChannelMute = []*ChannelMute{}
+						out.ChannelMutes = []*ChannelMute{}
 					}
 				} else {
-					out.ChannelMute = (out.ChannelMute)[:0]
+					out.ChannelMutes = (out.ChannelMutes)[:0]
 				}
 				for !in.IsDelim(']') {
 					var v72 *ChannelMute
@@ -3324,7 +3324,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV227(in *jlexer.Lexer, 
 						}
 						(*v72).UnmarshalEasyJSON(in)
 					}
-					out.ChannelMute = append(out.ChannelMute, v72)
+					out.ChannelMutes = append(out.ChannelMutes, v72)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -3406,12 +3406,12 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV227(out *jwriter.Write
 			out.RawByte(']')
 		}
 	}
-	if len(in.ChannelMute) != 0 {
+	if len(in.ChannelMutes) != 0 {
 		const prefix string = ",\"channel_mutes\":"
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v75, v76 := range in.ChannelMute {
+			for v75, v76 := range in.ChannelMutes {
 				if v75 > 0 {
 					out.RawByte(',')
 				}
@@ -6019,7 +6019,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV246(in *jlexer.Lexer, 
 		}
 		switch key {
 		case "channel_mute":
-			(out.ChannelMute).UnmarshalEasyJSON(in)
+			(out.ChannelMutes).UnmarshalEasyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -6037,7 +6037,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV246(out *jwriter.Write
 	{
 		const prefix string = ",\"channel_mute\":"
 		out.RawString(prefix[1:])
-		(in.ChannelMute).MarshalEasyJSON(out)
+		(in.ChannelMutes).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }

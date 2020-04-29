@@ -31,7 +31,7 @@ type ChannelMute struct {
 }
 
 type ChannelMuteResponse struct {
-	ChannelMute ChannelMute `json:"channel_mute"`
+	ChannelMutes ChannelMute `json:"channel_mute"`
 }
 
 type User struct {
@@ -47,9 +47,9 @@ type User struct {
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	LastActive *time.Time `json:"last_active,omitempty"`
 
-	Mutes       []*Mute                `json:"mutes,omitempty"`
-	ChannelMute []*ChannelMute         `json:"channel_mutes,omitempty"`
-	ExtraData   map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	Mutes        []*Mute                `json:"mutes,omitempty"`
+	ChannelMutes []*ChannelMute         `json:"channel_mutes,omitempty"`
+	ExtraData    map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 }
 
 // UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
