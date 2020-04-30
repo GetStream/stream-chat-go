@@ -13,11 +13,25 @@ import (
 	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
+// Mute represents a user mute
 type Mute struct {
 	User      User      `json:"user"`
 	Target    User      `json:"target"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ChannelMute represents a channel mute
+type ChannelMute struct {
+	User      User       `json:"user"`
+	Channel   Channel    `json:"channel"`
+	Expires   *time.Time `json:"expires"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+type ChannelMuteResponse struct {
+	ChannelMute ChannelMute `json:"channel_mute"`
 }
 
 type User struct {
@@ -33,9 +47,9 @@ type User struct {
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	LastActive *time.Time `json:"last_active,omitempty"`
 
-	Mutes []*Mute `json:"mutes,omitempty"`
-
-	ExtraData map[string]interface{} `json:"-"`
+	Mutes        []*Mute                `json:"mutes,omitempty"`
+	ChannelMutes []*ChannelMute         `json:"channel_mutes,omitempty"`
+	ExtraData    map[string]interface{} `json:"-,extra"` //nolint: staticcheck
 }
 
 // UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.

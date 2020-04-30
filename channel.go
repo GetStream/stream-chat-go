@@ -485,6 +485,41 @@ func (ch *Channel) RejectInvite(userID string, message *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
+func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	data := map[string]interface{}{
+		"user_id":     userID,
+		"channel_cid": ch.CID,
+	}
+	if expiration != nil {
+		data["expiration"] = int(expiration.Seconds())
+	}
+
+	mute := &ChannelMuteResponse{}
+	err := ch.client.makeRequest(http.MethodPost, "moderation/mute/channel", nil, data, mute)
+	if err != nil {
+		return nil, err
+	}
+
+	return mute, nil
+}
+
+func (ch *Channel) Unmute(userID string) error {
+	if userID == "" {
+		return errors.New("user ID must be not empty")
+	}
+
+	data := map[string]interface{}{
+		"user_id":     userID,
+		"channel_cid": ch.CID,
+	}
+
+	return ch.client.makeRequest(http.MethodPost, "moderation/unmute/channel", nil, data, nil)
+}
+
 //nolint: godox
 // todo: cleanup this
 func (ch *Channel) refresh() error {
