@@ -12,10 +12,12 @@ import (
 	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
+type Map map[string]interface{}
+
 type QueryOption struct {
 	// https://getstream.io/chat/docs/#query_syntax
-	Filter map[string]interface{} `json:"filter_conditions,omitempty"`
-	Sort   []*SortOption          `json:"sort,omitempty"`
+	Filter Map           `json:"filter_conditions,omitempty"`
+	Sort   []*SortOption `json:"sort,omitempty"`
 
 	UserID string `json:"user_id,omitempty"`
 	Limit  int    `json:"limit,omitempty"`  // pagination option: limit number of results
@@ -162,9 +164,18 @@ func getPageOptions(options []PaginationOptions) PaginationOptions {
 	return result
 }
 
+// ChannelPaginationFunc is a function that is given a list of channels. It
+// returns true if it wants another page of channels, false if you wish to
+// stop.
 type ChannelPaginationFunc func([]*Channel) bool
+
+// UserPaginationFunc is a function that is given a list of users. It
+// returns true if it wants another page of users, false if you wish to
+// stop.
 type UserPaginationFunc func([]*User) bool
 
+// PageQueryChannels allows you to paginate through a query results. It takes a
+// paginationFunc and an optional set of PaginationOptions.
 func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginationFunc, options ...PaginationOptions) error {
 	if paginationFunc == nil {
 		return errors.New("must pass a pagination function")
@@ -199,6 +210,8 @@ func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginat
 	}
 }
 
+// PageQueryUsers allows you to paginate through a query results. It takes a
+// paginationFunc and an optional set of PaginationOptions.
 func (c *Client) PageQueryUsers(q *QueryOption, paginationFunc UserPaginationFunc, options ...PaginationOptions) error {
 	if paginationFunc == nil {
 		return errors.New("must pass a pagination function")
