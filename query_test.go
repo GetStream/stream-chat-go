@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,4 +65,30 @@ func TestClient_Search(t *testing.T) {
 	mustNoError(t, err)
 
 	assert.Len(t, got, 2)
+}
+
+func ExampleClient_PageQueryChannels() {
+	client, _ := NewClient(os.Getenv("STREAM_CHAT_API_KEY"), []byte(os.Getenv("STREAM_CHAT_API_SECRET")))
+
+	chns := []*Channel{}
+
+	query := &QueryOption{
+		Filter: Map{
+			"type": "messaging",
+		},
+		Sort: []*SortOption{},
+	}
+
+	err := client.PageQueryChannels(query,
+		func(input []*Channel) bool {
+			chns = append(chns, input...)
+			return true
+		},
+		PaginationOptions{
+			StartingOffset: 60,
+			Limit:          20,
+		})
+	if err != nil {
+		panic(err)
+	}
 }

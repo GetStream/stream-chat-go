@@ -191,7 +191,7 @@ func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginat
 		*newQ = *q
 	}
 
-	for i := opt.StartingOffset; ; i++ {
+	for i := (opt.StartingOffset / opt.Limit); ; i++ {
 		newQ.Limit = opt.Limit
 		newQ.Offset = opt.Limit * i
 
@@ -227,7 +227,7 @@ func (c *Client) PageQueryUsers(q *QueryOption, paginationFunc UserPaginationFun
 		*newQ = *q
 	}
 
-	for i := opt.StartingOffset; ; i++ {
+	for i := (opt.StartingOffset / opt.Limit); ; i++ {
 		newQ.Limit = opt.Limit
 		newQ.Offset = opt.Limit * i
 
