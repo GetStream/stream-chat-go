@@ -176,7 +176,11 @@ type UserPaginationFunc func([]*User) bool
 
 // PageQueryChannels allows you to paginate through a query results. It takes a
 // paginationFunc and an optional set of PaginationOptions.
-func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginationFunc, options ...PaginationOptions) error {
+func (c *Client) PageQueryChannels(
+	q *QueryOption,
+	paginationFunc ChannelPaginationFunc,
+	options ...PaginationOptions,
+) error {
 	if paginationFunc == nil {
 		return errors.New("must pass a pagination function")
 	}
@@ -212,7 +216,11 @@ func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginat
 
 // PageQueryUsers allows you to paginate through a query results. It takes a
 // paginationFunc and an optional set of PaginationOptions.
-func (c *Client) PageQueryUsers(q *QueryOption, paginationFunc UserPaginationFunc, options ...PaginationOptions) error {
+func (c *Client) PageQueryUsers(
+	q *QueryOption,
+	paginationFunc UserPaginationFunc,
+	options ...PaginationOptions,
+) error {
 	if paginationFunc == nil {
 		return errors.New("must pass a pagination function")
 	}
