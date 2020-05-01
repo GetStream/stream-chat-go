@@ -163,6 +163,7 @@ func getPageOptions(options []PaginationOptions) PaginationOptions {
 }
 
 type ChannelPaginationFunc func([]*Channel) bool
+type UserPaginationFunc func([]*User) bool
 
 func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginationFunc, options ...PaginationOptions) error {
 	if paginationFunc == nil {
@@ -184,6 +185,40 @@ func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginat
 		newQ.Offset = opt.Limit * i
 
 		res, err := c.QueryChannels(newQ)
+		if err != nil {
+			return err
+		}
+		if len(res) == 0 {
+			return nil
+		}
+
+		// If the paginationFunc indicates we should not continue then we stop.
+		if ok := paginationFunc(res); !ok {
+			return nil
+		}
+	}
+}
+
+func (c *Client) PageQueryUsers(q *QueryOption, paginationFunc UserPaginationFunc, options ...PaginationOptions) error {
+	if paginationFunc == nil {
+		return errors.New("must pass a pagination function")
+	}
+
+	opt := getPageOptions(options)
+
+	// If we are given a set of queryOptions then make a copy of it so we don't
+	// mess with upstreams.
+	var newQ *QueryOption
+	if q != nil {
+		newQ = &QueryOption{}
+		*newQ = *q
+	}
+
+	for i := opt.StartingOffset; ; i++ {
+		newQ.Limit = opt.Limit
+		newQ.Offset = opt.Limit * i
+
+		res, err := c.QueryUsers(newQ)
 		if err != nil {
 			return err
 		}
