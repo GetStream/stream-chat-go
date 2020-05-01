@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -131,6 +132,38 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 	}
 
 	return result, err
+}
+
+type ChannelPaginationFunc func([]*Channel) bool
+
+func (c *Client) QueryChannelsPages(q *QueryOption, paginationFunc ChannelPaginationFunc) error {
+	if q == nil {
+		return fmt.Errorf("what should be done here?")
+	}
+
+	// Make a copy of q so we can manipulate it without affecting memory outside of here
+	newQ := QueryOption{}
+	newQ = *q
+
+	limit := 30
+
+	for i := 0; ; i++ {
+		newQ.Limit = limit
+		newQ.Offset = limit * i
+
+		res, err := c.QueryChannels(&newQ)
+		if err != nil {
+			return err
+		}
+		if len(res) == 0 {
+			return nil
+		}
+
+		// If the paginationFunc indicates we should not continue then we stop.
+		if ok := paginationFunc(res); !ok {
+			return nil
+		}
+	}
 }
 
 type SearchRequest struct {
