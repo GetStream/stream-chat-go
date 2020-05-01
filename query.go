@@ -2,7 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -134,24 +134,56 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 	return result, err
 }
 
-type ChannelPaginationFunc func([]*Channel) bool
+// PaginationOptions are passed to the PageQuery* functions. They are optional
+// and allow you to configure some aspects of it.
+type PaginationOptions struct {
+	Limit          int
+	StartingOffset int
+}
 
-func (c *Client) QueryChannelsPages(q *QueryOption, paginationFunc ChannelPaginationFunc) error {
-	if q == nil {
-		return fmt.Errorf("what should be done here?")
+// getOptions compresses multiple options into one, and makes sure defaults are
+// set.
+func getPageOptions(options []PaginationOptions) PaginationOptions {
+	result := PaginationOptions{}
+
+	for _, opt := range options {
+		if opt.StartingOffset != 0 {
+			result.StartingOffset = opt.StartingOffset
+		}
+		if opt.Limit != 0 {
+			result.Limit = opt.Limit
+		}
 	}
 
-	// Make a copy of q so we can manipulate it without affecting memory outside of here
-	newQ := QueryOption{}
-	newQ = *q
+	if result.Limit == 0 {
+		result.Limit = 30
+	}
 
-	limit := 30
+	return result
+}
 
-	for i := 0; ; i++ {
-		newQ.Limit = limit
-		newQ.Offset = limit * i
+type ChannelPaginationFunc func([]*Channel) bool
 
-		res, err := c.QueryChannels(&newQ)
+func (c *Client) PageQueryChannels(q *QueryOption, paginationFunc ChannelPaginationFunc, options ...PaginationOptions) error {
+	if paginationFunc == nil {
+		return errors.New("must pass a pagination function")
+	}
+
+	opt := getPageOptions(options)
+
+	// If we are given a set of queryOptions then make a copy of it so we don't
+	// mess with upstreams.
+	var newQ *QueryOption
+	if q != nil {
+		newQ = &QueryOption{}
+		*newQ = *q
+	}
+
+	for i := opt.StartingOffset; ; i++ {
+		newQ.Limit = opt.Limit
+		newQ.Offset = opt.Limit * i
+
+		res, err := c.QueryChannels(newQ)
 		if err != nil {
 			return err
 		}
