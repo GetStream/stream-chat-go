@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/hmac"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -158,11 +159,10 @@ func (c *Client) createToken(claims jwt.Claims) (string, error) {
 // VerifyWebhook validates if hmac signature is correct for message body
 func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
-	//nolint: errcheck
-	mac.Write(body)
+	_, _ = mac.Write(body)
 
-	expectedMAC := mac.Sum(nil)
-	return hmac.Equal(signature, expectedMAC)
+	expectedMAC := hex.EncodeToString(mac.Sum(nil))
+	return bytes.Equal(signature, []byte(expectedMAC))
 }
 
 type sendFileResponse struct {
