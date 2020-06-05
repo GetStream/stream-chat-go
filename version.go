@@ -7,7 +7,7 @@ import (
 const (
 	versionMajor = 2
 	versionMinor = 2
-	versionPatch = 2
+	versionPatch = 3
 )
 
 // Version returns the version of the library
