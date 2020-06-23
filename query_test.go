@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_QueryUsers(t *testing.T) {
@@ -17,7 +18,7 @@ func TestClient_QueryUsers(t *testing.T) {
 		}},
 	})
 
-	mustNoError(t, err, "query users error")
+	require.NoError(t, err, "query users error")
 
 	if assert.NotEmpty(t, users, "query users exists") {
 		assert.Equal(t, user.ID, users[0].ID, "received user ID")
@@ -34,7 +35,7 @@ func TestClient_QueryChannels(t *testing.T) {
 		},
 	}})
 
-	mustNoError(t, err, "query channels error")
+	require.NoError(t, err, "query channels error")
 
 	if assert.NotEmpty(t, got, "query channels exists") {
 		assert.Equal(t, ch.ID, got[0].ID, "received channel ID")
@@ -50,10 +51,10 @@ func TestClient_Search(t *testing.T) {
 	text := randomString(10)
 
 	_, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
-	mustNoError(t, err)
+	require.NoError(t, err)
 
 	_, err = ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
-	mustNoError(t, err)
+	require.NoError(t, err)
 
 	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
 		"members": map[string][]string{
@@ -61,7 +62,7 @@ func TestClient_Search(t *testing.T) {
 		},
 	}})
 
-	mustNoError(t, err)
+	require.NoError(t, err)
 
 	assert.Len(t, got, 2)
 }

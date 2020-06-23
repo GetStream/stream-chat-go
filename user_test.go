@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_BanUser(t *testing.T) {
@@ -30,14 +31,14 @@ func TestClient_MuteUser(t *testing.T) {
 	user := randomUser()
 
 	err := c.MuteUser(user.ID, serverUser.ID)
-	mustNoError(t, err, "mute user")
+	require.NoError(t, err, "mute user")
 
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
 		}})
 
-	mustNoError(t, err, "query users")
+	require.NoError(t, err, "query users")
 
 	assert.Lenf(t, users[0].Mutes, 1, "user mutes exists: %+v", users[0])
 
@@ -53,7 +54,7 @@ func TestClient_MuteUsers(t *testing.T) {
 	users := []string{randomUser().ID, randomUser().ID}
 
 	err := c.MuteUsers(users, serverUser.ID)
-	mustNoError(t, err, "mute user")
+	require.NoError(t, err, "mute user")
 }
 
 func TestClient_UnBanUser(t *testing.T) {
@@ -83,7 +84,7 @@ func TestClient_UpdateUsers(t *testing.T) {
 	user := randomUser()
 
 	resp, err := c.UpdateUsers(user)
-	mustNoError(t, err, "update users")
+	require.NoError(t, err, "update users")
 
 	assert.Contains(t, resp, user.ID)
 	assert.NotEmpty(t, resp[user.ID].CreatedAt)
@@ -105,7 +106,7 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	}
 
 	got, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
-	mustNoError(t, err, "partial update user")
+	require.NoError(t, err, "partial update user")
 
 	assert.Contains(t, got, user.ID)
 	assert.Contains(t, got[user.ID].ExtraData, "test",
@@ -120,7 +121,7 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	}
 
 	got, err = c.PartialUpdateUsers([]PartialUserUpdate{update})
-	mustNoError(t, err, "partial update user")
+	require.NoError(t, err, "partial update user")
 
 	assert.Contains(t, got, user.ID)
 	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
