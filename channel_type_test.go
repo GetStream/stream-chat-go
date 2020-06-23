@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	ct := NewChannelType(randomString(10))
 
 	ct, err := c.CreateChannelType(ct)
-	mustNoError(t, err, "create channel type")
+	require.NoError(t, err, "create channel type")
 
 	return ct
 }
@@ -24,7 +25,7 @@ func TestClient_GetChannelType(t *testing.T) {
 	}()
 
 	got, err := c.GetChannelType(ct.Name)
-	mustNoError(t, err, "get channel type")
+	require.NoError(t, err, "get channel type")
 
 	assert.Equal(t, ct.Name, got.Name)
 	assert.Equal(t, len(ct.Commands), len(got.Commands))
@@ -40,7 +41,7 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	}()
 
 	got, err := c.ListChannelTypes()
-	mustNoError(t, err, "list channel types")
+	require.NoError(t, err, "list channel types")
 
 	assert.Contains(t, got, ct.Name)
 }

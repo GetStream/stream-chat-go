@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func ExampleChannel_SendReaction() {
@@ -26,7 +27,7 @@ func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
 	user := randomUser()
@@ -35,12 +36,12 @@ func TestChannel_SendReaction(t *testing.T) {
 		User: user,
 	}
 	msg, err := ch.SendMessage(msg, serverUser.ID)
-	mustNoError(t, err, "send message")
+	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
 	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
-	mustNoError(t, err, "send reaction")
+	require.NoError(t, err, "send reaction")
 
 	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
 
@@ -62,7 +63,7 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
 	user := randomUser()
@@ -71,15 +72,15 @@ func TestChannel_DeleteReaction(t *testing.T) {
 		User: user,
 	}
 	msg, err := ch.SendMessage(msg, serverUser.ID)
-	mustNoError(t, err, "send message")
+	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
 	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
-	mustNoError(t, err, "send reaction")
+	require.NoError(t, err, "send reaction")
 
 	msg, err = ch.DeleteReaction(msg.ID, reaction.Type, serverUser.ID)
-	mustNoError(t, err, "delete reaction")
+	require.NoError(t, err, "delete reaction")
 
 	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
 	assert.Empty(t, msg.LatestReactions, "latest reactions empty")
@@ -89,7 +90,7 @@ func TestChannel_GetReactions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		mustNoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
 	user := randomUser()
@@ -98,19 +99,19 @@ func TestChannel_GetReactions(t *testing.T) {
 		User: user,
 	}
 	msg, err := ch.SendMessage(msg, serverUser.ID)
-	mustNoError(t, err, "send message")
+	require.NoError(t, err, "send message")
 
 	reactions, err := ch.GetReactions(msg.ID, nil)
-	mustNoError(t, err, "get reactions")
+	require.NoError(t, err, "get reactions")
 	assert.Empty(t, reactions, "reactions empty")
 
 	reaction := Reaction{Type: "love"}
 
 	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
-	mustNoError(t, err, "send reaction")
+	require.NoError(t, err, "send reaction")
 
 	reactions, err = ch.GetReactions(msg.ID, nil)
-	mustNoError(t, err, "get reactions")
+	require.NoError(t, err, "get reactions")
 
 	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
 }

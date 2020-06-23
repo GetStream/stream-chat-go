@@ -3,10 +3,7 @@ package stream_chat //nolint: golint
 import (
 	"math/rand"
 	"os"
-	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 //nolint: gochecknoglobals
@@ -43,16 +40,4 @@ func randomString(n int) string {
 		bytes[i] = byte(65 + rand.Intn(25)) // A=65 and Z = 65+25
 	}
 	return string(bytes)
-}
-
-func mustNoError(t *testing.T, err error, msgAndArgs ...interface{}) {
-	if !assert.NoError(t, err, msgAndArgs...) {
-		t.FailNow()
-	}
-}
-
-func mustError(t *testing.T, err error, msgAndArgs ...interface{}) {
-	if !assert.Error(t, err, msgAndArgs) {
-		t.FailNow()
-	}
 }

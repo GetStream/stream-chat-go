@@ -11,7 +11,7 @@ import (
 
 func initClient(t *testing.T) *Client {
 	c, err := NewClient(APIKey, []byte(APISecret))
-	mustNoError(t, err, "new client")
+	require.NoError(t, err, "new client")
 
 	// set hostname to client from env if present
 	if StreamHost != "" {
@@ -23,7 +23,7 @@ func initClient(t *testing.T) *Client {
 
 func initChannel(t *testing.T, c *Client) *Channel {
 	_, err := c.UpdateUsers(testUsers...)
-	mustNoError(t, err, "update users")
+	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
 	for i := range testUsers {
@@ -34,7 +34,7 @@ func initChannel(t *testing.T, c *Client) *Channel {
 		"members": members,
 	})
 
-	mustNoError(t, err, "create channel")
+	require.NoError(t, err, "create channel")
 	return ch
 }
 
