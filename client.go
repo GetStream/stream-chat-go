@@ -156,7 +156,7 @@ func (c *Client) createToken(claims jwt.Claims) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(c.apiSecret)
 }
 
-// VerifyWebhook validates if hmac signature is correct for message body
+// VerifyWebhook validates if hmac signature is correct for message body.
 func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
 	_, _ = mac.Write(body)
@@ -169,20 +169,19 @@ type sendFileResponse struct {
 	File string `json:"file"`
 }
 
-//nolint:gochecknoglobals
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-// this adds possible to set content type
+// this makes possible to set content type.
 type multipartForm struct {
 	*multipart.Writer
 }
 
 // CreateFormFile is a convenience wrapper around CreatePart. It creates
-// a new form-data header with the provided field name, file name and content type
+// a new form-data header with the provided field name, file name and content type.
 func (form *multipartForm) CreateFormFile(fieldName, filename, contentType string) (io.Writer, error) {
 	h := make(textproto.MIMEHeader)
 
@@ -274,7 +273,7 @@ func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
 	return resp.File, err
 }
 
-// NewClient creates new stream chat api client
+// NewClient creates new stream chat api client.
 func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 	switch {
 	case apiKey == "":
@@ -304,7 +303,7 @@ func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
 
 // Channel prepares a Channel object for future API calls. This does not in and
 // of itself call the API.
-func (c *Client) Channel(channelType string, channelID string) *Channel {
+func (c *Client) Channel(channelType, channelID string) *Channel {
 	return &Channel{
 		client: c,
 

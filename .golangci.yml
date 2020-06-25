@@ -1,25 +1,65 @@
 # all available settings of specific linters
 linters-settings:
+  gofmt:
+    simplify: true
   goimports:
-    # put imports beginning with prefix after 3rd-party packages;
-    # it's a comma-separated list of prefixes
     local-prefixes: github.com/GetStream/stream-chat-go
   errcheck:
     check-type-assertions: false
     check-blank: false
-
+  gocritic:
+    disabled-checks:
+      - unnamedResult
+      - whyNoLint
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    settings:
+      hugeParam:
+        sizeThreshold: 364
+      rangeValCopy:
+        sizeThreshold: 364
+        skipTestFuncs: true
+  govet:
+    enable-all: true
+    disable:
+      - shadow
 run:
   skip-dirs:
     - hack
   skip-files:
     - ".*_easyjson\\.go"
-  # include test files
   tests: true
 
 linters:
-  enable-all: true
-  disable:
-    - gomnd
-    - stylecheck
-    - wsl
-    - whitespace
+  disable-all: true
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gofmt
+    - goimports
+    - golint
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - prealloc
+    - staticcheck
+    - structcheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck

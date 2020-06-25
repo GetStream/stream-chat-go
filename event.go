@@ -91,7 +91,7 @@ type eventRequest struct {
 	Event *Event `json:"event"`
 }
 
-// SendEvent sends an event on this channel
+// SendEvent sends an event on this channel.
 func (ch *Channel) SendEvent(event *Event, userID string) error {
 	if event == nil {
 		return errors.New("event is nil")

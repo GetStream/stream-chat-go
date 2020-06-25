@@ -1,6 +1,6 @@
 package stream_chat //nolint: golint
 
-// ChannelConfig is the configuration for a channel
+// ChannelConfig is the configuration for a channel.
 type ChannelConfig struct {
 	Name string `json:"name"`
 
@@ -25,8 +25,7 @@ type ChannelConfig struct {
 	ModBehavior modBehaviour `json:"automod_behavior"`
 }
 
-// DefaultChannelConfig is the default channel configuration
-// nolint: gochecknoglobals
+// DefaultChannelConfig is the default channel configuration.
 var DefaultChannelConfig = ChannelConfig{
 	Automod:          AutoModDisabled,
 	ModBehavior:      ModBehaviourFlag,
