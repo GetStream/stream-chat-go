@@ -1,12 +1,16 @@
 package stream_chat //nolint: golint
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
+
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type ChannelRead struct {
@@ -48,7 +52,31 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
+	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+
 	client *Client
+}
+
+// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
+func (c *Channel) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if c.ExtraData == nil {
+		c.ExtraData = make(map[string]interface{}, 1)
+	}
+	c.ExtraData[key] = in.Interface()
+}
+
+// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
+func (c Channel) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range c.ExtraData {
+		if first {
+			first = false
+		} else {
+			out.RawByte(',')
+		}
+		out.String(key)
+		out.RawByte(':')
+		out.Raw(json.Marshal(val))
+	}
 }
 
 type queryResponse struct {
