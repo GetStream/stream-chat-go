@@ -23,7 +23,7 @@ type devicesResponse struct {
 	Devices []*Device `json:"devices"`
 }
 
-// GetDevices retrieves the list of devices for user
+// GetDevices retrieves the list of devices for user.
 func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
 	if userID == "" {
 		return nil, errors.New("user ID is empty")
@@ -55,7 +55,7 @@ func (c *Client) AddDevice(device *Device) error {
 	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
 }
 
-// DeleteDevice deletes a device from the user
+// DeleteDevice deletes a device from the user.
 func (c *Client) DeleteDevice(userID, deviceID string) error {
 	switch {
 	case userID == "":

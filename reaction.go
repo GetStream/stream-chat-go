@@ -49,7 +49,7 @@ type reactionRequest struct {
 	Reaction *Reaction `json:"reaction"`
 }
 
-// SendReaction sends a reaction to message with given ID
+// SendReaction sends a reaction to message with given ID.
 func (ch *Channel) SendReaction(reaction *Reaction, messageID, userID string) (*Message, error) {
 	switch {
 	case reaction == nil:
@@ -72,7 +72,7 @@ func (ch *Channel) SendReaction(reaction *Reaction, messageID, userID string) (*
 	return resp.Message, err
 }
 
-// DeleteReaction removes a reaction from message with given ID
+// DeleteReaction removes a reaction from message with given ID.
 func (ch *Channel) DeleteReaction(messageID, reactionType, userID string) (*Message, error) {
 	switch {
 	case messageID == "":

@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-// for interfaces type matching
+// Ensure interfaces are implemented.
 var (
 	_ StreamClient  = (*Client)(nil)
 	_ StreamChannel = (*Channel)(nil)
 )
 
-// StreamClient is a client for chat
+// StreamClient is a client for chat.
 type StreamClient interface {
 	// app.go
 	GetAppConfig() (*AppConfig, error)
@@ -70,7 +70,7 @@ type StreamClient interface {
 	PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error)
 }
 
-// StreamChannel is a channel of communication
+// StreamChannel is a channel of communication.
 type StreamChannel interface {
 	// channel.go
 	AddMembers(userIDs []string, message *Message) error

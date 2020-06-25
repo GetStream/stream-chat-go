@@ -175,7 +175,7 @@ func (a Attachment) MarshalUnknowns(out *jwriter.Writer, first bool) {
 	}
 }
 
-// SendMessage sends a message to the channel. Returns full message details from server
+// SendMessage sends a message to the channel. Returns full message details from server.
 func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error) {
 	switch {
 	case message == nil:
@@ -198,7 +198,7 @@ func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error
 	return resp.Message, nil
 }
 
-// MarkAllRead marks all messages as read for userID
+// MarkAllRead marks all messages as read for userID.
 func (c *Client) MarkAllRead(userID string) error {
 	if userID == "" {
 		return errors.New("user ID must be not empty")
@@ -213,7 +213,7 @@ func (c *Client) MarkAllRead(userID string) error {
 	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
 }
 
-// GetMessage returns message by ID
+// GetMessage returns message by ID.
 func (c *Client) GetMessage(msgID string) (*Message, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID must be not empty")
@@ -231,7 +231,7 @@ func (c *Client) GetMessage(msgID string) (*Message, error) {
 	return resp.Message, nil
 }
 
-// UpdateMessage updates message with given msgID
+// UpdateMessage updates message with given msgID.
 func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	switch {
 	case msg == nil:
@@ -311,7 +311,7 @@ type sendActionRequest struct {
 	FormData  map[string]string `json:"form_data"`
 }
 
-// SendAction for message
+// SendAction for a message.
 func (ch *Channel) SendAction(msgID string, formData map[string]string) (*Message, error) {
 	switch {
 	case msgID == "":

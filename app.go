@@ -92,7 +92,7 @@ type appResponse struct {
 	App *AppConfig `json:"app"`
 }
 
-// GetAppConfig returns app settings
+// GetAppConfig returns app settings.
 func (c *Client) GetAppConfig() (*AppConfig, error) {
 	var resp appResponse
 

@@ -10,7 +10,7 @@ const (
 	versionPatch = 0
 )
 
-// Version returns the version of the library
+// Version returns the version of the library.
 func Version() string {
 	return "v" + fmtVersion()
 }

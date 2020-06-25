@@ -151,7 +151,7 @@ type searchMessageResponse struct {
 	Message *Message `json:"message"`
 }
 
-// Search returns channels matching for given keyword;
+// Search returns channels matching for given keyword.
 func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	var buf strings.Builder
 

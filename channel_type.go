@@ -61,7 +61,7 @@ func (ct *ChannelType) toRequest() channelTypeRequest {
 	return req
 }
 
-// NewChannelType returns initialized ChannelType with default values
+// NewChannelType returns initialized ChannelType with default values.
 func NewChannelType(name string) *ChannelType {
 	ct := &ChannelType{ChannelConfig: DefaultChannelConfig}
 	ct.Name = name
@@ -82,7 +82,7 @@ type channelTypeResponse struct {
 	ChannelTypes map[string]*ChannelType `json:"channel_types"`
 }
 
-// CreateChannelType adds new channel type
+// CreateChannelType adds new channel type.
 func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
 	if chType == nil {
 		return nil, errors.New("channel type is nil")
@@ -105,7 +105,7 @@ func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
 	return resp.ChannelType, nil
 }
 
-// GetChannelType returns information about channel type
+// GetChannelType returns information about channel type.
 func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 	if chanType == "" {
 		return nil, errors.New("channel type is empty")
@@ -120,7 +120,7 @@ func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 	return &ct, err
 }
 
-// ListChannelTypes returns all channel types
+// ListChannelTypes returns all channel types.
 func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
 	var resp channelTypeResponse
 

@@ -13,7 +13,7 @@ import (
 	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
-// Mute represents a user mute
+// Mute represents a user mute.
 type Mute struct {
 	User      User      `json:"user"`
 	Target    User      `json:"target"`
@@ -21,7 +21,7 @@ type Mute struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// ChannelMute represents a channel mute
+// ChannelMute represents a channel mute.
 type ChannelMute struct {
 	User      User       `json:"user"`
 	Channel   Channel    `json:"channel"`
@@ -74,9 +74,9 @@ func (u User) MarshalUnknowns(out *jwriter.Writer, first bool) {
 	}
 }
 
-// MuteUser create a mute
-// targetID: the user getting muted
-// userID: the user muting the target
+// MuteUser creates a mute.
+// targetID: the user getting muted.
+// userID: the user is muting the target.
 func (c *Client) MuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
@@ -93,9 +93,9 @@ func (c *Client) MuteUser(targetID, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
-// MuteUsers creates a mute
-// targetID: the user getting muted
-// userID: the user muting the target
+// MuteUsers creates a mute.
+// targetID: the user getting muted.
+// userID: the user is muting the target.
 func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 	switch {
 	case len(targetIDs) == 0:
@@ -112,9 +112,9 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
 }
 
-// UnmuteUser removes a mute
-// targetID: the user getting un-muted
-// userID: the user muting the target
+// UnmuteUser removes a mute.
+// targetID: the user is getting un-muted.
+// userID: the user is muting the target.
 func (c *Client) UnmuteUser(targetID, userID string) error {
 	switch {
 	case targetID == "":
@@ -131,9 +131,9 @@ func (c *Client) UnmuteUser(targetID, userID string) error {
 	return c.makeRequest(http.MethodPost, "moderation/unmute", nil, data, nil)
 }
 
-// UnmuteUsers removes a mute
-// targetID: the users getting un-muted
-// userID: the user muting the target
+// UnmuteUsers removes a mute.
+// targetID: the users are getting un-muted.
+// userID: the user is muting the target.
 func (c *Client) UnmuteUsers(targetIDs []string, userID string) error {
 	switch {
 	case len(targetIDs) == 0:
@@ -270,13 +270,13 @@ type userRequest struct {
 	LastActive time.Time `json:"-"`
 }
 
-// UpdateUser sending update users request, returns updated user info
+// UpdateUser sending update users request, returns updated user info.
 func (c *Client) UpdateUser(user *User) (*User, error) {
 	users, err := c.UpdateUsers(user)
 	return users[user.ID], err
 }
 
-// UpdateUsers send update users request, returns updated user info
+// UpdateUsers send update users request, returns updated user info.
 func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
 		return nil, errors.New("users are not set")
@@ -299,14 +299,14 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 
 // PartialUserUpdate request; Set and Unset fields can be set at same time, but should not be same field,
 // for example you cannot set 'field.path.name' and unset 'field.path' at the same time.
-// Field path should not contain spaces or dots (dot is path separator)
+// Field path should not contain spaces or dots (dot is path separator).
 type PartialUserUpdate struct {
 	ID    string                 `json:"id"`              // User ID, required
 	Set   map[string]interface{} `json:"set,omitempty"`   // map of field.name => value; optional
 	Unset []string               `json:"unset,omitempty"` // list of field names to unset
 }
 
-// PartialUpdateUser makes partial update for single user
+// PartialUpdateUser makes partial update for single user.
 func (c *Client) PartialUpdateUser(update PartialUserUpdate) (*User, error) {
 	res, err := c.PartialUpdateUsers([]PartialUserUpdate{update})
 	if err != nil {
@@ -324,7 +324,7 @@ type partialUserUpdateReq struct {
 	Users []PartialUserUpdate `json:"users"`
 }
 
-// PartialUpdateUsers makes partial update for users
+// PartialUpdateUsers makes partial update for users.
 func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*User, error) {
 	var resp usersResponse
 
