@@ -7,9 +7,6 @@ import (
 	"net/url"
 	"path"
 	"time"
-
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type MessageType string
@@ -46,30 +43,29 @@ type Message struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 
-	// any other fields the user wants to attach a message
 	ExtraData map[string]interface{} `json:"-"`
 }
 
-// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (m *Message) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if m.ExtraData == nil {
-		m.ExtraData = make(map[string]interface{}, 1)
+type messageForJSON Message
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (m *Message) UnmarshalJSON(data []byte) error {
+	var m2 messageForJSON
+	if err := json.Unmarshal(data, &m2); err != nil {
+		return err
 	}
-	m.ExtraData[key] = in.Interface()
+	*m = Message(m2)
+
+	if err := json.Unmarshal(data, &m.ExtraData); err != nil {
+		return err
+	}
+	removeFromMap(m.ExtraData, *m)
+	return nil
 }
 
-// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (m Message) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range m.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+// MarshalJSON implements json.Marshaler.
+func (m Message) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(m.ExtraData, messageForJSON(m))
 }
 
 func (m *Message) toRequest() messageRequest {
@@ -109,24 +105,25 @@ type messageRequestMessage struct {
 	ExtraData map[string]interface{} `json:"-"`
 }
 
-func (s *messageRequestMessage) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if s.ExtraData == nil {
-		s.ExtraData = make(map[string]interface{}, 1)
+type messageRequestForJSON messageRequestMessage
+
+func (s *messageRequestMessage) UnmarshalJSON(data []byte) error {
+	var s2 messageRequestForJSON
+	if err := json.Unmarshal(data, &s2); err != nil {
+		return err
 	}
-	s.ExtraData[key] = in.Interface()
+	*s = messageRequestMessage(s2)
+
+	if err := json.Unmarshal(data, &s.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(s.ExtraData, *s)
+	return nil
 }
 
-func (s messageRequestMessage) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range s.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+func (s messageRequestMessage) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(s.ExtraData, messageRequestForJSON(s))
 }
 
 type messageRequestUser struct {
@@ -153,26 +150,27 @@ type Attachment struct {
 	ExtraData map[string]interface{} `json:"-"`
 }
 
-// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (a *Attachment) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if a.ExtraData == nil {
-		a.ExtraData = make(map[string]interface{}, 1)
+type attachmentForJSON Attachment
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (a *Attachment) UnmarshalJSON(data []byte) error {
+	var a2 attachmentForJSON
+	if err := json.Unmarshal(data, &a2); err != nil {
+		return err
 	}
-	a.ExtraData[key] = in.Interface()
+	*a = Attachment(a2)
+
+	if err := json.Unmarshal(data, &a.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(a.ExtraData, *a)
+	return nil
 }
 
-// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (a Attachment) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range a.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+// MarshalJSON implements json.Marshaler.
+func (a Attachment) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(a.ExtraData, attachmentForJSON(a))
 }
 
 // SendMessage sends a message to the channel. Returns full message details from server.

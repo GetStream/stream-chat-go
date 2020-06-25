@@ -5,10 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/mailru/easyjson"
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type QueryOption struct {
@@ -19,28 +15,6 @@ type QueryOption struct {
 	UserID string `json:"user_id,omitempty"`
 	Limit  int    `json:"limit,omitempty"`  // pagination option: limit number of results
 	Offset int    `json:"offset,omitempty"` // pagination option: offset to return items from
-}
-
-// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (q *QueryOption) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if q.Filter == nil {
-		q.Filter = make(map[string]interface{}, 1)
-	}
-	q.Filter[key] = in.Interface()
-}
-
-// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (q QueryOption) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range q.Filter {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
 }
 
 type SortOption struct {
@@ -157,8 +131,7 @@ type searchMessageResponse struct {
 func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	var buf strings.Builder
 
-	_, err := easyjson.MarshalToWriter(request, &buf)
-	if err != nil {
+	if err := json.NewEncoder(&buf).Encode(request); err != nil {
 		return nil, err
 	}
 
@@ -166,12 +139,14 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	values.Set("payload", buf.String())
 
 	var result searchResponse
-	err = c.makeRequest(http.MethodGet, "search", values, nil, &result)
+	if err := c.makeRequest(http.MethodGet, "search", values, nil, &result); err != nil {
+		return nil, err
+	}
 
 	messages := make([]*Message, 0, len(result.Results))
 	for _, res := range result.Results {
 		messages = append(messages, res.Message)
 	}
 
-	return messages, err
+	return messages, nil
 }
