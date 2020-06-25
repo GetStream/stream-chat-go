@@ -4,12 +4,11 @@ package stream_chat
 
 import (
 	json "encoding/json"
-	multipart "mime/multipart"
-	time "time"
-
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
+	multipart "mime/multipart"
+	time "time"
 )
 
 // suppress unused package warning
@@ -6663,7 +6662,7 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV250(in *jlexer.Lexer, 
 				in.AddError((out.LastMessageAt).UnmarshalJSON(data))
 			}
 		default:
-			in.SkipRecursive()
+			out.UnmarshalUnknown(in, key)
 		}
 		in.WantComma()
 	}
@@ -6790,6 +6789,7 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV250(out *jwriter.Write
 		out.RawString(prefix)
 		out.Raw((in.LastMessageAt).MarshalJSON())
 	}
+	in.MarshalUnknowns(out, false)
 	out.RawByte('}')
 }
 
