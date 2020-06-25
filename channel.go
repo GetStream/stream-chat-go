@@ -58,16 +58,16 @@ type Channel struct {
 }
 
 // UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (c *Channel) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if c.ExtraData == nil {
-		c.ExtraData = make(map[string]interface{}, 1)
+func (ch *Channel) UnmarshalUnknown(in *jlexer.Lexer, key string) {
+	if ch.ExtraData == nil {
+		ch.ExtraData = make(map[string]interface{}, 1)
 	}
-	c.ExtraData[key] = in.Interface()
+	ch.ExtraData[key] = in.Interface()
 }
 
 // MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (c Channel) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range c.ExtraData {
+func (ch Channel) MarshalUnknowns(out *jwriter.Writer, first bool) {
+	for key, val := range ch.ExtraData {
 		if first {
 			first = false
 		} else {
