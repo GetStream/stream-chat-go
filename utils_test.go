@@ -18,7 +18,7 @@ var (
 
 //nolint: gochecknoinits
 func init() {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 
 	serverUser = &User{ID: randomString(10), Name: "Gandalf the Grey", ExtraData: map[string]interface{}{"race": "Istari"}}
 

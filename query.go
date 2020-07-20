@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -66,17 +67,21 @@ type queryUsersResponse struct {
 }
 
 // QueryUsers returns list of users that match QueryOption.
-// If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
-func (c *Client) QueryUsers(q *QueryOption, sort ...*SortOption) ([]*User, error) {
+// If any number of SortOption are set, result will be sorted by field and direction in the order of sort options.
+func (c *Client) QueryUsers(q *QueryOption, sorters ...*SortOption) ([]*User, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,
-		Sort:             sort,
+		Limit:            q.Limit,
+		Offset:           q.Offset,
+		Sort:             sorters,
 	}
 
 	data, err := json.Marshal(&qp)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(string(data))
 
 	values := make(url.Values)
 	values.Set("payload", string(data))
