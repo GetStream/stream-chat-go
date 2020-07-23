@@ -37,7 +37,6 @@ func TestClient_MuteUser(t *testing.T) {
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
 		}})
-
 	require.NoError(t, err, "query users")
 
 	assert.Lenf(t, users[0].Mutes, 1, "user mutes exists: %+v", users[0])
@@ -61,6 +60,7 @@ func TestClient_MuteUsers(t *testing.T) {
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
 		}})
+	require.NoError(t, err, "query users")
 
 	for _, mute := range users[0].Mutes {
 		assert.NotEmpty(t, mute.Expires, "mute has expires")
