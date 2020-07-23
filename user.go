@@ -15,10 +15,11 @@ import (
 
 // Mute represents a user mute.
 type Mute struct {
-	User      User      `json:"user"`
-	Target    User      `json:"target"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	User      User       `json:"user"`
+	Target    User       `json:"target"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	Expires   *time.Time `json:"expires"`
 }
 
 // ChannelMute represents a channel mute.
@@ -77,26 +78,26 @@ func (u User) MarshalUnknowns(out *jwriter.Writer, first bool) {
 // MuteUser creates a mute.
 // targetID: the user getting muted.
 // userID: the user is muting the target.
-func (c *Client) MuteUser(targetID, userID string) error {
+func (c *Client) MuteUser(targetID, userID string, options map[string]interface{}) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID is empty")
 	case userID == "":
 		return errors.New("user ID is empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	}
 
-	data := map[string]interface{}{
-		"target_id": targetID,
-		"user_id":   userID,
-	}
+	options["target_id"] = targetID
+	options["user_id"] = userID
 
-	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
+	return c.makeRequest(http.MethodPost, "moderation/mute", nil, options, nil)
 }
 
-// MuteUsers creates a mute.
-// targetID: the user getting muted.
+// MuteUsers creates mutes for multiple users.
+// targetIDs: the users getting muted.
 // userID: the user is muting the target.
-func (c *Client) MuteUsers(targetIDs []string, userID string) error {
+func (c *Client) MuteUsers(targetIDs []string, userID string, options map[string]interface{}) error {
 	switch {
 	case len(targetIDs) == 0:
 		return errors.New("target IDs are empty")
@@ -104,12 +105,10 @@ func (c *Client) MuteUsers(targetIDs []string, userID string) error {
 		return errors.New("user ID is empty")
 	}
 
-	data := map[string]interface{}{
-		"target_ids": targetIDs,
-		"user_id":    userID,
-	}
+	options["target_ids"] = targetIDs
+	options["user_id"] = userID
 
-	return c.makeRequest(http.MethodPost, "moderation/mute", nil, data, nil)
+	return c.makeRequest(http.MethodPost, "moderation/mute", nil, options, nil)
 }
 
 // UnmuteUser removes a mute.

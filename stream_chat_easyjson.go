@@ -4639,6 +4639,18 @@ func easyjson458e82b7DecodeGithubComGetStreamStreamChatGoV237(in *jlexer.Lexer, 
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.UpdatedAt).UnmarshalJSON(data))
 			}
+		case "expires":
+			if in.IsNull() {
+				in.Skip()
+				out.Expires = nil
+			} else {
+				if out.Expires == nil {
+					out.Expires = new(time.Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.Expires).UnmarshalJSON(data))
+				}
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -4672,6 +4684,15 @@ func easyjson458e82b7EncodeGithubComGetStreamStreamChatGoV237(out *jwriter.Write
 		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
 		out.Raw((in.UpdatedAt).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"expires\":"
+		out.RawString(prefix)
+		if in.Expires == nil {
+			out.RawString("null")
+		} else {
+			out.Raw((*in.Expires).MarshalJSON())
+		}
 	}
 	out.RawByte('}')
 }

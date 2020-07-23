@@ -30,7 +30,7 @@ func TestClient_MuteUser(t *testing.T) {
 
 	user := randomUser()
 
-	err := c.MuteUser(user.ID, serverUser.ID)
+	err := c.MuteUser(user.ID, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "mute user")
 
 	users, err := c.QueryUsers(&QueryOption{
@@ -45,16 +45,26 @@ func TestClient_MuteUser(t *testing.T) {
 	mute := users[0].Mutes[0]
 	assert.NotEmpty(t, mute.User, "mute has user")
 	assert.NotEmpty(t, mute.Target, "mute has target")
+	assert.NotEmpty(t, mute.Expires, "mute has expires")
 }
 
 func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
 	initChannel(t, c)
 
-	users := []string{randomUser().ID, randomUser().ID}
+	usernames := []string{randomUser().ID, randomUser().ID}
 
-	err := c.MuteUsers(users, serverUser.ID)
+	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "mute user")
+
+	users, err := c.QueryUsers(&QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": serverUser.ID},
+		}})
+
+	for _, mute := range users[0].Mutes {
+		assert.NotEmpty(t, mute.Expires, "mute has expires")
+	}
 }
 
 func TestClient_UnBanUser(t *testing.T) {
