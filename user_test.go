@@ -57,7 +57,8 @@ func TestClient_MuteUser(t *testing.T) {
 		}})
 	require.NoError(t, err, "query users")
 
-	assert.Lenf(t, users[0].Mutes, 1, "user mutes exists: %+v", users[0])
+	assert.Lenf(t, users, 1, "user exists: %+v", users)
+	assert.Lenf(t, users[0].Mutes, 1, "user mutes exists: %+v", users[0].Mutes)
 	mute = users[0].Mutes[0]
 	assert.NotEmpty(t, mute.Expires, "mute has expires")
 }
@@ -67,7 +68,7 @@ func TestClient_MuteUsers(t *testing.T) {
 	initChannel(t, c)
 
 	assert.GreaterOrEqualf(t, len(testUsers), 2, "not enough test users: %+v", testUsers)
-	usernames := []string{testUsers[1].ID, testUsers[2].ID}
+	usernames := []string{testUsers[0].ID, testUsers[1].ID}
 
 	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "mute user")
@@ -78,6 +79,7 @@ func TestClient_MuteUsers(t *testing.T) {
 		}})
 	require.NoError(t, err, "query users")
 
+	assert.Lenf(t, users, 1, "user exists: %+v", users)
 	for _, mute := range users[0].Mutes {
 		assert.NotEmpty(t, mute.Expires, "mute has expires")
 	}
