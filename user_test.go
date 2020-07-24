@@ -31,7 +31,7 @@ func TestClient_MuteUser(t *testing.T) {
 	assert.GreaterOrEqualf(t, len(testUsers), 1, "not enough test users: %+v", testUsers)
 	user := testUsers[0]
 
-	err := c.MuteUser(user.ID, serverUser.ID, map[string]interface{}{"timeout": 60})
+	err := c.MuteUser(user.ID, serverUser.ID, nil)
 	require.NoError(t, err, "mute user")
 
 	users, err := c.QueryUsers(&QueryOption{
@@ -45,6 +45,20 @@ func TestClient_MuteUser(t *testing.T) {
 	mute := users[0].Mutes[0]
 	assert.NotEmpty(t, mute.User, "mute has user")
 	assert.NotEmpty(t, mute.Target, "mute has target")
+	assert.Empty(t, mute.Expires, "mute has expires")
+
+	// when timeout is given, expiration field should be set on mute
+	err = c.MuteUser(user.ID, serverUser.ID, map[string]interface{}{"timeout": 60})
+	require.NoError(t, err, "mute user")
+
+	users, err = c.QueryUsers(&QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": serverUser.ID},
+		}})
+	require.NoError(t, err, "query users")
+
+	assert.Lenf(t, users[0].Mutes, 1, "user mutes exists: %+v", users[0])
+	mute = users[0].Mutes[0]
 	assert.NotEmpty(t, mute.Expires, "mute has expires")
 }
 
