@@ -28,7 +28,8 @@ func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
 	initChannel(t, c)
 
-	user := randomUser()
+	assert.GreaterOrEqualf(t, len(testUsers), 1, "not enough test users: %+v", testUsers)
+	user := testUsers[0]
 
 	err := c.MuteUser(user.ID, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "mute user")
@@ -51,7 +52,8 @@ func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
 	initChannel(t, c)
 
-	usernames := []string{randomUser().ID, randomUser().ID}
+	assert.GreaterOrEqualf(t, len(testUsers), 2, "not enough test users: %+v", testUsers)
+	usernames := []string{testUsers[1].ID, testUsers[2].ID}
 
 	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "mute user")
