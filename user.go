@@ -103,6 +103,8 @@ func (c *Client) MuteUsers(targetIDs []string, userID string, options map[string
 		return errors.New("target IDs are empty")
 	case userID == "":
 		return errors.New("user ID is empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	}
 
 	options["target_ids"] = targetIDs
