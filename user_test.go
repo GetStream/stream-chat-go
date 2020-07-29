@@ -69,21 +69,22 @@ func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
 	initChannel(t, c)
 
-	assert.GreaterOrEqualf(t, len(testUsers), 2, "not enough test users: %+v", testUsers)
+	require.GreaterOrEqualf(t, len(testUsers), 2, "there should be at least 2 test users: %+v", testUsers)
 	usernames := []string{testUsers[0].ID, testUsers[1].ID}
 
 	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
-	require.NoError(t, err, "mute user")
+	require.NoError(t, err, "MuteUsers should not return an error")
 
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
 		}})
-	require.NoError(t, err, "query users")
+	require.NoError(t, err, "QueryUsers should not return an error")
+	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
+	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
 
-	assert.Lenf(t, users, 1, "user exists: %+v", users)
 	for _, mute := range users[0].Mutes {
-		assert.NotEmpty(t, mute.Expires, "mute has expires")
+		assert.NotEmpty(t, mute.Expires, "mute should have Expires")
 	}
 }
 
