@@ -62,7 +62,7 @@ func TestClient_MuteUser(t *testing.T) {
 	mute = users[0].Mutes[0]
 	assert.NotEmpty(t, mute.User, "mute should have a User")
 	assert.NotEmpty(t, mute.Target, "mute should have a Target")
-	assert.NotEmpty(t, mute.Expires, "mute should have no Expires")
+	assert.NotEmpty(t, mute.Expires, "mute should have Expires")
 }
 
 func TestClient_MuteUsers(t *testing.T) {
