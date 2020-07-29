@@ -58,8 +58,8 @@ type StreamClient interface {
 	DeleteUser(targetID string, options map[string][]string) error
 	ExportUser(targetID string, options map[string][]string) (user *User, err error)
 	FlagUser(targetID string, options map[string]interface{}) error
-	MuteUser(targetID string, userID string) error
-	MuteUsers(targetIDs []string, userID string) error
+	MuteUser(targetID string, userID string, options map[string]interface{}) error
+	MuteUsers(targetIDs []string, userID string, options map[string]interface{}) error
 	UnBanUser(targetID string, options map[string]string) error
 	UnFlagUser(targetID string, options map[string]interface{}) error
 	UnmuteUser(targetID string, userID string) error
