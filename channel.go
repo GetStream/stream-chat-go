@@ -351,12 +351,10 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	return ch.client.UnBanUser(targetID, options)
 }
 
-// Query fills channel info without state (messages, members, reads).
+// Query fills channel info with state (messages, members, reads).
 func (ch *Channel) Query(data map[string]interface{}) error {
 	options := map[string]interface{}{
-		"watch":    false,
-		"state":    false,
-		"presence": false,
+		"state": true,
 	}
 
 	return ch.query(options, data)
