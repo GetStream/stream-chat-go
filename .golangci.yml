@@ -2,6 +2,8 @@
 linters-settings:
   gofmt:
     simplify: true
+  gofumpt:
+    simplify: true
   goimports:
     local-prefixes: github.com/GetStream/stream-chat-go
   errcheck:
@@ -30,8 +32,6 @@ linters-settings:
 run:
   skip-dirs:
     - hack
-  skip-files:
-    - ".*_easyjson\\.go"
   tests: true
 
 linters:
@@ -43,11 +43,13 @@ linters:
     - dogsled
     - dupl
     - errcheck
+    - gci
     - goconst
     - gocritic
     - gocyclo
     - godot
     - gofmt
+    - gofumpt
     - goimports
     - golint
     - goprintffuncname
@@ -63,3 +65,6 @@ linters:
     - unparam
     - unused
     - varcheck
+issues:
+  exclude:
+    - 'G404:' # math/rand usage

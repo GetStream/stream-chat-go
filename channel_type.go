@@ -21,8 +21,10 @@ const (
 	MessageRetentionForever = "infinite"
 )
 
-type modType string
-type modBehaviour string
+type (
+	modType      string
+	modBehaviour string
+)
 
 type Permission struct {
 	Name   string `json:"name"`   // required

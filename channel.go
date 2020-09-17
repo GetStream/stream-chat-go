@@ -455,7 +455,7 @@ func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
 func (ch *Channel) DeleteFile(location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
 
-	var params = url.Values{}
+	params := url.Values{}
 	params.Set("url", location)
 
 	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
@@ -465,7 +465,7 @@ func (ch *Channel) DeleteFile(location string) error {
 func (ch *Channel) DeleteImage(location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
 
-	var params = url.Values{}
+	params := url.Values{}
 	params.Set("url", location)
 
 	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)

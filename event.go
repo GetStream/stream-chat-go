@@ -25,7 +25,7 @@ const (
 
 	// EventReactionNew is fired when a message reaction is added.
 	EventReactionNew EventType = "reaction.new"
-	// EventReactionDeleted is fired when a message reaction deleted
+	// EventReactionDeleted is fired when a message reaction deleted.
 	EventReactionDeleted EventType = "reaction.deleted"
 
 	// EventMemberAdded is fired when a member is added to a channel.

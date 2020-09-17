@@ -31,10 +31,12 @@ func TestClient_QueryUsers(t *testing.T) {
 
 	t.Parallel()
 	t.Run("Query all", func(tt *testing.T) {
-		results, err := c.QueryUsers(&QueryOption{Filter: map[string]interface{}{
-			"id": map[string]interface{}{
-				"$in": ids,
-			}},
+		results, err := c.QueryUsers(&QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]interface{}{
+					"$in": ids,
+				},
+			},
 		})
 
 		require.NoError(tt, err)
