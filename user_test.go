@@ -9,11 +9,9 @@ import (
 )
 
 func TestClient_BanUser(t *testing.T) {
-
 }
 
 func TestClient_DeactivateUser(t *testing.T) {
-
 }
 
 func TestClient_DeleteUser(t *testing.T) {
@@ -37,7 +35,8 @@ func TestClient_MuteUser(t *testing.T) {
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
-		}})
+		},
+	})
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
@@ -54,7 +53,8 @@ func TestClient_MuteUser(t *testing.T) {
 	users, err = c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
-		}})
+		},
+	})
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
@@ -78,7 +78,8 @@ func TestClient_MuteUsers(t *testing.T) {
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": serverUser.ID},
-		}})
+		},
+	})
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])

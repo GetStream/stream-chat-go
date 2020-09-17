@@ -59,14 +59,18 @@ func TestClient_CreateToken(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-		{"simple without expiration",
+		{
+			"simple without expiration",
 			args{"tommaso", time.Time{}},
 			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.v-x-jt3ZnBXXbQ0GoWloIZtVnat2IE74U1a4Yuxd63M"),
-			false},
-		{"simple with expiration",
+			false,
+		},
+		{
+			"simple with expiration",
 			args{"tommaso", time.Unix(1566941272, 123121)},
 			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.jF4ZbAIEuzS2jRH0uiu3HW9n0NHwT96QkzGlywcG9HU"),
-			false},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

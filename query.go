@@ -135,7 +135,7 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 		return nil, err
 	}
 
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("payload", buf.String())
 
 	var result searchResponse

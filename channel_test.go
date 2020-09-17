@@ -35,8 +35,11 @@ func TestClient_CreateChannel(t *testing.T) {
 	}{
 		{"create channel with ID", "messaging", randomString(12), serverUser.ID, nil, false},
 		{"create channel without ID and members", "messaging", "", serverUser.ID, nil, true},
-		{"create channel without ID but with members", "messaging", "", serverUser.ID,
-			map[string]interface{}{"members": []string{testUsers[0].ID, testUsers[1].ID}}, false},
+		{
+			"create channel without ID but with members", "messaging", "", serverUser.ID,
+			map[string]interface{}{"members": []string{testUsers[0].ID, testUsers[1].ID}},
+			false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -215,7 +218,6 @@ func TestChannel_GetReplies(t *testing.T) {
 }
 
 func TestChannel_MarkRead(t *testing.T) {
-
 }
 
 func TestChannel_RemoveMembers(t *testing.T) {
@@ -239,7 +241,6 @@ func TestChannel_RemoveMembers(t *testing.T) {
 }
 
 func TestChannel_SendEvent(t *testing.T) {
-
 }
 
 func TestChannel_SendMessage(t *testing.T) {
@@ -301,15 +302,12 @@ func TestChannel_Update(t *testing.T) {
 }
 
 func TestChannel_AddModerators(t *testing.T) {
-
 }
 
 func TestChannel_DemoteModerators(t *testing.T) {
-
 }
 
 func TestChannel_UnBanUser(t *testing.T) {
-
 }
 
 func TestChannel_SendFile(t *testing.T) {
