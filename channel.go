@@ -8,9 +8,6 @@ import (
 	"net/url"
 	"path"
 	"time"
-
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type ChannelRead struct {
@@ -52,31 +49,32 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
-	ExtraData map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	ExtraData map[string]interface{} `json:"-"`
 
 	client *Client
 }
 
-// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (ch *Channel) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if ch.ExtraData == nil {
-		ch.ExtraData = make(map[string]interface{}, 1)
+type channelForJSON Channel
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (ch *Channel) UnmarshalJSON(data []byte) error {
+	var ch2 channelForJSON
+	if err := json.Unmarshal(data, &ch2); err != nil {
+		return err
 	}
-	ch.ExtraData[key] = in.Interface()
+	*ch = Channel(ch2)
+
+	if err := json.Unmarshal(data, &ch.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(ch.ExtraData, *ch)
+	return nil
 }
 
-// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (ch Channel) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range ch.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+// MarshalJSON implements json.Marshaler.
+func (ch Channel) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(ch.ExtraData, channelForJSON(ch))
 }
 
 type queryResponse struct {

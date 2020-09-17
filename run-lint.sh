@@ -33,5 +33,5 @@ fi
 "$gopath/bin/impi" \
 	--local github.com/GetStream/stream-chat-go \
 	--scheme stdThirdPartyLocal \
-	--skip "stream_chat_easyjson.go" \
+	--ignore-generated \
 	./...

@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/mailru/easyjson"
 )
 
 const (
@@ -43,7 +42,7 @@ func (c *Client) setHeaders(r *http.Request) {
 	r.Header.Set("Stream-Auth-Type", "jwt")
 }
 
-func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler) error {
+func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
@@ -55,7 +54,7 @@ func (c *Client) parseResponse(resp *http.Response, result easyjson.Unmarshaler)
 	}
 
 	if result != nil {
-		return easyjson.UnmarshalFromReader(resp.Body, result)
+		return json.NewDecoder(resp.Body).Decode(result)
 	}
 
 	return nil
@@ -94,13 +93,6 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	case nil:
 		r.Body = nil
 
-	case easyjson.Marshaler:
-		b, err := easyjson.Marshal(t)
-		if err != nil {
-			return nil, err
-		}
-		r.Body = ioutil.NopCloser(bytes.NewReader(b))
-
 	case io.ReadCloser:
 		r.Body = t
 
@@ -118,9 +110,7 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	return r, nil
 }
 
-func (c *Client) makeRequest(method, path string, params url.Values,
-	data interface{}, result easyjson.Unmarshaler) error {
-
+func (c *Client) makeRequest(method, path string, params url.Values, data, result interface{}) error {
 	r, err := c.newRequest(method, path, params, data)
 	if err != nil {
 		return err
@@ -198,13 +188,12 @@ func (form *multipartForm) CreateFormFile(fieldName, filename, contentType strin
 	return form.Writer.CreatePart(h)
 }
 
-func (form *multipartForm) setData(fieldName string, data easyjson.Marshaler) error {
+func (form *multipartForm) setData(fieldName string, data interface{}) error {
 	field, err := form.CreateFormField(fieldName)
 	if err != nil {
 		return err
 	}
-	_, err = easyjson.MarshalToWriter(data, field)
-	return err
+	return json.NewEncoder(field).Encode(data)
 }
 
 func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, contentType string) error {

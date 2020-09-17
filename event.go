@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -85,6 +86,27 @@ type Event struct {
 	ExtraData map[string]interface{} `json:"-"`
 
 	CreatedAt time.Time `json:"created_at,omitempty"`
+}
+
+type eventForJSON Event
+
+func (e *Event) UnmarshalJSON(data []byte) error {
+	var e2 eventForJSON
+	if err := json.Unmarshal(data, &e2); err != nil {
+		return err
+	}
+	*e = Event(e2)
+
+	if err := json.Unmarshal(data, &e.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(e.ExtraData, *e)
+	return nil
+}
+
+func (e Event) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(e.ExtraData, eventForJSON(e))
 }
 
 type eventRequest struct {

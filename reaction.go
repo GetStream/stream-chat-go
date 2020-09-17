@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 type Reaction struct {
@@ -20,24 +17,25 @@ type Reaction struct {
 	ExtraData map[string]interface{} `json:"-"`
 }
 
-func (s *Reaction) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if s.ExtraData == nil {
-		s.ExtraData = make(map[string]interface{}, 1)
+type reactionForJSON Reaction
+
+func (s *Reaction) UnmarshalJSON(data []byte) error {
+	var s2 reactionForJSON
+	if err := json.Unmarshal(data, &s2); err != nil {
+		return err
 	}
-	s.ExtraData[key] = in.Interface()
+	*s = Reaction(s2)
+
+	if err := json.Unmarshal(data, &s.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(s.ExtraData, *s)
+	return nil
 }
 
-func (s Reaction) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range s.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+func (s Reaction) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(s.ExtraData, reactionForJSON(s))
 }
 
 type reactionResponse struct {

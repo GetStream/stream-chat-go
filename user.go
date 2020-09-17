@@ -8,9 +8,6 @@ import (
 	"net/url"
 	"path"
 	"time"
-
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 // Mute represents a user mute.
@@ -50,29 +47,30 @@ type User struct {
 
 	Mutes        []*Mute                `json:"mutes,omitempty"`
 	ChannelMutes []*ChannelMute         `json:"channel_mutes,omitempty"`
-	ExtraData    map[string]interface{} `json:"-,extra"` //nolint: staticcheck
+	ExtraData    map[string]interface{} `json:"-"`
 }
 
-// UnmarshalUnknown implements the `easyjson.UnknownsUnmarshaler` interface.
-func (u *User) UnmarshalUnknown(in *jlexer.Lexer, key string) {
-	if u.ExtraData == nil {
-		u.ExtraData = make(map[string]interface{}, 1)
+type userForJSON User
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (u *User) UnmarshalJSON(data []byte) error {
+	var u2 userForJSON
+	if err := json.Unmarshal(data, &u2); err != nil {
+		return err
 	}
-	u.ExtraData[key] = in.Interface()
+	*u = User(u2)
+
+	if err := json.Unmarshal(data, &u.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(u.ExtraData, *u)
+	return nil
 }
 
-// MarshalUnknowns implements the `easyjson.UnknownsMarshaler` interface.
-func (u User) MarshalUnknowns(out *jwriter.Writer, first bool) {
-	for key, val := range u.ExtraData {
-		if first {
-			first = false
-		} else {
-			out.RawByte(',')
-		}
-		out.String(key)
-		out.RawByte(':')
-		out.Raw(json.Marshal(val))
-	}
+// MarshalJSON implements json.Marshaler.
+func (u User) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(u.ExtraData, userForJSON(u))
 }
 
 // MuteUser creates a mute.
