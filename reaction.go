@@ -19,7 +19,7 @@ type Reaction struct {
 
 type reactionForJSON Reaction
 
-func (s *Reaction) UnmarshalUnknown(data []byte) error {
+func (s *Reaction) UnmarshalJSON(data []byte) error {
 	var s2 reactionForJSON
 	if err := json.Unmarshal(data, &s2); err != nil {
 		return err
