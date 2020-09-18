@@ -261,6 +261,18 @@ func TestChannel_SendMessage(t *testing.T) {
 	// check that message was updated
 	assert.NotEmpty(t, msg.ID, "message has ID")
 	assert.NotEmpty(t, msg.HTML, "message has HTML body")
+
+	msg2 := &Message{
+		Text:   "text message 2",
+		User:   user,
+		Silent: true,
+	}
+	msg2, err = ch.SendMessage(msg2, serverUser.ID)
+	require.NoError(t, err, "send message 2")
+	// check that message was updated
+	assert.NotEmpty(t, msg2.ID, "message has ID")
+	assert.NotEmpty(t, msg2.HTML, "message has HTML body")
+	assert.True(t, msg2.Silent, "message silent flag is set")
 }
 
 func TestChannel_Truncate(t *testing.T) {
