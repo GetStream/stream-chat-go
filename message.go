@@ -25,7 +25,8 @@ type Message struct {
 	Text string `json:"text"`
 	HTML string `json:"html"`
 
-	Type MessageType `json:"type,omitempty"` // one of MessageType* constants
+	Type   MessageType `json:"type,omitempty"` // one of MessageType* constants
+	Silent bool        `json:"silent,omitempty"`
 
 	User            *User          `json:"user"`
 	Attachments     []*Attachment  `json:"attachments"`
@@ -78,6 +79,7 @@ func (m *Message) toRequest() messageRequest {
 		ExtraData:     m.ExtraData,
 		ParentID:      m.ParentID,
 		ShowInChannel: m.ShowInChannel,
+		Silent:        m.Silent,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -101,6 +103,7 @@ type messageRequestMessage struct {
 	MentionedUsers []string           `json:"mentioned_users"`
 	ParentID       string             `json:"parent_id"`
 	ShowInChannel  bool               `json:"show_in_channel"`
+	Silent         bool               `json:"silent"`
 
 	ExtraData map[string]interface{} `json:"-"`
 }
