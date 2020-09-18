@@ -3,6 +3,7 @@ package stream_chat //nolint: golint
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -209,6 +210,42 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	resp.updateChannel(ch)
 
 	return nil
+}
+
+type queryMembersResponse struct {
+	Members []*ChannelMember `json:"members"`
+}
+
+// QueryMembers queries members of a channel.
+func (ch *Channel) QueryMembers(q *QueryOption, sorters ...*SortOption) ([]*ChannelMember, error) {
+	qp := map[string]interface{}{
+		"id":                ch.ID,
+		"type":              ch.Type,
+		"filter_conditions": q.Filter,
+		"limit":             q.Limit,
+		"offset":            q.Offset,
+		"sort":              sorters,
+	}
+
+	if len(ch.Members) > 0 {
+		qp["members"] = ch.Members
+	}
+
+	data, err := json.Marshal(&qp)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(string(data))
+
+	values := url.Values{}
+	values.Set("payload", string(data))
+
+	var resp queryMembersResponse
+	if err := ch.client.makeRequest(http.MethodGet, "members", values, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Members, nil
 }
 
 // AddModerators adds moderators with given IDs to the channel.
