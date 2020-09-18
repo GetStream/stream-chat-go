@@ -90,6 +90,43 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
+func TestChannel_QueryMembers(t *testing.T) {
+	c := initClient(t)
+
+	chanID := randomString(12)
+
+	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	require.NoError(t, err, "create channel")
+	defer func() {
+		_ = ch.Delete()
+	}()
+
+	assert.Empty(t, ch.Members, "members are empty")
+
+	prefix := randomString(12)
+	names := []string{"paul", "george", "john", "jessica", "john2"}
+
+	for _, name := range names {
+		id := prefix + name
+		_, err := c.UpdateUser(&User{ID: id, Name: id})
+		require.NoError(t, err)
+		require.NoError(t, ch.AddMembers([]string{id}, nil))
+	}
+
+	members, err := ch.QueryMembers(&QueryOption{
+		Filter: map[string]interface{}{
+			"name": map[string]interface{}{"$autocomplete": prefix + "j"},
+		},
+		Offset: 1,
+		Limit:  10,
+	}, &SortOption{Field: "created_at", Direction: 1})
+
+	require.NoError(t, err)
+	require.Len(t, members, 2)
+	require.Equal(t, prefix+"jessica", members[0].UserID)
+	require.Equal(t, prefix+"john2", members[1].UserID)
+}
+
 // See https://getstream.io/chat/docs/channel_members/ for more details.
 func ExampleChannel_AddModerators() {
 	channel := &Channel{}
