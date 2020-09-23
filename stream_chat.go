@@ -32,6 +32,13 @@ type StreamClient interface {
 	ListChannelTypes() (map[string]*ChannelType, error)
 	UpdateChannelType(name string, options map[string]interface{}) error
 
+	// command.go
+	CreateCommand(cmd *Command) (*Command, error)
+	DeleteCommand(cmdName string) error
+	GetCommand(cmdName string) (*Command, error)
+	ListCommands() ([]*Command, error)
+	UpdateCommand(cmdName string, options map[string]interface{}) (*Command, error)
+
 	// client.go
 	CreateToken(userID string, expire time.Time) ([]byte, error)
 	VerifyWebhook(body []byte, signature []byte) (valid bool)
