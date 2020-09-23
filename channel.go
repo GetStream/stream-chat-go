@@ -104,6 +104,10 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 }
 
+type SendBulkMessagesResponse struct {
+	Messages []Message `json:messages`
+}
+
 // query makes request to channel api and updates channel internal state.
 func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
@@ -212,6 +216,30 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	return nil
 }
 
+// SendBulkMessages
+func (ch *Channel) SendBulkMessages(messages ...*Message) (*SendBulkMessagesResponse, error) {
+	for _, m := range messages {
+		if m.User == nil || m.User.ID == "" {
+			return nil, errors.New("message.user is a required field")
+		}
+	}
+
+	data := map[string]interface{}{
+		"messages": messages,
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "bulkmessages")
+
+	var resp SendBulkMessagesResponse
+
+	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 type queryMembersResponse struct {
 	Members []*ChannelMember `json:"members"`
 }
@@ -310,7 +338,6 @@ func (ch *Channel) inviteMembers(userIDs []string, msg *Message) error {
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
