@@ -216,7 +216,7 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	return nil
 }
 
-// SendBulkMessages
+// SendBulkMessages is a batch endpoint for inserting multiple messages
 func (ch *Channel) SendBulkMessages(messages ...*Message) (*SendBulkMessagesResponse, error) {
 	for _, m := range messages {
 		if m.User == nil || m.User.ID == "" {
