@@ -227,8 +227,16 @@ func (ch *Channel) QueryMembers(q *QueryOption, sorters ...*SortOption) ([]*Chan
 		"sort":              sorters,
 	}
 
-	if len(ch.Members) > 0 {
-		qp["members"] = ch.Members
+	if ch.ID == "" && len(ch.Members) > 0 {
+		members := make([]*ChannelMember, 0, len(ch.Members))
+		for _, m := range ch.Members {
+			if m.User != nil {
+				members = append(members, &ChannelMember{UserID: m.User.ID})
+			} else {
+				members = append(members, &ChannelMember{UserID: m.UserID})
+			}
+		}
+		qp["members"] = members
 	}
 
 	data, err := json.Marshal(&qp)
