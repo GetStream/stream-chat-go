@@ -105,7 +105,7 @@ func (q queryResponse) updateChannel(ch *Channel) {
 }
 
 type SendBulkMessagesResponse struct {
-	Messages []Message `json:messages`
+	Messages []Message `json:"messages"`
 }
 
 // query makes request to channel api and updates channel internal state.
