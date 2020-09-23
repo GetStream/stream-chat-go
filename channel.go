@@ -104,7 +104,7 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 }
 
-type SendBulkMessagesResponse struct {
+type ImportChannelMessagesResponse struct {
 	Messages []Message `json:"messages"`
 }
 
@@ -216,23 +216,20 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	return nil
 }
 
-// SendBulkMessages is a batch endpoint for inserting multiple messages.
-func (ch *Channel) SendBulkMessages(messages ...*Message) (*SendBulkMessagesResponse, error) {
+// ImportChannelMessages is a batch endpoint for inserting multiple messages.
+func (ch *Channel) ImportChannelMessages(messages ...*Message) (*ImportChannelMessagesResponse, error) {
 	for _, m := range messages {
 		if m.User == nil || m.User.ID == "" {
 			return nil, errors.New("message.user is a required field")
 		}
 	}
 
-	data := map[string]interface{}{
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "import")
+
+	var resp ImportChannelMessagesResponse
+	err := ch.client.makeRequest(http.MethodPost, p, nil, map[string]interface{}{
 		"messages": messages,
-	}
-
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "bulkmessages")
-
-	var resp SendBulkMessagesResponse
-
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	}, &resp)
 	if err != nil {
 		return nil, err
 	}

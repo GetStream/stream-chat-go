@@ -91,7 +91,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
-func TestChannel_SendBulkMessages(t *testing.T) {
+func TestChannel_ImportChannelMessages(t *testing.T) {
 	c := initClient(t)
 
 	chanID := randomString(12)
@@ -108,7 +108,7 @@ func TestChannel_SendBulkMessages(t *testing.T) {
 
 	t0 := time.Unix(0, 0).UTC()
 	t1 := time.Unix(1, 0).UTC()
-	resp, err := ch.SendBulkMessages(
+	resp, err := ch.ImportChannelMessages(
 		&Message{
 			Text:      "hi 1",
 			User:      user,
