@@ -36,13 +36,6 @@ type Permission struct {
 	Priority  int      `json:"priority"` // required
 }
 
-type Command struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Args        string `json:"args"`
-	Set         string `json:"set"`
-}
-
 type ChannelType struct {
 	ChannelConfig
 
