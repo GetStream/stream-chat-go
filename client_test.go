@@ -1,7 +1,6 @@
 package stream_chat // nolint: golint
 
 import (
-	"bytes"
 	"testing"
 	"time"
 
@@ -56,19 +55,19 @@ func TestClient_CreateToken(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []byte
+		want    string
 		wantErr bool
 	}{
 		{
 			"simple without expiration",
 			args{"tommaso", time.Time{}},
-			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.v-x-jt3ZnBXXbQ0GoWloIZtVnat2IE74U1a4Yuxd63M"),
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.v-x-jt3ZnBXXbQ0GoWloIZtVnat2IE74U1a4Yuxd63M",
 			false,
 		},
 		{
 			"simple with expiration",
 			args{"tommaso", time.Unix(1566941272, 123121)},
-			[]byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.jF4ZbAIEuzS2jRH0uiu3HW9n0NHwT96QkzGlywcG9HU"),
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.jF4ZbAIEuzS2jRH0uiu3HW9n0NHwT96QkzGlywcG9HU",
 			false,
 		},
 	}
@@ -83,8 +82,8 @@ func TestClient_CreateToken(t *testing.T) {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !bytes.Equal(got, tt.want) {
-				t.Errorf("createToken() got = %v, want %v", string(got), string(tt.want))
+			if got != tt.want {
+				t.Errorf("createToken() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

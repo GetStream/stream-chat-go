@@ -126,9 +126,9 @@ func (c *Client) makeRequest(method, path string, params url.Values, data, resul
 
 // CreateToken creates a new token for user with optional expire time.
 // Zero time is assumed to be no expire.
-func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
+func (c *Client) CreateToken(userID string, expire time.Time) (string, error) {
 	if userID == "" {
-		return nil, errors.New("user ID is empty")
+		return "", errors.New("user ID is empty")
 	}
 
 	claims := jwt.MapClaims{
@@ -138,8 +138,7 @@ func (c *Client) CreateToken(userID string, expire time.Time) ([]byte, error) {
 		claims["exp"] = expire.Unix()
 	}
 
-	token, err := c.createToken(claims)
-	return []byte(token), err
+	return c.createToken(claims)
 }
 
 func (c *Client) createToken(claims jwt.Claims) (string, error) {
