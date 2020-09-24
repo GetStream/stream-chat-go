@@ -1,7 +1,7 @@
 # stream-chat-go
 
 [![build](https://github.com/GetStream/stream-chat-go/workflows/build/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
-[![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v2?tab=doc)
+[![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v3?tab=doc)
 
 the official Golang API client for [Stream chat](https://getstream.io/chat/) a service for building chat applications.
 
@@ -12,7 +12,7 @@ You can use this library to access chat API endpoints server-side, for the clien
 ### Installation
 
 ```bash
-go get github.com/GetStream/stream-chat-go/v2
+go get github.com/GetStream/stream-chat-go/v3
 ```
 
 ### Documentation
@@ -40,7 +40,7 @@ package main
 import (
 	"os"
 
-	stream "github.com/GetStream/stream-chat-go/v2"
+	stream "github.com/GetStream/stream-chat-go/v3"
 )
 
 var APIKey = os.Getenv("STREAM_CHAT_API_KEY")
