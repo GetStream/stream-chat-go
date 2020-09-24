@@ -80,6 +80,7 @@ type StreamChannel interface {
 	DemoteModeratorsWithMessage(userIDs []string, msg *Message) error
 	MarkRead(userID string, options map[string]interface{}) error
 	RemoveMembers(userIDs []string, message *Message) error
+	QueryMembers(q *QueryOption, sort ...*SortOption) ([]*ChannelMember, error)
 	Truncate() error
 	UnBanUser(targetID string, options map[string]string) error
 	Update(options map[string]interface{}, message *Message) error
