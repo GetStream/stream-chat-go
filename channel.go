@@ -216,8 +216,8 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	return nil
 }
 
-// ImportChannelMessages is a batch endpoint for inserting multiple messages.
-func (ch *Channel) ImportChannelMessages(messages ...*Message) (*ImportChannelMessagesResponse, error) {
+// ImportMessages is a batch endpoint for inserting multiple messages.
+func (ch *Channel) ImportMessages(messages ...*Message) (*ImportChannelMessagesResponse, error) {
 	for _, m := range messages {
 		if m.User == nil || m.User.ID == "" {
 			return nil, errors.New("message.user is a required field")

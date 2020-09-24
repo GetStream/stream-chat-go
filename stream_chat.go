@@ -108,5 +108,5 @@ type StreamChannel interface {
 	GetReactions(messageID string, options map[string][]string) ([]*Reaction, error)
 	SendReaction(reaction *Reaction, messageID string, userID string) (*Message, error)
 
-	ImportChannelMessages(messages ...*Message) (*ImportChannelMessagesResponse, error)
+	ImportMessages(messages ...*Message) (*ImportChannelMessagesResponse, error)
 }

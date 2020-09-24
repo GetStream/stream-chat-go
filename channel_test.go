@@ -108,7 +108,7 @@ func TestChannel_ImportChannelMessages(t *testing.T) {
 
 	t0 := time.Unix(0, 0).UTC()
 	t1 := time.Unix(1, 0).UTC()
-	resp, err := ch.ImportChannelMessages(
+	resp, err := ch.ImportMessages(
 		&Message{
 			Text:      "hi 1",
 			User:      user,
