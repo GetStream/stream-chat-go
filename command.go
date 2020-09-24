@@ -14,12 +14,12 @@ type Command struct {
 	Set         string `json:"set"`
 }
 
-// commandResponse represent a API response containing one Command
+// commandResponse represent an API response containing one Command
 type commandResponse struct {
 	Command *Command
 }
 
-// commandsResponse represent a API response containing a list of Command
+// commandsResponse represent an API response containing a list of Command
 type commandsResponse struct {
 	Commands []*Command
 }
