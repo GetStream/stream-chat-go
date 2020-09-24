@@ -263,17 +263,17 @@ func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
 }
 
 // NewClient creates new stream chat api client.
-func NewClient(apiKey string, apiSecret []byte) (*Client, error) {
+func NewClient(apiKey, apiSecret string) (*Client, error) {
 	switch {
 	case apiKey == "":
 		return nil, errors.New("API key is empty")
-	case len(apiSecret) == 0:
+	case apiSecret == "":
 		return nil, errors.New("API secret is empty")
 	}
 
 	client := &Client{
 		apiKey:    apiKey,
-		apiSecret: apiSecret,
+		apiSecret: []byte(apiSecret),
 		BaseURL:   defaultBaseURL,
 		HTTP: &http.Client{
 			Timeout: defaultTimeout,
