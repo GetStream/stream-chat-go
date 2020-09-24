@@ -104,6 +104,10 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 }
 
+type ImportChannelMessagesResponse struct {
+	Messages []Message `json:"messages"`
+}
+
 // query makes request to channel api and updates channel internal state.
 func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
@@ -212,6 +216,27 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 	return nil
 }
 
+// ImportMessages is a batch endpoint for inserting multiple messages.
+func (ch *Channel) ImportMessages(messages ...*Message) (*ImportChannelMessagesResponse, error) {
+	for _, m := range messages {
+		if m.User == nil || m.User.ID == "" {
+			return nil, errors.New("message.user is a required field")
+		}
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "import")
+
+	var resp ImportChannelMessagesResponse
+	err := ch.client.makeRequest(http.MethodPost, p, nil, map[string]interface{}{
+		"messages": messages,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 type queryMembersResponse struct {
 	Members []*ChannelMember `json:"members"`
 }
@@ -310,7 +335,6 @@ func (ch *Channel) inviteMembers(userIDs []string, msg *Message) error {
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
