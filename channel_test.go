@@ -576,7 +576,7 @@ func ExampleChannel_Update() {
 }
 
 func (c *Client) ExampleClient_CreateChannel() {
-	client, _ := NewClient("XXXX", []byte("XXXX"))
+	client, _ := NewClient("XXXX", "XXXX")
 
 	channel, _ := client.CreateChannel("team", "stream", "tommaso", nil)
 	_, _ = channel.SendMessage(&Message{

@@ -10,7 +10,7 @@ import (
 )
 
 func initClient(t *testing.T) *Client {
-	c, err := NewClient(APIKey, []byte(APISecret))
+	c, err := NewClient(APIKey, APISecret)
 	require.NoError(t, err, "new client")
 
 	// set hostname to client from env if present
@@ -42,7 +42,7 @@ func TestNewClient(t *testing.T) {
 	c := initClient(t)
 
 	assert.Equal(t, c.apiKey, APIKey)
-	assert.Equal(t, c.apiSecret, []byte(APISecret))
+	assert.Equal(t, string(c.apiSecret), APISecret)
 	assert.NotEmpty(t, c.authToken)
 	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
 }
@@ -75,7 +75,7 @@ func TestClient_CreateToken(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := NewClient("key", []byte("secret"))
+			c, err := NewClient("key", "secret")
 			require.NoError(t, err)
 
 			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
