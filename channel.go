@@ -3,7 +3,6 @@ package stream_chat //nolint: golint
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -268,8 +267,6 @@ func (ch *Channel) QueryMembers(q *QueryOption, sorters ...*SortOption) ([]*Chan
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(string(data))
 
 	values := url.Values{}
 	values.Set("payload", string(data))
