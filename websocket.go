@@ -97,7 +97,6 @@ func (wsConn *WebsocketConn) monitorHealth() error {
 	}
 }
 func (wsConn *WebsocketConn) run() error {
-	defer wsConn.Close()
 	go wsConn.writePingLoop()
 	return wsConn.readLoop()
 }
@@ -153,7 +152,7 @@ func (wsConn *WebsocketConn) writePingLoop() error {
 }
 
 func (wsConn *WebsocketConn) readEvent(buffer *bytes.Buffer) error {
-	if err := wsConn.SetReadDeadline(time.Now().Add(time.Second * 35)); err != nil {
+	if err := wsConn.SetReadDeadline(time.Now().Add(time.Second * 60)); err != nil {
 		return err
 	}
 	controlHandler := wsutil.ControlFrameHandler(wsConn, ws.StateClientSide)
