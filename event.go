@@ -71,6 +71,7 @@ const (
 
 // Event is received from a webhook, or sent with the SendEvent function.
 type Event struct {
+	ConnectionID string           `json:"connection_id,omitempty"`
 	CID          string           `json:"cid,omitempty"` // Channel ID
 	Type         EventType        `json:"type"`          // Event type, one of Event* constants
 	Message      *Message         `json:"message,omitempty"`

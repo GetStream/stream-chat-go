@@ -11,6 +11,8 @@ type QueryOption struct {
 	// https://getstream.io/chat/docs/#query_syntax
 	Filter map[string]interface{} `json:"filter_conditions,omitempty"`
 	Sort   []*SortOption          `json:"sort,omitempty"`
+	Watch  bool                   `json:"watch,omitempty"`
+	State  bool                   `json:"state,omitempty"`
 
 	UserID string `json:"user_id,omitempty"`
 	Limit  int    `json:"limit,omitempty"`  // pagination option: limit number of results
@@ -33,6 +35,8 @@ type queryRequest struct {
 
 	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
 	Sort             []*SortOption          `json:"sort,omitempty"`
+
+	ConnectionID string `json:"connection_id,omitempty"`
 }
 
 type queryUsersResponse struct {
@@ -79,13 +83,16 @@ type queryChannelResponseData struct {
 func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
 	qp := queryRequest{
 		State:            true,
+		Watch:            q.Watch,
 		FilterConditions: q.Filter,
 		Sort:             sort,
 		UserID:           q.UserID,
 		Limit:            q.Limit,
 		Offset:           q.Offset,
 	}
-
+	if c.wsConn != nil {
+		qp.ConnectionID = c.wsConn.ID()
+	}
 	data, err := json.Marshal(&qp)
 	if err != nil {
 		return nil, err

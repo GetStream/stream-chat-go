@@ -118,13 +118,19 @@ func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 		data = map[string]interface{}{}
 	}
 
+	var params url.Values
+	if ch.client.wsConn != nil {
+		params = url.Values{}
+		params.Set("connection_id", ch.client.wsConn.ID())
+	}
+
 	payload["data"] = data
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
 	var resp queryResponse
 
-	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
+	err = ch.client.makeRequest(http.MethodPost, p, params, payload, &resp)
 	if err != nil {
 		return err
 	}

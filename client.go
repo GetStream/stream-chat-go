@@ -26,6 +26,8 @@ const (
 	defaultTimeout = 6 * time.Second
 )
 
+type EventHandler func(event *Event)
+
 type Client struct {
 	BaseURL string
 	HTTP    *http.Client `json:"-"`
@@ -33,6 +35,9 @@ type Client struct {
 	apiKey    string
 	apiSecret []byte
 	authToken string
+
+	onEvent EventHandler
+	wsConn  *WebsocketConn
 }
 
 func (c *Client) setHeaders(r *http.Request) {
@@ -64,6 +69,15 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	_url, err := url.Parse(c.BaseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
+	}
+
+	if path == "connect" {
+		switch _url.Scheme {
+		case "http":
+			_url.Scheme = "ws"
+		case "https":
+			_url.Scheme = "wss"
+		}
 	}
 
 	if values == nil {
@@ -299,4 +313,45 @@ func (c *Client) Channel(channelType, channelID string) *Channel {
 		ID:   channelID,
 		Type: channelType,
 	}
+}
+
+func (c *Client) SetUser(user User, handler EventHandler) (string, error) {
+	token, err := c.createToken(jwt.MapClaims{
+		"user_id": user.ID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	userDetails := ConnectRequest{
+		ServerDeterminesID: true,
+		UserDetails:        user,
+	}
+
+	v, err := json.Marshal(userDetails)
+	if err != nil {
+		return "", err
+	}
+
+	url, err := c.requestURL("connect", url.Values{
+		"authorization":    []string{token},
+		"stream-auth-type": []string{"jwt"},
+		"json":             []string{string(v)},
+	})
+	if err != nil {
+		return "", err
+	}
+	ws := NewWebsocketConn(url, handler)
+	if err := ws.Dial(); err != nil {
+		return "", err
+	}
+	c.wsConn = ws
+	return c.wsConn.ID(), nil
+}
+
+func (c *Client) Disconnect() error {
+	c.wsConn.CancelFunc()
+	cc := c.wsConn
+	c.wsConn = nil
+	return cc.Close()
 }
