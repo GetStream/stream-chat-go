@@ -341,10 +341,11 @@ func (c *Client) SetUser(user User, handler EventHandler) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ws := NewWebsocketConn(url, handler)
-	if err := ws.Dial(); err != nil {
+	ws := NewWebsocketConn(url, handler, 3)
+	if err := ws.Connect(); err != nil {
 		return "", err
 	}
+	go ws.monitorHealth()
 	c.wsConn = ws
 	return c.wsConn.ID(), nil
 }
