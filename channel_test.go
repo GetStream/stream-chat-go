@@ -22,8 +22,8 @@ func TestClient_CreateChannel(t *testing.T) {
 		assert.Equal(t, c, got.client, "client link")
 		assert.Equal(t, ch.Type, got.Type, "channel type")
 		assert.Equal(t, ch.ID, got.ID, "channel id")
-		assert.Equal(t, got.MemberCount, ch.MemberCount, "member count")
-		assert.Len(t, got.Members, got.MemberCount, "members length")
+		assert.Equal(t, ch.MemberCount, got.MemberCount, "member count")
+		assert.Len(t, got.Members, ch.MemberCount, "members length")
 	})
 
 	tests := []struct {

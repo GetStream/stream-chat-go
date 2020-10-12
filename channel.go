@@ -488,9 +488,10 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 
 	data["created_by"] = map[string]string{"id": userID}
 
-	err := ch.query(options, data)
-
-	return ch, err
+	if err := ch.query(options, data); err != nil {
+		return nil, err
+	}
+	return ch, nil
 }
 
 type SendFileRequest struct {
