@@ -162,8 +162,8 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, members, 2)
-	require.Equal(t, prefix+"jessica", members[0].UserID)
-	require.Equal(t, prefix+"john2", members[1].UserID)
+	require.Equal(t, prefix+"jessica", members[0].User.ID)
+	require.Equal(t, prefix+"john2", members[1].User.ID)
 }
 
 // See https://getstream.io/chat/docs/channel_members/ for more details.
