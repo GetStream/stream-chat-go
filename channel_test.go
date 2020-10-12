@@ -22,8 +22,8 @@ func TestClient_CreateChannel(t *testing.T) {
 		assert.Equal(t, c, got.client, "client link")
 		assert.Equal(t, ch.Type, got.Type, "channel type")
 		assert.Equal(t, ch.ID, got.ID, "channel id")
-		assert.Equal(t, got.MemberCount, ch.MemberCount, "member count")
-		assert.Len(t, got.Members, got.MemberCount, "members length")
+		assert.Equal(t, ch.MemberCount, got.MemberCount, "member count")
+		assert.Len(t, got.Members, ch.MemberCount, "members length")
 	})
 
 	tests := []struct {
@@ -162,8 +162,8 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, members, 2)
-	require.Equal(t, prefix+"jessica", members[0].UserID)
-	require.Equal(t, prefix+"john2", members[1].UserID)
+	require.Equal(t, prefix+"jessica", members[0].User.ID)
+	require.Equal(t, prefix+"john2", members[1].User.ID)
 }
 
 // See https://getstream.io/chat/docs/channel_members/ for more details.
