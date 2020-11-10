@@ -70,17 +70,24 @@ func TestClient_QueryChannels(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	got, err := c.QueryChannels(&QueryOption{Filter: map[string]interface{}{
-		"id": map[string]interface{}{
-			"$eq": ch.ID,
+	_, err := ch.SendMessage(&Message{Text: "abc"}, "some")
+	require.NoError(t, err)
+	_, err = ch.SendMessage(&Message{Text: "abc"}, "some")
+	require.NoError(t, err)
+
+	messageLimit := 1
+	got, err := c.QueryChannels(&QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]interface{}{
+				"$eq": ch.ID,
+			},
 		},
-	}})
+		MessageLimit: messageLimit,
+	})
 
 	require.NoError(t, err, "query channels error")
-
-	if assert.NotEmpty(t, got, "query channels exists") {
-		assert.Equal(t, ch.ID, got[0].ID, "received channel ID")
-	}
+	require.Equal(t, ch.ID, got[0].ID, "received channel ID")
+	require.Len(t, got[0].Messages, messageLimit)
 }
 
 func TestClient_Search(t *testing.T) {
