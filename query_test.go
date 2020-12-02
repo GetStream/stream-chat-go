@@ -82,7 +82,7 @@ func TestClient_QueryChannels(t *testing.T) {
 				"$eq": ch.ID,
 			},
 		},
-		MessageLimit: messageLimit,
+		MessageLimit: &messageLimit,
 	})
 
 	require.NoError(t, err, "query channels error")
