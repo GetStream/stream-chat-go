@@ -15,8 +15,8 @@ type QueryOption struct {
 	UserID       string `json:"user_id,omitempty"`
 	Limit        int    `json:"limit,omitempty"`  // pagination option: limit number of results
 	Offset       int    `json:"offset,omitempty"` // pagination option: offset to return items from
-	MessageLimit int    `json:"message_limit,omitempty"`
-	MemberLimit  int    `json:"member_limit,omitempty"`
+	MessageLimit *int   `json:"message_limit,omitempty"`
+	MemberLimit  *int   `json:"member_limit,omitempty"`
 }
 
 type SortOption struct {
@@ -32,8 +32,8 @@ type queryRequest struct {
 	UserID       string `json:"user_id,omitempty"`
 	Limit        int    `json:"limit,omitempty"`
 	Offset       int    `json:"offset,omitempty"`
-	MemberLimit  int    `json:"member_limit,omitempty"`
-	MessageLimit int    `json:"message_limit,omitempty"`
+	MemberLimit  *int   `json:"member_limit,omitempty"`
+	MessageLimit *int   `json:"message_limit,omitempty"`
 
 	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
 	Sort             []*SortOption          `json:"sort,omitempty"`
