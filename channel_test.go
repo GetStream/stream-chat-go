@@ -413,6 +413,10 @@ func TestChannel_PartialUpdate(t *testing.T) {
 		Unset: []string{"age"},
 	})
 	require.NoError(t, err)
+	err = ch.refresh()
+	require.NoError(t, err)
+	require.Equal(t, "red", ch.ExtraData["color"])
+	require.Equal(t, nil, ch.ExtraData["age"])
 }
 
 func TestChannel_AddModerators(t *testing.T) {
