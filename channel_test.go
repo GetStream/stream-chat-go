@@ -399,7 +399,8 @@ func TestChannel_PartialUpdate(t *testing.T) {
 		members = append(members, testUsers[i].ID)
 	}
 
-	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+	var ch *Channel
+	ch, err = c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
 		"members": members,
 		"color":   "blue",
 		"age":     30,
