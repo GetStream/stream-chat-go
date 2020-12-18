@@ -161,7 +161,7 @@ func (ch *Channel) Update(options map[string]interface{}, message *Message) erro
 }
 
 //  PartialUpdate set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
-// options: the object to update the customrties of this channel
+// options: the object to update the custom properties of the channel
 func (ch *Channel) PartialUpdate(update PartialUpdate) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 	return ch.client.makeRequest(http.MethodPatch, p, nil, update, nil)
