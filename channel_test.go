@@ -405,6 +405,7 @@ func TestChannel_PartialUpdate(t *testing.T) {
 		"color":   "blue",
 		"age":     30,
 	})
+	require.NoError(t, err)
 	err = ch.PartialUpdate(PartialUpdate{
 		Set: map[string]interface{}{
 			"color": "red",
