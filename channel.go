@@ -54,6 +54,11 @@ type Channel struct {
 	client *Client
 }
 
+type PartialUpdate struct {
+	Set   map[string]interface{} `json:"set"`
+	Unset []string               `json:"unset"`
+}
+
 type channelForJSON Channel
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -153,6 +158,13 @@ func (ch *Channel) Update(options map[string]interface{}, message *Message) erro
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, payload, nil)
+}
+
+//  PartialUpdate set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
+// options: the object to update the custom properties of the channel
+func (ch *Channel) PartialUpdate(update PartialUpdate) error {
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+	return ch.client.makeRequest(http.MethodPatch, p, nil, update, nil)
 }
 
 // Delete removes the channel. Messages are permanently removed.

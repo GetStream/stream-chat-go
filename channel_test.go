@@ -389,6 +389,36 @@ func TestChannel_Update(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestChannel_PartialUpdate(t *testing.T) {
+	c := initClient(t)
+	_, err := c.UpdateUsers(testUsers...)
+	require.NoError(t, err, "update users")
+
+	members := make([]string, 0, len(testUsers))
+	for i := range testUsers {
+		members = append(members, testUsers[i].ID)
+	}
+
+	var ch *Channel
+	ch, err = c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+		"members": members,
+		"color":   "blue",
+		"age":     30,
+	})
+	require.NoError(t, err)
+	err = ch.PartialUpdate(PartialUpdate{
+		Set: map[string]interface{}{
+			"color": "red",
+		},
+		Unset: []string{"age"},
+	})
+	require.NoError(t, err)
+	err = ch.refresh()
+	require.NoError(t, err)
+	require.Equal(t, "red", ch.ExtraData["color"])
+	require.Equal(t, nil, ch.ExtraData["age"])
+}
+
 func TestChannel_AddModerators(t *testing.T) {
 }
 
