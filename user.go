@@ -33,10 +33,11 @@ type ChannelMuteResponse struct {
 }
 
 type User struct {
-	ID    string `json:"id"`
-	Name  string `json:"name,omitempty"`
-	Image string `json:"image,omitempty"`
-	Role  string `json:"role,omitempty"`
+	ID    string   `json:"id"`
+	Name  string   `json:"name,omitempty"`
+	Image string   `json:"image,omitempty"`
+	Role  string   `json:"role,omitempty"`
+	Teams []string `json:"teams,omitempty"`
 
 	Online    bool `json:"online,omitempty"`
 	Invisible bool `json:"invisible,omitempty"`
