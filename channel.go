@@ -33,6 +33,7 @@ type Channel struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
 	CID  string `json:"cid"` // full id in format channel_type:channel_ID
+	Team string `json:"team"`
 
 	Config ChannelConfig `json:"config"`
 

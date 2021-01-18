@@ -11,6 +11,7 @@ type AppSettings struct {
 	APNConfig          *APNConfig      `json:"apn_config,omitempty"`
 	FirebaseConfig     *FirebaseConfig `json:"firebase_config,omitempty"`
 	WebhookURL         *string         `json:"webhook_url,omitempty"`
+	MultiTenantEnabled *bool           `json:"multi_tenant_enabled,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -35,6 +36,11 @@ func (a *AppSettings) SetFirebaseConfig(c FirebaseConfig) *AppSettings {
 
 func (a *AppSettings) SetWebhookURL(s string) *AppSettings {
 	a.WebhookURL = &s
+	return a
+}
+
+func (a *AppSettings) SetMultiTenant(b bool) *AppSettings {
+	a.MultiTenantEnabled = &b
 	return a
 }
 
@@ -86,6 +92,7 @@ type AppConfig struct {
 	Suspended            bool                      `json:"suspended"`
 	DisableAuth          bool                      `json:"disable_auth_checks"`
 	DisablePermissions   bool                      `json:"disable_permissions_checks"`
+	MultiTenantEnabled   bool                      `json:"multi_tenant_enabled"`
 }
 
 type appResponse struct {
