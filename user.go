@@ -270,14 +270,21 @@ type userRequest struct {
 	LastActive time.Time `json:"-"`
 }
 
-// UpdateUser sending update users request, returns updated user info.
-func (c *Client) UpdateUser(user *User) (*User, error) {
-	users, err := c.UpdateUsers(user)
+// UpsertUser is a single user version of UpsertUsers for convenience.
+func (c *Client) UpsertUser(user *User) (*User, error) {
+	users, err := c.UpsertUsers(user)
 	return users[user.ID], err
 }
 
-// UpdateUsers send update users request, returns updated user info.
-func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
+// UpdateUser sending update users request, returns updated user info.
+// Deprecated: Use UpsertUser. Renamed for clarification, functionality is same.
+func (c *Client) UpdateUser(user *User) (*User, error) {
+	return c.UpsertUser(user)
+}
+
+// UpsertUsers sends given full users. If not exists, they will be created.
+// Otherwise, custom data will be extended, missing keys are never removed.
+func (c *Client) UpsertUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
 		return nil, errors.New("users are not set")
 	}
@@ -295,6 +302,12 @@ func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	}
 
 	return resp.Users, err
+}
+
+// UpdateUsers send update users request, returns updated user info.
+// Deprecated: Use UpsertUsers. Renamed for clarification, functionality is same.
+func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
+	return c.UpsertUsers(users...)
 }
 
 // PartialUserUpdate request; Set and Unset fields can be set at same time, but should not be same field,

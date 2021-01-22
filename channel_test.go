@@ -147,7 +147,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	for _, name := range names {
 		id := prefix + name
-		_, err := c.UpdateUser(&User{ID: id, Name: id})
+		_, err := c.UpsertUser(&User{ID: id, Name: id})
 		require.NoError(t, err)
 		require.NoError(t, ch.AddMembers([]string{id}, nil))
 	}
@@ -391,7 +391,7 @@ func TestChannel_Update(t *testing.T) {
 
 func TestChannel_PartialUpdate(t *testing.T) {
 	c := initClient(t)
-	_, err := c.UpdateUsers(testUsers...)
+	_, err := c.UpsertUsers(testUsers...)
 	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
@@ -500,7 +500,7 @@ func TestChannel_SendImage(t *testing.T) {
 func TestChannel_AcceptInvite(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpdateUsers(testUsers...)
+	_, err := c.UpsertUsers(testUsers...)
 	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
@@ -521,7 +521,7 @@ func TestChannel_AcceptInvite(t *testing.T) {
 func TestChannel_RejectInvite(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpdateUsers(testUsers...)
+	_, err := c.UpsertUsers(testUsers...)
 	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))
@@ -542,7 +542,7 @@ func TestChannel_RejectInvite(t *testing.T) {
 func TestChannel_Mute_Unmute(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpdateUsers(testUsers...)
+	_, err := c.UpsertUsers(testUsers...)
 	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))

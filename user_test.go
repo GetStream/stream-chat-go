@@ -110,12 +110,12 @@ func TestClient_UnmuteUsers(t *testing.T) {
 	assert.NoError(t, err, "unmute users")
 }
 
-func TestClient_UpdateUsers(t *testing.T) {
+func TestClient_UpsertUsers(t *testing.T) {
 	c := initClient(t)
 
 	user := randomUser()
 
-	resp, err := c.UpdateUsers(user)
+	resp, err := c.UpsertUsers(user)
 	require.NoError(t, err, "update users")
 
 	assert.Contains(t, resp, user.ID)
@@ -160,10 +160,10 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
 }
 
-func ExampleClient_UpdateUser() {
+func ExampleClient_UpsertUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, err := client.UpdateUser(&User{
+	_, err := client.UpsertUser(&User{
 		ID:   "tommaso",
 		Name: "Tommaso",
 		Role: "Admin",

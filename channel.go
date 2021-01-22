@@ -143,7 +143,7 @@ func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 	return nil
 }
 
-// Update edits the channel's custom properties
+// Update edits the channel's custom properties.
 //
 // options: the object to update the custom properties of this channel with
 // message: optional update message
@@ -377,7 +377,8 @@ func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
 }
 
-// MarkRead send the mark read event for user with given ID, only works if the `read_events` setting is enabled
+// MarkRead send the mark read event for user with given ID,
+// only works if the `read_events` setting is enabled.
 // options: additional data, ie {"messageID": last_messageID}
 func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
 	switch {
