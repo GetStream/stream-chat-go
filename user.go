@@ -277,13 +277,13 @@ func (c *Client) UpsertUser(user *User) (*User, error) {
 }
 
 // UpdateUser sending update users request, returns updated user info.
-// Deprecated: Use UpsertUser. Renamed for clarification, functionality is same.
+// Deprecated: Use UpsertUser. Renamed for clarification, functionality remains the same.
 func (c *Client) UpdateUser(user *User) (*User, error) {
 	return c.UpsertUser(user)
 }
 
-// UpsertUsers sends given full users. If not exists, they will be created.
-// Otherwise, custom data will be extended, missing keys are never removed.
+// UpsertUsers creates the given users. If a user doesn't exist, it will be created.
+// Otherwise, custom data will be extended or updated. Missing data is never removed.
 func (c *Client) UpsertUsers(users ...*User) (map[string]*User, error) {
 	if len(users) == 0 {
 		return nil, errors.New("users are not set")
@@ -305,7 +305,7 @@ func (c *Client) UpsertUsers(users ...*User) (map[string]*User, error) {
 }
 
 // UpdateUsers send update users request, returns updated user info.
-// Deprecated: Use UpsertUsers. Renamed for clarification, functionality is same.
+// Deprecated: Use UpsertUsers. Renamed for clarification, functionality remains the same.
 func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
 	return c.UpsertUsers(users...)
 }
