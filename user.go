@@ -305,7 +305,7 @@ func (c *Client) UpsertUsers(users ...*User) (map[string]*User, error) {
 	return resp.Users, err
 }
 
-// UpdateUsers send update users request, returns updated user info.
+// UpdateUsers sends update user request, returns updated user info.
 //
 // Deprecated: Use UpsertUsers. Renamed for clarification, functionality remains the same.
 func (c *Client) UpdateUsers(users ...*User) (map[string]*User, error) {
