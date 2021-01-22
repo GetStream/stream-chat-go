@@ -21,7 +21,7 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client) *Channel {
-	_, err := c.UpdateUsers(testUsers...)
+	_, err := c.UpsertUsers(testUsers...)
 	require.NoError(t, err, "update users")
 
 	members := make([]string, 0, len(testUsers))

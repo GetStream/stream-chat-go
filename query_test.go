@@ -23,7 +23,7 @@ func TestClient_QueryUsers(t *testing.T) {
 
 	for i := n - 1; i > -1; i-- {
 		u := &User{ID: randomString(30), ExtraData: map[string]interface{}{"order": n - i - 1}}
-		_, err := c.UpdateUser(u)
+		_, err := c.UpsertUser(u)
 		require.NoError(t, err)
 		ids[i] = u.ID
 		time.Sleep(200 * time.Millisecond)

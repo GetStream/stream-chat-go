@@ -292,7 +292,7 @@ type repliesResponse struct {
 	Messages []*Message `json:"messages"`
 }
 
-// GetReplies returns list of the message replies for a parent message
+// GetReplies returns list of the message replies for a parent message.
 // options: Pagination params, ie {limit:10, idlte: 10}
 func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
 	if parentID == "" {
