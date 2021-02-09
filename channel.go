@@ -55,6 +55,13 @@ type Channel struct {
 	client *Client
 }
 
+func (ch Channel) cid() string {
+	if ch.CID != "" {
+		return ch.CID
+	}
+	return ch.Type + ":" + ch.ID
+}
+
 type PartialUpdate struct {
 	Set   map[string]interface{} `json:"set"`
 	Unset []string               `json:"unset"`
@@ -597,7 +604,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 
 	data := map[string]interface{}{
 		"user_id":     userID,
-		"channel_cid": ch.CID,
+		"channel_cid": ch.cid(),
 	}
 	if expiration != nil {
 		data["expiration"] = int(expiration.Milliseconds())
@@ -619,7 +626,7 @@ func (ch *Channel) Unmute(userID string) error {
 
 	data := map[string]interface{}{
 		"user_id":     userID,
-		"channel_cid": ch.CID,
+		"channel_cid": ch.cid(),
 	}
 
 	return ch.client.makeRequest(http.MethodPost, "moderation/unmute/channel", nil, data, nil)
