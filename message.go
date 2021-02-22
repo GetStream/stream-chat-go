@@ -94,7 +94,8 @@ func (m *Message) toRequest() messageRequest {
 }
 
 type messageRequest struct {
-	Message messageRequestMessage `json:"message"`
+	Message  messageRequestMessage `json:"message"`
+	SkipPush bool                  `json:"skip_push,omitempty"`
 }
 
 type messageRequestMessage struct {
@@ -177,8 +178,19 @@ func (a Attachment) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(a.ExtraData, attachmentForJSON(a))
 }
 
+// SendMessageOption is an option that modifies behavior of send message request.
+type SendMessageOption func(*messageRequest)
+
+// MessageSkipPush is a flag that be given to SendMessage if you don't want to generate
+// any push notifications.
+func MessageSkipPush(r *messageRequest) {
+	if r != nil {
+		r.SkipPush = true
+	}
+}
+
 // SendMessage sends a message to the channel. Returns full message details from server.
-func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error) {
+func (ch *Channel) SendMessage(message *Message, userID string, options ...SendMessageOption) (*Message, error) {
 	switch {
 	case message == nil:
 		return nil, errors.New("message is nil")
@@ -186,13 +198,16 @@ func (ch *Channel) SendMessage(message *Message, userID string) (*Message, error
 		return nil, errors.New("user ID must be not empty")
 	}
 
-	var resp messageResponse
-
 	message.User = &User{ID: userID}
-
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, message.toRequest(), &resp)
+	req := message.toRequest()
+	for _, op := range options {
+		op(&req)
+	}
+
+	var resp messageResponse
+	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
 	if err != nil {
 		return nil, err
 	}
