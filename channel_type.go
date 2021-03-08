@@ -134,7 +134,7 @@ func (c *Client) UpdateChannelType(name string, options map[string]interface{}) 
 
 	p := path.Join("channeltypes", url.PathEscape(name))
 
-	return c.makeRequest(http.MethodPut, p, nil, nil, nil)
+	return c.makeRequest(http.MethodPut, p, nil, options, nil)
 }
 
 func (c *Client) DeleteChannelType(name string) error {

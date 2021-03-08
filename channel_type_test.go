@@ -46,6 +46,25 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	assert.Contains(t, got, ct.Name)
 }
 
+func TestClient_UpdateChannelTypePushNotifications(t *testing.T) {
+	c := initClient(t)
+
+	ct := prepareChannelType(t, c)
+	defer func() {
+		_ = c.DeleteChannelType(ct.Name)
+	}()
+
+	// default is on
+	require.True(t, ct.PushNotifications)
+
+	err := c.UpdateChannelType(ct.Name, map[string]interface{}{"push_notifications": false})
+	require.NoError(t, err)
+
+	updated, err := c.GetChannelType(ct.Name)
+	require.NoError(t, err)
+	require.False(t, updated.PushNotifications)
+}
+
 // See https://getstream.io/chat/docs/channel_features/ for more details.
 func ExampleClient_CreateChannelType() {
 	client := &Client{}
