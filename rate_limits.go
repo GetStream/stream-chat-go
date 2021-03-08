@@ -34,40 +34,77 @@ type GetRateLimitsResponse struct {
 	Web        RateLimitsMap `json:"web,omitempty"`
 }
 
-// GetRateLimitsOptions configures the Client.GetRateLimits call.
-type GetRateLimitsOptions struct {
-	// ServerSide, if true, restricts the returned limits to server-side clients only.
-	ServerSide bool
-	// Android, if true, restricts the returned limits to Android clients only.
-	Android bool
-	// IOS, if true, restricts the returned limits to iOS clients only.
-	IOS bool
-	// Web, if true, restricts the returned limits to web clients only.
-	Web bool
-	// Endpoints restricts the returned limits info to the specified endpoints.
-	Endpoints []string
+type getRateLimitsParams struct {
+	serverSide bool
+	android    bool
+	iOS        bool
+	web        bool
+	endpoints  []string
 }
 
-// GetRateLimits returns the current rate limit quotas and usage. If no params are toggled, all the limits
+// GetRateLimitsOption configures the Client.GetRateLimits call.
+type GetRateLimitsOption func(p *getRateLimitsParams)
+
+// WithServerSide restricts the returned limits to server-side clients only.
+func WithServerSide() GetRateLimitsOption {
+	return func(p *getRateLimitsParams) {
+		p.serverSide = true
+	}
+}
+
+// WithAndroid restricts the returned limits to Android clients only.
+func WithAndroid() GetRateLimitsOption {
+	return func(p *getRateLimitsParams) {
+		p.android = true
+	}
+}
+
+// WithIOS restricts the returned limits to iOS clients only.
+func WithIOS() GetRateLimitsOption {
+	return func(p *getRateLimitsParams) {
+		p.iOS = true
+	}
+}
+
+// WithWeb restricts the returned limits to web clients only.
+func WithWeb() GetRateLimitsOption {
+	return func(p *getRateLimitsParams) {
+		p.web = true
+	}
+}
+
+// WithEndpoints restricts the returned limits info to the specified endpoints.
+func WithEndpoints(endpoints ...string) GetRateLimitsOption {
+	return func(p *getRateLimitsParams) {
+		p.endpoints = append(p.endpoints, endpoints...)
+	}
+}
+
+// GetRateLimits returns the current rate limit quotas and usage. If no options are passed, all the limits
 // for all platforms are returned.
-func (c *Client) GetRateLimits(options GetRateLimitsOptions) (GetRateLimitsResponse, error) {
+func (c *Client) GetRateLimits(options ...GetRateLimitsOption) (GetRateLimitsResponse, error) {
 	var resp GetRateLimitsResponse
 
 	params := url.Values{}
-	if options.ServerSide {
+
+	rlParams := getRateLimitsParams{}
+	for _, opt := range options {
+		opt(&rlParams)
+	}
+	if rlParams.serverSide {
 		params.Set("server_side", "true")
 	}
-	if options.Android {
+	if rlParams.android {
 		params.Set("android", "true")
 	}
-	if options.IOS {
+	if rlParams.iOS {
 		params.Set("ios", "true")
 	}
-	if options.Web {
+	if rlParams.web {
 		params.Set("web", "true")
 	}
-	if options.Endpoints != nil {
-		for _, e := range options.Endpoints {
+	if rlParams.endpoints != nil {
+		for _, e := range rlParams.endpoints {
 			params.Add("endpoints", e)
 		}
 	}

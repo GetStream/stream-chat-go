@@ -10,7 +10,7 @@ func TestClient_GetRateLimits(t *testing.T) {
 	c := initClient(t)
 
 	t.Run("get all limits", func(t *testing.T) {
-		limits, err := c.GetRateLimits(GetRateLimitsOptions{})
+		limits, err := c.GetRateLimits()
 		require.NoError(t, err)
 		require.NotEmpty(t, limits.Android)
 		require.NotEmpty(t, limits.Web)
@@ -19,9 +19,7 @@ func TestClient_GetRateLimits(t *testing.T) {
 	})
 
 	t.Run("get only a single platform", func(t *testing.T) {
-		limits, err := c.GetRateLimits(GetRateLimitsOptions{
-			ServerSide: true,
-		})
+		limits, err := c.GetRateLimits(WithServerSide())
 		require.NoError(t, err)
 		require.Empty(t, limits.Android)
 		require.Empty(t, limits.Web)
@@ -30,14 +28,14 @@ func TestClient_GetRateLimits(t *testing.T) {
 	})
 
 	t.Run("get only a few endpoints", func(t *testing.T) {
-		limits, err := c.GetRateLimits(GetRateLimitsOptions{
-			ServerSide: true,
-			Android:    true,
-			Endpoints: []string{
+		limits, err := c.GetRateLimits(
+			WithServerSide(),
+			WithAndroid(),
+			WithEndpoints(
 				"GetRateLimits",
 				"SendMessage",
-			},
-		})
+			),
+		)
 		require.NoError(t, err)
 		require.Empty(t, limits.Web)
 		require.Empty(t, limits.IOS)
