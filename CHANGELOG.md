@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.0] 2021-03-09
 - Fix update channel type endpoint ([#116](https://github.com/GetStream/stream-chat-go/pull/116))
-- Add push notifications enable / disable flag ([#116](https://github.com/GetStream/stream-chat-go/pull/116))
+- Add push notifications enable / disable flag for channel types ([#116](https://github.com/GetStream/stream-chat-go/pull/116))
 
 ## [3.5.0] 2021-03-08
 
