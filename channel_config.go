@@ -16,6 +16,8 @@ type ChannelConfig struct {
 	Reactions bool `json:"reactions"`
 	Replies   bool `json:"replies"`
 	Mutes     bool `json:"mutes"`
+	// enable/disable push notifications
+	PushNotifications bool `json:"push_notifications"`
 
 	// number of days to keep messages, must be MessageRetentionForever or numeric string
 	MessageRetention string `json:"message_retention"`
@@ -27,8 +29,9 @@ type ChannelConfig struct {
 
 // DefaultChannelConfig is the default channel configuration.
 var DefaultChannelConfig = ChannelConfig{
-	Automod:          AutoModDisabled,
-	ModBehavior:      ModBehaviourFlag,
-	MaxMessageLength: defaultMessageLength,
-	MessageRetention: MessageRetentionForever,
+	Automod:           AutoModDisabled,
+	ModBehavior:       ModBehaviourFlag,
+	MaxMessageLength:  defaultMessageLength,
+	MessageRetention:  MessageRetentionForever,
+	PushNotifications: true,
 }
