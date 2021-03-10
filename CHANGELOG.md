@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.1] 2021-03-10
+
+- Update internally how endpoints are handled for GetRateLimits endpoint ([#117](https://github.com/GetStream/stream-chat-go/pull/117))
+
 ## [3.6.0] 2021-03-09
 - Fix update channel type endpoint ([#116](https://github.com/GetStream/stream-chat-go/pull/116))
 - Add push notifications enable / disable flag for channel types ([#116](https://github.com/GetStream/stream-chat-go/pull/116))
