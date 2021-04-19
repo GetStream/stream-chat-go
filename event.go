@@ -127,3 +127,19 @@ func (ch *Channel) SendEvent(event *Event, userID string) error {
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
 }
+
+// SendUserCustomEvent sends a custom event to all connected clients for the user userID.
+func (c *Client) SendUserCustomEvent(event *Event, userID string) error {
+	if event == nil {
+		return errors.New("event is nil")
+	}
+	if userID == "" {
+		return errors.New("userID should not be empty")
+	}
+
+	req := eventRequest{Event: event}
+
+	p := path.Join("users", url.PathEscape(userID), "event")
+
+	return c.makeRequest(http.MethodPost, p, nil, req, nil)
+}

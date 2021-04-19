@@ -88,3 +88,46 @@ func TestClient_CreateToken(t *testing.T) {
 		})
 	}
 }
+
+func TestSendUserCustomEvent(t *testing.T) {
+	c := initClient(t)
+
+	tests := []struct {
+		name        string
+		event       *Event
+		userID      string
+		expectedErr string
+	}{
+		{
+			name: "ok",
+			event: &Event{
+				Type: "custom_event",
+			},
+			userID: "user1",
+		},
+		{
+			name:        "error: event is nil",
+			event:       nil,
+			userID:      "user1",
+			expectedErr: "event is nil",
+		},
+		{
+			name:        "error: empty userID",
+			event:       &Event{},
+			userID:      "",
+			expectedErr: "userID should not be empty",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := c.SendUserCustomEvent(test.event, test.userID)
+
+			if test.expectedErr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.EqualError(t, err, test.expectedErr)
+		})
+	}
+}
