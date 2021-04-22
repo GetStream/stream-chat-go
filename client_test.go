@@ -93,35 +93,35 @@ func TestSendUserCustomEvent(t *testing.T) {
 	c := initClient(t)
 
 	tests := []struct {
-		name        string
-		event       *Event
-		userID      string
-		expectedErr string
+		name         string
+		event        *UserCustomEvent
+		targetUserID string
+		expectedErr  string
 	}{
 		{
 			name: "ok",
-			event: &Event{
+			event: &UserCustomEvent{
 				Type: "custom_event",
 			},
-			userID: "user1",
+			targetUserID: "user1",
 		},
 		{
-			name:        "error: event is nil",
-			event:       nil,
-			userID:      "user1",
-			expectedErr: "event is nil",
+			name:         "error: event is nil",
+			event:        nil,
+			targetUserID: "user1",
+			expectedErr:  "event is nil",
 		},
 		{
-			name:        "error: empty userID",
-			event:       &Event{},
-			userID:      "",
-			expectedErr: "userID should not be empty",
+			name:         "error: empty targetUserID",
+			event:        &UserCustomEvent{},
+			targetUserID: "",
+			expectedErr:  "targetUserID should not be empty",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := c.SendUserCustomEvent(test.event, test.userID)
+			err := c.SendUserCustomEvent(test.targetUserID, test.event)
 
 			if test.expectedErr == "" {
 				require.NoError(t, err)
