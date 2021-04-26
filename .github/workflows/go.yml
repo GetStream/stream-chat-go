@@ -9,6 +9,7 @@ jobs:
     name: Test & Build
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         goVer: [1.15, 1.16]
     steps:
