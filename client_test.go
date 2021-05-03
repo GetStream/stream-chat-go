@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -87,4 +88,68 @@ func TestClient_CreateToken(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSendUserCustomEvent(t *testing.T) {
+	c := initClient(t)
+
+	tests := []struct {
+		name         string
+		event        *UserCustomEvent
+		targetUserID string
+		expectedErr  string
+	}{
+		{
+			name: "ok",
+			event: &UserCustomEvent{
+				Type: "custom_event",
+			},
+			targetUserID: "user1",
+		},
+		{
+			name:         "error: event is nil",
+			event:        nil,
+			targetUserID: "user1",
+			expectedErr:  "event is nil",
+		},
+		{
+			name:         "error: empty targetUserID",
+			event:        &UserCustomEvent{},
+			targetUserID: "",
+			expectedErr:  "targetUserID should not be empty",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := c.SendUserCustomEvent(test.targetUserID, test.event)
+
+			if test.expectedErr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.EqualError(t, err, test.expectedErr)
+		})
+	}
+}
+
+func TestMarshalUnmarshalUserCustomEvent(t *testing.T) {
+	ev1 := UserCustomEvent{
+		Type: "custom_event",
+		ExtraData: map[string]interface{}{
+			"name":   "John Doe",
+			"age":    99.0,
+			"hungry": true,
+			"fruits": []interface{}{},
+		},
+	}
+
+	b, err := json.Marshal(ev1)
+	require.NoError(t, err)
+
+	ev2 := UserCustomEvent{}
+	err = json.Unmarshal(b, &ev2)
+	require.NoError(t, err)
+
+	require.Equal(t, ev1, ev2)
 }

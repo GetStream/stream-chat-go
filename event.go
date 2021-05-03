@@ -109,10 +109,6 @@ func (e Event) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(e.ExtraData, eventForJSON(e))
 }
 
-type eventRequest struct {
-	Event *Event `json:"event"`
-}
-
 // SendEvent sends an event on this channel.
 func (ch *Channel) SendEvent(event *Event, userID string) error {
 	if event == nil {
@@ -121,9 +117,67 @@ func (ch *Channel) SendEvent(event *Event, userID string) error {
 
 	event.User = &User{ID: userID}
 
-	req := eventRequest{Event: event}
+	req := struct {
+		Event *Event `json:"event"`
+	}{
+		Event: event,
+	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
 	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
+}
+
+// UserCustomEvent is a custom event sent to a particular user.
+type UserCustomEvent struct {
+	// Type should be a custom type. Using a built-in event is not supported here.
+	Type string `json:"type"`
+
+	ExtraData map[string]interface{} `json:"-"`
+
+	CreatedAt time.Time `json:"created_at,omitempty"`
+}
+
+type userCustomEventForJSON UserCustomEvent
+
+func (e *UserCustomEvent) UnmarshalJSON(data []byte) error {
+	// TODO: merge this method with Event.UnmarshalJSON
+	var e2 userCustomEventForJSON
+	if err := json.Unmarshal(data, &e2); err != nil {
+		return err
+	}
+	*e = UserCustomEvent(e2)
+
+	if err := json.Unmarshal(data, &e.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(e.ExtraData, *e)
+	return nil
+}
+
+func (e UserCustomEvent) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(e.ExtraData, userCustomEventForJSON(e))
+}
+
+// SendUserCustomEvent sends a custom event to all connected clients for the target user id.
+func (c *Client) SendUserCustomEvent(targetUserID string, event *UserCustomEvent) error {
+	if event == nil {
+		return errors.New("event is nil")
+	}
+	if targetUserID == "" {
+		return errors.New("targetUserID should not be empty")
+	}
+
+	req := struct {
+		TargetUserID string           `json:"target_user_id"`
+		Event        *UserCustomEvent `json:"event"`
+	}{
+		TargetUserID: targetUserID,
+		Event:        event,
+	}
+
+	p := path.Join("users", url.PathEscape(targetUserID), "event")
+
+	return c.makeRequest(http.MethodPost, p, nil, req, nil)
 }
