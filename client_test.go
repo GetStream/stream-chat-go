@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -130,4 +131,25 @@ func TestSendUserCustomEvent(t *testing.T) {
 			require.EqualError(t, err, test.expectedErr)
 		})
 	}
+}
+
+func TestMarshalUnmarshalUserCustomEvent(t *testing.T) {
+	ev1 := UserCustomEvent{
+		Type: "custom_event",
+		ExtraData: map[string]interface{}{
+			"name":   "John Doe",
+			"age":    99.0,
+			"hungry": true,
+			"fruits": []interface{}{},
+		},
+	}
+
+	b, err := json.Marshal(ev1)
+	require.NoError(t, err)
+
+	ev2 := UserCustomEvent{}
+	err = json.Unmarshal(b, &ev2)
+	require.NoError(t, err)
+
+	require.Equal(t, ev1, ev2)
 }
