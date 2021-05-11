@@ -82,17 +82,18 @@ type Policy struct {
 }
 
 type AppConfig struct {
-	Name                 string                    `json:"name"`
-	OrganizationName     string                    `json:"organization"`
-	WebhookURL           string                    `json:"webhook_url"`
-	SuspendedExplanation string                    `json:"suspended_explanation"`
-	PushNotifications    PushNotificationFields    `json:"push_notifications"`
-	ConfigNameMap        map[string]*ChannelConfig `json:"channel_configs"`
-	Policies             map[string][]Policy       `json:"policies"`
-	Suspended            bool                      `json:"suspended"`
-	DisableAuth          bool                      `json:"disable_auth_checks"`
-	DisablePermissions   bool                      `json:"disable_permissions_checks"`
-	MultiTenantEnabled   bool                      `json:"multi_tenant_enabled"`
+	Name                     string                    `json:"name"`
+	OrganizationName         string                    `json:"organization"`
+	WebhookURL               string                    `json:"webhook_url"`
+	SuspendedExplanation     string                    `json:"suspended_explanation"`
+	PushNotifications        PushNotificationFields    `json:"push_notifications"`
+	ConfigNameMap            map[string]*ChannelConfig `json:"channel_configs"`
+	Policies                 map[string][]Policy       `json:"policies"`
+	Suspended                bool                      `json:"suspended"`
+	DisableAuth              bool                      `json:"disable_auth_checks"`
+	DisablePermissions       bool                      `json:"disable_permissions_checks"`
+	MultiTenantEnabled       bool                      `json:"multi_tenant_enabled"`
+	RevokeTokensIssuedBefore *time.Time                `json:"revoke_tokens_issued_before"`
 }
 
 type appResponse struct {
@@ -117,4 +118,16 @@ func (c *Client) GetAppConfig() (*AppConfig, error) {
 //  err := client.UpdateAppSettings(settings)
 func (c *Client) UpdateAppSettings(settings *AppSettings) error {
 	return c.makeRequest(http.MethodPatch, "app", nil, settings, nil)
+}
+
+// RevokeTokens revokes all tokens for an application issued before given time.
+func (c *Client) RevokeTokens(before *time.Time) error {
+	setting := make(map[string]interface{})
+	if before == nil {
+		setting["revoke_tokens_issued_before"] = nil
+	} else {
+		setting["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
+	}
+
+	return c.makeRequest(http.MethodPatch, "app", nil, setting, nil)
 }

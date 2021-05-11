@@ -347,3 +347,38 @@ func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*Us
 
 	return resp.Users, err
 }
+
+// RevokeUserToken revoke token for a user issued before given time.
+func (c *Client) RevokeUserToken(userID string, before *time.Time) error {
+	userUpdate := PartialUserUpdate{
+		ID:  userID,
+		Set: make(map[string]interface{}),
+	}
+	if before == nil {
+		userUpdate.Set["revoke_tokens_issued_before"] = nil
+	} else {
+		userUpdate.Set["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
+	}
+	_, err := c.PartialUpdateUser(userUpdate)
+	return err
+}
+
+// RevokeUsersTokens revoke tokens for users issued before given time.
+func (c *Client) RevokeUsersTokens(userIDs []string, before *time.Time) error {
+	userUpdates := make([]PartialUserUpdate, 0)
+	for _, userID := range userIDs {
+		userUpdate := PartialUserUpdate{
+			ID:  userID,
+			Set: make(map[string]interface{}),
+		}
+		if before == nil {
+			userUpdate.Set["revoke_tokens_issued_before"] = nil
+		} else {
+			userUpdate.Set["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
+		}
+		userUpdates = append(userUpdates, userUpdate)
+	}
+
+	_, err := c.PartialUpdateUsers(userUpdates)
+	return err
+}
