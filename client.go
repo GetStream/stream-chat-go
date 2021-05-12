@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://chat-us-east-1.stream-io-api.com"
+	defaultBaseURL = "https://chat-proxy-us-east.stream-io-api.com"
 	defaultTimeout = 6 * time.Second
 )
 
