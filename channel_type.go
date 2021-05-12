@@ -21,6 +21,14 @@ const (
 	MessageRetentionForever = "infinite"
 )
 
+var defaultChannelTypes = []string{
+	"messaging",
+	"team",
+	"livestream",
+	"commerce",
+	"gaming",
+}
+
 type (
 	modType      string
 	modBehaviour string

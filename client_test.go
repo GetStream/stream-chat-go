@@ -122,6 +122,11 @@ func TestSendUserCustomEvent(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			if test.expectedErr == "" {
+				_, err := c.UpsertUser(&User{ID: test.targetUserID})
+				require.NoError(t, err)
+			}
+
 			err := c.SendUserCustomEvent(test.targetUserID, test.event)
 
 			if test.expectedErr == "" {
