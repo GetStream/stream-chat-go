@@ -46,9 +46,10 @@ type User struct {
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 	LastActive *time.Time `json:"last_active,omitempty"`
 
-	Mutes        []*Mute                `json:"mutes,omitempty"`
-	ChannelMutes []*ChannelMute         `json:"channel_mutes,omitempty"`
-	ExtraData    map[string]interface{} `json:"-"`
+	Mutes                    []*Mute                `json:"mutes,omitempty"`
+	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
+	ExtraData                map[string]interface{} `json:"-"`
+	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
 }
 
 type userForJSON User
@@ -350,17 +351,7 @@ func (c *Client) PartialUpdateUsers(updates []PartialUserUpdate) (map[string]*Us
 
 // RevokeUserToken revoke token for a user issued before given time.
 func (c *Client) RevokeUserToken(userID string, before *time.Time) error {
-	userUpdate := PartialUserUpdate{
-		ID:  userID,
-		Set: make(map[string]interface{}),
-	}
-	if before == nil {
-		userUpdate.Set["revoke_tokens_issued_before"] = nil
-	} else {
-		userUpdate.Set["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
-	}
-	_, err := c.PartialUpdateUser(userUpdate)
-	return err
+	return c.RevokeUsersTokens([]string{userID}, before)
 }
 
 // RevokeUsersTokens revoke tokens for users issued before given time.
