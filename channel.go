@@ -38,6 +38,7 @@ type Channel struct {
 	Config ChannelConfig `json:"config"`
 
 	CreatedBy *User `json:"created_by"`
+	Disabled  bool  `json:"disabled"`
 	Frozen    bool  `json:"frozen"`
 
 	MemberCount int              `json:"member_count"`
