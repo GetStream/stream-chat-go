@@ -120,6 +120,9 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	ch := initChannel(t, c)
 
 	user1, user2 := randomUser(), randomUser()
+	for user1.ID == user2.ID {
+		user2 = randomUser()
+	}
 
 	// send 2 messages
 	text := randomString(10)
