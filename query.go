@@ -156,3 +156,29 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 
 	return messages, nil
 }
+
+type queryMessageFlagsResponse struct {
+	Flags []*MessageFlag `json:"flags"`
+}
+
+// QueryMessageFlags returns list of message flags that match QueryOption.
+func (c *Client) QueryMessageFlags(q *QueryOption) ([]*MessageFlag, error) {
+	qp := queryRequest{
+		FilterConditions: q.Filter,
+		Limit:            q.Limit,
+		Offset:           q.Offset,
+	}
+
+	data, err := json.Marshal(&qp)
+	if err != nil {
+		return nil, err
+	}
+
+	values := make(url.Values)
+	values.Set("payload", string(data))
+
+	var resp queryMessageFlagsResponse
+	err = c.makeRequest(http.MethodGet, "moderation/flags/message", values, nil, &resp)
+
+	return resp.Flags, err
+}
