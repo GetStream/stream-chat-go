@@ -114,3 +114,60 @@ func TestClient_Search(t *testing.T) {
 
 	assert.Len(t, got, 2)
 }
+
+func TestClient_QueryMessageFlags(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	user1, user2 := randomUser(), randomUser()
+	for user1.ID == user2.ID {
+		user2 = randomUser()
+	}
+
+	// send 2 messages
+	text := randomString(10)
+	msg1, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user1.ID)
+	require.NoError(t, err)
+	msg2, err := ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
+	require.NoError(t, err)
+
+	// flag 2 messages
+	err = c.FlagMessage(msg2.ID, user1.ID)
+	require.NoError(t, err)
+
+	err = c.FlagMessage(msg1.ID, user2.ID)
+	require.NoError(t, err)
+
+	// both flags show up in this query by channel_cid
+	got, err := c.QueryMessageFlags(&QueryOption{
+		Filter: map[string]interface{}{
+			"channel_cid": map[string][]string{
+				"$in": {ch.cid()},
+			},
+		},
+	})
+	require.NoError(t, err)
+	assert.Len(t, got, 2)
+
+	// one flag shows up in this query by user_id
+	got, err = c.QueryMessageFlags(&QueryOption{
+		Filter: map[string]interface{}{
+			"user_id": user1.ID,
+		},
+	})
+	require.NoError(t, err)
+	assert.Len(t, got, 1)
+
+	// unflag these 2 messages
+	err = c.UnflagMessage(msg1.ID, user2.ID)
+	require.NoError(t, err)
+	err = c.UnflagMessage(msg2.ID, user1.ID)
+	require.NoError(t, err)
+
+	// none should show up
+	got, err = c.QueryMessageFlags(&QueryOption{
+		Filter: map[string]interface{}{"channel_cid": ch.cid()},
+	})
+	require.NoError(t, err)
+	assert.Len(t, got, 0)
+}

@@ -279,25 +279,78 @@ func (c *Client) DeleteMessage(msgID string) error {
 	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
 
-func (c *Client) FlagMessage(msgID string) error {
+type MessageFlag struct {
+	CreatedByAutomod bool `json:"created_by_automod"`
+	ModerationResult *struct {
+		MessageID            string `json:"message_id"`
+		Action               string `json:"action"`
+		ModeratedBy          string `json:"moderated_by"`
+		BlockedWord          string `json:"blocked_word"`
+		BlocklistName        string `json:"blocklist_name"`
+		ModerationThresholds *struct {
+			Explicit *struct {
+				Flag  float32 `json:"flag"`
+				Block float32 `json:"block"`
+			} `json:"explicit"`
+			Spam *struct {
+				Flag  float32 `json:"flag"`
+				Block float32 `json:"block"`
+			} `json:"spam"`
+			Toxic *struct {
+				Flag  float32 `json:"flag"`
+				Block float32 `json:"block"`
+			} `json:"toxic"`
+		} `json:"moderation_thresholds"`
+		AIModerationResponse *struct {
+			Toxic    float32 `json:"toxic"`
+			Explicit float32 `json:"explicit"`
+			Spam     float32 `json:"spam"`
+		} `json:"ai_moderation_response"`
+		UserKarma    float64   `json:"user_karma"`
+		UserBadKarma bool      `json:"user_bad_karma"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+	} `json:"moderation_result"`
+	User    *User    `json:"user"`
+	Message *Message `json:"message"`
+
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	ReviewedAt time.Time `json:"reviewed_at"`
+	ReviewedBy *User     `json:"reviewed_by"`
+	ApprovedAt time.Time `json:"approved_at"`
+	RejectedAt time.Time `json:"rejected_at"`
+}
+
+func (c *Client) FlagMessage(msgID, userID string) error {
 	if msgID == "" {
 		return errors.New("message ID is empty")
 	}
 
+	if userID == "" {
+		return errors.New("user ID is empty")
+	}
+
 	options := map[string]interface{}{
 		"target_message_id": msgID,
+		"user_id":           userID,
 	}
 
 	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
 }
 
-func (c *Client) UnflagMessage(msgID string) error {
+func (c *Client) UnflagMessage(msgID, userID string) error {
 	if msgID == "" {
 		return errors.New("message ID is empty")
 	}
 
+	if userID == "" {
+		return errors.New("user ID is empty")
+	}
+
 	options := map[string]interface{}{
 		"target_message_id": msgID,
+		"user_id":           userID,
 	}
 
 	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)

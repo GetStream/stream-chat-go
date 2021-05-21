@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,6 +13,8 @@ func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 
 	ct, err := c.CreateChannelType(ct)
 	require.NoError(t, err, "create channel type")
+
+	time.Sleep(6 * time.Second)
 
 	return ct
 }
