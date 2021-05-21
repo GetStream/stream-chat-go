@@ -327,7 +327,7 @@ func (c *Client) FlagMessage(msgID, userID string) error {
 		return errors.New("message ID is empty")
 	}
 
-	if msgID == "" {
+	if userID == "" {
 		return errors.New("user ID is empty")
 	}
 
@@ -342,6 +342,10 @@ func (c *Client) FlagMessage(msgID, userID string) error {
 func (c *Client) UnflagMessage(msgID, userID string) error {
 	if msgID == "" {
 		return errors.New("message ID is empty")
+	}
+
+	if userID == "" {
+		return errors.New("user ID is empty")
 	}
 
 	options := map[string]interface{}{
