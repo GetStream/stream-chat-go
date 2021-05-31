@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] 2021-05-31
+
+- Add support for query message flags ([#125](https://github.com/GetStream/stream-chat-go/pull/125))
+- Add support for app and user level token revoke ([#121](https://github.com/GetStream/stream-chat-go/pull/121), [#126](https://github.com/GetStream/stream-chat-go/pull/126))
+
 ## [3.8.0] 2021-05-18
 
 - Add disabled field to channels ([#124](https://github.com/GetStream/stream-chat-go/pull/124))
