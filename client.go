@@ -126,7 +126,7 @@ func (c *Client) makeRequest(method, path string, params url.Values, data, resul
 
 // CreateToken creates a new token for user with optional expire time.
 // Zero time is assumed to be no expire.
-func (c *Client) CreateToken(userID string, expire time.Time, issuedAt *time.Time) (string, error) {
+func (c *Client) CreateToken(userID string, expire time.Time, issuedAt ...time.Time) (string, error) {
 	if userID == "" {
 		return "", errors.New("user ID is empty")
 	}
@@ -137,8 +137,8 @@ func (c *Client) CreateToken(userID string, expire time.Time, issuedAt *time.Tim
 	if !expire.IsZero() {
 		claims["exp"] = expire.Unix()
 	}
-	if issuedAt != nil {
-		claims["iat"] = issuedAt.Unix()
+	if len(issuedAt) > 0 {
+		claims["iat"] = issuedAt[0].Unix()
 	}
 
 	return c.createToken(claims)
