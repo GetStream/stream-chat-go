@@ -78,7 +78,7 @@ func TestClient_CreateToken(t *testing.T) {
 			c, err := NewClient("key", "secret")
 			require.NoError(t, err)
 
-			got, err := c.CreateToken(tt.args.userID, tt.args.expire, nil)
+			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
