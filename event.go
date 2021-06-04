@@ -35,6 +35,8 @@ const (
 	// EventMemberRemoved is fired when a member is removed from a channel.
 	EventMemberRemoved EventType = "member.removed"
 
+	// EventChannelCreated is fired when a channel is created.
+	EventChannelCreated EventType = "channel.created"
 	// EventChannelUpdated is fired when a channel is updated.
 	EventChannelUpdated EventType = "channel.updated"
 	// EventChannelDeleted is fired when a channel is deleted.
