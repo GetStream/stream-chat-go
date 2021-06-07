@@ -156,6 +156,11 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 }
 
 func (c *Client) SearchWithFullResponse(request SearchRequest) (*SearchResponse, error) {
+	if request.Offset != 0 {
+		if len(request.Sort) > 0 || request.Next != "" {
+			return nil, errors.New("cannot use Offset with Next or Sort parameters")
+		}
+	}
 	if request.Query != "" && len(request.MessageFilters) != 0 {
 		return nil, errors.New("can only specify Query or MessageFilters, not both")
 	}
