@@ -155,6 +155,7 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	return messages, nil
 }
 
+// SearchWithFullResponse performs a search and returns the full results.
 func (c *Client) SearchWithFullResponse(request SearchRequest) (*SearchResponse, error) {
 	if request.Offset != 0 {
 		if len(request.Sort) > 0 || request.Next != "" {

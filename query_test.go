@@ -105,18 +105,83 @@ func TestClient_Search(t *testing.T) {
 	_, err = ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
 	require.NoError(t, err)
 
-	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
-		"members": map[string][]string{
-			"$in": {user1.ID, user2.ID},
-		},
-	}})
+	t.Run("Query", func(tt *testing.T) {
+		got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
+			"members": map[string][]string{
+				"$in": {user1.ID, user2.ID},
+			},
+		}})
 
-	require.NoError(t, err)
+		require.NoError(tt, err)
 
-	assert.Len(t, got, 2)
+		assert.Len(tt, got, 2)
+	})
+	t.Run("Message filters", func(tt *testing.T) {
+		got, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			MessageFilters: map[string]interface{}{
+				"text": map[string]interface{}{
+					"$q": text,
+				},
+			},
+		})
+		require.NoError(tt, err)
+
+		assert.Len(tt, got, 2)
+	})
+	t.Run("Query and message filters error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			MessageFilters: map[string]interface{}{
+				"text": map[string]interface{}{
+					"$q": text,
+				},
+			},
+			Query: text,
+		})
+		require.Error(tt, err)
+	})
+	t.Run("Offset and sort error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			Offset: 1,
+			Query:  text,
+			Sort: []SortOption{{
+				Field:     "created_at",
+				Direction: -1,
+			}},
+		})
+		require.Error(tt, err)
+	})
+	t.Run("Offset and next error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			Offset: 1,
+			Query:  text,
+			Next:   randomString(5),
+		})
+		require.Error(tt, err)
+	})
 }
 
 func TestClient_SearchWithFullResponse(t *testing.T) {
+	t.Skip()
 	c := initClient(t)
 	ch := initChannel(t, c)
 
