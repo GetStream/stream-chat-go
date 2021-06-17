@@ -48,7 +48,7 @@ var APISecret = os.Getenv("STREAM_CHAT_API_SECRET")
 var userID = "" // your server user id
 
 func main() {
-	client, err := stream.NewClient(APIKey, []byte(APISecret))
+	client, err := stream.NewClient(APIKey, APISecret)
 	// use client methods
 
 	// create channel with users
