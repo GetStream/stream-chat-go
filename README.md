@@ -46,9 +46,15 @@ import (
 var APIKey = os.Getenv("STREAM_CHAT_API_KEY")
 var APISecret = os.Getenv("STREAM_CHAT_API_SECRET")
 var userID = "" // your server user id
+var baseURL = "https://chat-proxy-singapore.stream-io-api.com"
 
 func main() {
 	client, err := stream.NewClient(APIKey, APISecret)
+	// handle error
+
+	// set a base url if other than US, singapore in this example
+	client.BaseURL = baseURL
+
 	// use client methods
 
 	// create channel with users
