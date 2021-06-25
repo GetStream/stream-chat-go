@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -104,15 +105,144 @@ func TestClient_Search(t *testing.T) {
 	_, err = ch.SendMessage(&Message{Text: text + " " + randomString(25)}, user2.ID)
 	require.NoError(t, err)
 
-	got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
-		"members": map[string][]string{
-			"$in": {user1.ID, user2.ID},
+	t.Run("Query", func(tt *testing.T) {
+		got, err := c.Search(SearchRequest{Query: text, Filters: map[string]interface{}{
+			"members": map[string][]string{
+				"$in": {user1.ID, user2.ID},
+			},
+		}})
+
+		require.NoError(tt, err)
+
+		assert.Len(tt, got, 2)
+	})
+	t.Run("Message filters", func(tt *testing.T) {
+		got, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			MessageFilters: map[string]interface{}{
+				"text": map[string]interface{}{
+					"$q": text,
+				},
+			},
+		})
+		require.NoError(tt, err)
+
+		assert.Len(tt, got, 2)
+	})
+	t.Run("Query and message filters error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			MessageFilters: map[string]interface{}{
+				"text": map[string]interface{}{
+					"$q": text,
+				},
+			},
+			Query: text,
+		})
+		require.Error(tt, err)
+	})
+	t.Run("Offset and sort error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			Offset: 1,
+			Query:  text,
+			Sort: []SortOption{{
+				Field:     "created_at",
+				Direction: -1,
+			}},
+		})
+		require.Error(tt, err)
+	})
+	t.Run("Offset and next error", func(tt *testing.T) {
+		_, err := c.Search(SearchRequest{
+			Filters: map[string]interface{}{
+				"members": map[string][]string{
+					"$in": {user1.ID, user2.ID},
+				},
+			},
+			Offset: 1,
+			Query:  text,
+			Next:   randomString(5),
+		})
+		require.Error(tt, err)
+	})
+}
+
+func TestClient_SearchWithFullResponse(t *testing.T) {
+	t.Skip()
+	c := initClient(t)
+	ch := initChannel(t, c)
+
+	user1, user2 := randomUser(), randomUser()
+
+	text := randomString(10)
+
+	messageIDs := make([]string, 6)
+	for i := 0; i < 6; i++ {
+		userID := user1.ID
+		if i%2 == 0 {
+			userID = user2.ID
+		}
+		messageID := fmt.Sprintf("%d-%s", i, text)
+		_, err := ch.SendMessage(&Message{
+			ID:   messageID,
+			Text: text + " " + randomString(25),
+		}, userID)
+		require.NoError(t, err)
+
+		messageIDs[6-i] = messageID
+	}
+
+	got, err := c.SearchWithFullResponse(SearchRequest{
+		Query: text,
+		Filters: map[string]interface{}{
+			"members": map[string][]string{
+				"$in": {user1.ID, user2.ID},
+			},
 		},
-	}})
+		Sort: []SortOption{
+			{Field: "created_at", Direction: -1},
+		},
+		Limit: 3,
+	})
 
+	gotMessageIDs := make([]string, 0, 6)
 	require.NoError(t, err)
-
-	assert.Len(t, got, 2)
+	assert.NotEmpty(t, got.Next)
+	assert.Len(t, got.Results, 3)
+	for _, result := range got.Results {
+		gotMessageIDs = append(gotMessageIDs, result.Message.ID)
+	}
+	got, err = c.SearchWithFullResponse(SearchRequest{
+		Query: text,
+		Filters: map[string]interface{}{
+			"members": map[string][]string{
+				"$in": {user1.ID, user2.ID},
+			},
+		},
+		Next:  got.Next,
+		Limit: 3,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, got.Previous)
+	assert.Empty(t, got.Next)
+	assert.Len(t, got.Results, 3)
+	for _, result := range got.Results {
+		gotMessageIDs = append(gotMessageIDs, result.Message.ID)
+	}
+	assert.Equal(t, messageIDs, gotMessageIDs)
 }
 
 func TestClient_QueryMessageFlags(t *testing.T) {

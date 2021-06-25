@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -117,24 +118,53 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 
 type SearchRequest struct {
 	// Required
-	Query   string                 `json:"query"`
-	Filters map[string]interface{} `json:"filter_conditions"`
+	Query          string                 `json:"query"`
+	Filters        map[string]interface{} `json:"filter_conditions"`
+	MessageFilters map[string]interface{} `json:"message_filter_conditions"`
 
 	// Pagination, optional
-	Limit  int `json:"limit,omitempty"`
-	Offset int `json:"offset,omitempty"`
+	Limit  int    `json:"limit,omitempty"`
+	Offset int    `json:"offset,omitempty"`
+	Next   string `json:"next,omitempty"`
+
+	// Sort, optional
+	Sort []SortOption `json:"sort,omitempty"`
 }
 
-type searchResponse struct {
-	Results []searchMessageResponse `json:"results"`
+type SearchResponse struct {
+	Results  []SearchMessageResponse `json:"results"`
+	Next     string                  `json:"next,omitempty"`
+	Previous string                  `json:"previous,omitempty"`
 }
 
-type searchMessageResponse struct {
+type SearchMessageResponse struct {
 	Message *Message `json:"message"`
 }
 
 // Search returns channels matching for given keyword.
 func (c *Client) Search(request SearchRequest) ([]*Message, error) {
+	result, err := c.SearchWithFullResponse(request)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]*Message, 0, len(result.Results))
+	for _, res := range result.Results {
+		messages = append(messages, res.Message)
+	}
+
+	return messages, nil
+}
+
+// SearchWithFullResponse performs a search and returns the full results.
+func (c *Client) SearchWithFullResponse(request SearchRequest) (*SearchResponse, error) {
+	if request.Offset != 0 {
+		if len(request.Sort) > 0 || request.Next != "" {
+			return nil, errors.New("cannot use Offset with Next or Sort parameters")
+		}
+	}
+	if request.Query != "" && len(request.MessageFilters) != 0 {
+		return nil, errors.New("can only specify Query or MessageFilters, not both")
+	}
 	var buf strings.Builder
 
 	if err := json.NewEncoder(&buf).Encode(request); err != nil {
@@ -144,17 +174,11 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 	values := url.Values{}
 	values.Set("payload", buf.String())
 
-	var result searchResponse
+	var result SearchResponse
 	if err := c.makeRequest(http.MethodGet, "search", values, nil, &result); err != nil {
 		return nil, err
 	}
-
-	messages := make([]*Message, 0, len(result.Results))
-	for _, res := range result.Results {
-		messages = append(messages, res.Message)
-	}
-
-	return messages, nil
+	return &result, nil
 }
 
 type queryMessageFlagsResponse struct {
