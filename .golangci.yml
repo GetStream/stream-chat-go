@@ -21,7 +21,7 @@ linters-settings:
       - style
     settings:
       hugeParam:
-        sizeThreshold: 364
+        sizeThreshold: 377
       rangeValCopy:
         sizeThreshold: 364
         skipTestFuncs: true
