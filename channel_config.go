@@ -18,6 +18,9 @@ type ChannelConfig struct {
 	Mutes     bool `json:"mutes"`
 	// enable/disable push notifications
 	PushNotifications bool `json:"push_notifications"`
+	Uploads           bool `json:"uploads"`
+	URLEnrichment     bool `json:"url_enrichment"`
+	CustomEvents      bool `json:"custom_events"`
 
 	// number of days to keep messages, must be MessageRetentionForever or numeric string
 	MessageRetention string `json:"message_retention"`
@@ -25,6 +28,21 @@ type ChannelConfig struct {
 
 	Automod     modType      `json:"automod"` // disabled, simple or AI
 	ModBehavior modBehaviour `json:"automod_behavior"`
+
+	BlockList         string       `json:"blocklist"`
+	BlockListBehavior modBehaviour `json:"blocklist_behavior"`
+	AutomodThresholds *Thresholds  `json:"automod_thresholds"`
+}
+
+type LabelThresholds struct {
+	Flag  float32 `json:"flag"`
+	Block float32 `json:"block"`
+}
+
+type Thresholds struct {
+	Explicit *LabelThresholds `json:"explicit"`
+	Spam     *LabelThresholds `json:"spam"`
+	Toxic    *LabelThresholds `json:"toxic"`
 }
 
 // DefaultChannelConfig is the default channel configuration.
