@@ -57,6 +57,10 @@ type ChannelType struct {
 func (ct *ChannelType) toRequest() channelTypeRequest {
 	req := channelTypeRequest{ChannelType: ct}
 
+	for _, cmd := range ct.Commands {
+		req.Commands = append(req.Commands, cmd.Name)
+	}
+
 	if len(req.Commands) == 0 {
 		req.Commands = []string{"all"}
 	}
