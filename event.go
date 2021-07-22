@@ -170,11 +170,9 @@ func (c *Client) SendUserCustomEvent(targetUserID string, event *UserCustomEvent
 	}
 
 	req := struct {
-		TargetUserID string           `json:"target_user_id"`
-		Event        *UserCustomEvent `json:"event"`
+		Event *UserCustomEvent `json:"event"`
 	}{
-		TargetUserID: targetUserID,
-		Event:        event,
+		Event: event,
 	}
 
 	p := path.Join("users", url.PathEscape(targetUserID), "event")
