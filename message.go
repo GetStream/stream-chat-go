@@ -270,13 +270,24 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
+	return c.deleteMessage(msgID, false)
+}
+
+func (c *Client) HardDeleteMessage(msgID string) error {
+	return c.deleteMessage(msgID, true)
+}
+
+func (c *Client) deleteMessage(msgID string, hard bool) error {
 	if msgID == "" {
 		return errors.New("message ID must be not empty")
 	}
-
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	params := map[string][]string{}
+	if hard {
+		params["hard"] = []string{"true"}
+	}
+	return c.makeRequest(http.MethodDelete, p, params, nil, nil)
 }
 
 type MessageFlag struct {
