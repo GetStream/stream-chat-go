@@ -7,15 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.12.0] 2021-08-14
 
-- Add support for message hard delete ([#133](https://github.com/GetStream/stream-chat-go/pull/133)
+- Add support for message hard delete ([#133](https://github.com/GetStream/stream-chat-go/pull/133))
 
 ## [3.11.3] 2021-07-30
 
-- Simplify send user custom event payload ([#131](https://github.com/GetStream/stream-chat-go/pull/131)
+- Simplify send user custom event payload ([#131](https://github.com/GetStream/stream-chat-go/pull/131))
 
 ## [3.11.2] 2021-06-30
 
-- Proxy command list to createTypeRequest when creating channel type ([#130](https://github.com/GetStream/stream-chat-go/pull/130)
+- Proxy command list to createTypeRequest when creating channel type ([#130](https://github.com/GetStream/stream-chat-go/pull/130))
 
 ## [3.11.1] 2021-06-29
 
