@@ -64,7 +64,7 @@ type FirebaseConfig struct {
 	Enabled              bool   `json:"enabled"`
 	ServerKey            string `json:"server_key"`
 	NotificationTemplate string `json:"notification_template"`
-	DataTemplate         string `json:"data_template"`
+	DataTemplate         string `json:"data_template,omitempty"`
 }
 
 type PushNotificationFields struct {
