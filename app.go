@@ -62,7 +62,9 @@ type APNConfig struct {
 
 type FirebaseConfig struct {
 	Enabled              bool   `json:"enabled"`
-	NotificationTemplate string `json:"notification_template"`
+	ServerKey            string `json:"server_key"`
+	NotificationTemplate string `json:"notification_template,omitempty"`
+	DataTemplate         string `json:"data_template,omitempty"`
 }
 
 type PushNotificationFields struct {
