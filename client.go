@@ -18,11 +18,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 const (
-	defaultBaseURL = "https://chat-proxy-us-east.stream-io-api.com"
+	defaultBaseURL = "https://chat.stream-io-api.com"
 	defaultTimeout = 6 * time.Second
 )
 

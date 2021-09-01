@@ -93,16 +93,10 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 		MessageLimit:     q.MessageLimit,
 	}
 
-	data, err := json.Marshal(&qp)
-	if err != nil {
+	var resp queryChannelResponse
+	if err := c.makeRequest(http.MethodPost, "channels", nil, qp, &resp); err != nil {
 		return nil, err
 	}
-
-	values := make(url.Values)
-	values.Set("payload", string(data))
-
-	var resp queryChannelResponse
-	err = c.makeRequest(http.MethodGet, "channels", values, nil, &resp)
 
 	result := make([]*Channel, len(resp.Channels))
 	for i, data := range resp.Channels {
@@ -113,7 +107,7 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 		result[i].client = c
 	}
 
-	return result, err
+	return result, nil
 }
 
 type SearchRequest struct {
