@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.2] 2021-09-01
+
+- Use edge as base url at default
+- Change jwt dependency for security fixes
+- Use POST instead of GET in query channels
+- Test with go 1.17
+  - further details ([#137](https://github.com/GetStream/stream-chat-go/pull/137))
+
 ## [3.12.1] 2021-08-19
 
 - Add missing configuration fields to firebase config ([#135](https://github.com/GetStream/stream-chat-go/pull/135))
