@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -61,4 +62,73 @@ func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) 
 	}
 
 	return resp.TaskID, nil
+}
+
+type ExportableChannel struct {
+	Type          string     `json:"type"`
+	ID            string     `json:"id"`
+	MessagesSince *time.Time `json:"messages_since,omitempty"`
+	MessagesUntil *time.Time `json:"messages_until,omitempty"`
+}
+
+// ExportChannels requests an asynchronous export of the provided channels and returns
+// the ID of task.
+func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
+	if len(channels) < 1 || len(channels) > 25 {
+		return "", errors.New("number of channels must be between 1 and 25")
+	}
+
+	err := verifyExportableChannels(channels)
+	if err != nil {
+		return "", err
+	}
+
+	req := struct {
+		Channels                 []*ExportableChannel `json:"channels"`
+		ClearDeletedMessageText  *bool                `json:"clear_deleted_message_text,omitempty"`
+		IncludeTruncatedMessages *bool                `json:"include_truncated_messages,omitempty"`
+	}{
+		Channels:                 channels,
+		ClearDeletedMessageText:  clearDeletedMessageText,
+		IncludeTruncatedMessages: includeTruncatedMessages,
+	}
+
+	var resp AsyncTaskResponse
+	if err := c.makeRequest(http.MethodPost, "export_channels", nil, req, &resp); err != nil {
+		return "", err
+	}
+
+	return resp.TaskID, nil
+}
+
+func verifyExportableChannels(channels []*ExportableChannel) error {
+	var err error
+	for _, ch := range channels {
+		switch {
+		case ch.Type == "":
+			err = errors.New("channel type must be not empty")
+			break
+		case ch.ID == "":
+			err = errors.New("channel ID must be not empty")
+			break
+		}
+	}
+
+	return err
+}
+
+// GetExportChannelsTask returns current state of the export task.
+func (c *Client) GetExportChannelsTask(taskID string) (TaskStatus, error) {
+	if taskID == "" {
+		return TaskStatus{}, errors.New("task ID must be not empty")
+	}
+
+	p := path.Join("export_channels", url.PathEscape(taskID))
+
+	var resp TaskStatus
+	if err := c.makeRequest(http.MethodGet, p, nil, nil, &resp); err != nil {
+		return TaskStatus{}, err
+	}
+
+	return resp, nil
 }
