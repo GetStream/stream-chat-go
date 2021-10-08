@@ -32,7 +32,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 		require.Equal(t, taskID, resp.TaskID)
 
 		if resp.Status == "completed" {
-			require.Equal(t, resp.Result[ch.CID], map[string]interface {}{"status":"ok"})
+			require.Equal(t, resp.Result[ch.CID], map[string]interface{}{"status": "ok"})
 			return
 		}
 
@@ -53,13 +53,13 @@ func TestClient_DeleteUsers(t *testing.T) {
 
 	// should fail without userIDs in parameter
 	_, err = c.DeleteUsers([]string{}, DeleteUserOptions{
-		User: SoftDelete,
+		User:     SoftDelete,
 		Messages: HardDelete,
 	})
 	require.Error(t, err)
 
 	taskID, err := c.DeleteUsers([]string{user.ID}, DeleteUserOptions{
-		User: SoftDelete,
+		User:     SoftDelete,
 		Messages: HardDelete,
 	})
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 		require.Equal(t, taskID, resp.TaskID)
 
 		if resp.Status == "completed" {
-			require.Equal(t, resp.Result[user.ID], map[string]interface {}{"status":"ok"})
+			require.Equal(t, resp.Result[user.ID], map[string]interface{}{"status": "ok"})
 			return
 		}
 
