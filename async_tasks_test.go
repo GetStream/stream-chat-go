@@ -15,7 +15,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
+	_, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	// should fail without CIDs in parameter
@@ -48,7 +48,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
+	_, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	// should fail without userIDs in parameter
