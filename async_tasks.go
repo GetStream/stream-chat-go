@@ -62,3 +62,43 @@ func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) 
 
 	return resp.TaskID, nil
 }
+
+type DeleteType string
+
+const (
+	HardDelete DeleteType = "hard"
+	SoftDelete DeleteType = "soft"
+)
+
+type DeleteUserOptions struct {
+	User          DeleteType `json:"user"`
+	Messages      DeleteType `json:"messages"`
+	Conversations DeleteType `json:"conversations"`
+}
+
+// DeleteUsers deletes users asynchronously.
+// User will be deleted either "hard" or "soft"
+// Conversations (1to1 channels) will be deleted if either "hard" or "soft"
+// Messages will be deleted if either "hard" or "soft"
+// It returns a task ID, the status of the task can be check with client.GetTask method.
+func (c *Client) DeleteUsers(userIDs []string, options DeleteUserOptions) (string, error) {
+	if len(userIDs) == 0 {
+		return "", fmt.Errorf("userIDs parameter should not be empty")
+	}
+
+	data := struct {
+		DeleteUserOptions
+		UserIDs []string `json:"user_ids"`
+	}{
+		DeleteUserOptions: options,
+		UserIDs:           userIDs,
+	}
+
+	var resp AsyncTaskResponse
+	err := c.makeRequest(http.MethodPost, "users/delete", nil, data, &resp)
+	if err != nil {
+		return "", fmt.Errorf("cannot delete users: %v", err)
+	}
+
+	return resp.TaskID, nil
+}
