@@ -9,30 +9,40 @@ import (
 	"time"
 )
 
-type TaskStatus struct {
-	TaskID    string    `json:"task_id"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+type TaskStatus string
+
+const (
+	TaskStatusWaiting   TaskStatus = "waiting"
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+)
+
+type Task struct {
+	TaskID    string     `json:"task_id"`
+	Status    TaskStatus `json:"status"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 
 	Result map[string]interface{} `json:"result,omitempty"`
 }
 
 // GetTask returns the status of a task that has been ran asynchronously.
-func (c *Client) GetTask(id string) (*TaskStatus, error) {
+func (c *Client) GetTask(id string) (*Task, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id should not be empty")
 	}
 
 	p := path.Join("tasks", url.PathEscape(id))
 
-	var status TaskStatus
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &status)
+	var task Task
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &task)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get task status: %v", err)
 	}
 
-	return &status, nil
+	return &task, nil
 }
 
 type AsyncTaskResponse struct {
@@ -151,15 +161,15 @@ func verifyExportableChannels(channels []*ExportableChannel) error {
 }
 
 // GetExportChannelsTask returns current state of the export task.
-func (c *Client) GetExportChannelsTask(taskID string) (*TaskStatus, error) {
-	status := &TaskStatus{}
+func (c *Client) GetExportChannelsTask(taskID string) (*Task, error) {
+	task := &Task{}
 
 	if taskID == "" {
-		return status, errors.New("task ID must be not empty")
+		return task, errors.New("task ID must be not empty")
 	}
 
 	p := path.Join("export_channels", url.PathEscape(taskID))
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, status)
-	return status, err
+	err := c.makeRequest(http.MethodGet, p, nil, nil, task)
+	return task, err
 }
