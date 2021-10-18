@@ -16,7 +16,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
+	_, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	// should fail without CIDs in parameter
@@ -38,7 +38,8 @@ func TestClient_ExportChannels(t *testing.T) {
 	ch1 := initChannel(t, c)
 	ch2 := initChannel(t, c)
 
-	chMembers := append(ch1.Members, ch2.Members...)
+	chMembers := ch1.Members
+	chMembers = append(chMembers, ch2.Members...)
 
 	defer func() {
 		options := map[string][]string{

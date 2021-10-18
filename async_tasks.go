@@ -107,10 +107,8 @@ func verifyExportableChannels(channels []*ExportableChannel) error {
 		switch {
 		case ch.Type == "":
 			err = errors.New("channel type must be not empty")
-			break
 		case ch.ID == "":
 			err = errors.New("channel ID must be not empty")
-			break
 		}
 	}
 
