@@ -72,8 +72,8 @@ const (
 
 type DeleteUserOptions struct {
 	User          DeleteType `json:"user"`
-	Messages      DeleteType `json:"messages"`
-	Conversations DeleteType `json:"conversations"`
+	Messages      DeleteType `json:"messages,omitempty"`
+	Conversations DeleteType `json:"conversations,omitempty"`
 }
 
 // DeleteUsers deletes users asynchronously.
