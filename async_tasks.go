@@ -75,7 +75,7 @@ type ExportableChannel struct {
 // the ID of task.
 func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
 	if len(channels) == 0 {
-		return "", errors.New("number of channels must be between at least one")
+		return "", errors.New("number of channels must be at least one")
 	}
 
 	err := verifyExportableChannels(channels)
@@ -104,7 +104,7 @@ func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessa
 func verifyExportableChannels(channels []*ExportableChannel) error {
 	for i, ch := range channels {
 		if ch.Type == "" || ch.ID == "" {
-			return errors.New(fmt.Sprintln("channel type or id must be not empty for index: %d", i))
+			return fmt.Errorf("channel type and id must be not empty for index: %d", i)
 		}
 	}
 	return nil
@@ -112,7 +112,7 @@ func verifyExportableChannels(channels []*ExportableChannel) error {
 
 // GetExportChannelsTask returns current state of the export task.
 func (c *Client) GetExportChannelsTask(taskID string) (*TaskStatus, error) {
-	status = &TaskStatus{}
+	status := &TaskStatus{}
 
 	if taskID == "" {
 		return status, errors.New("task ID must be not empty")

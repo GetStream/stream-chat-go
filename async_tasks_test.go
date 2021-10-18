@@ -1,7 +1,6 @@
 package stream_chat //nolint: golint
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
