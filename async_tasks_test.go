@@ -58,16 +58,6 @@ func TestClient_ExportChannels(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("Return error if there are >25 channels", func(t *testing.T) {
-		var expChannels []*ExportableChannel
-		for i := 0; i <= 26; i++ {
-			expChannels = append(expChannels,
-				&ExportableChannel{Type: fmt.Sprint("test_", i), ID: fmt.Sprint("test_", i)})
-		}
-		_, err := c.ExportChannels(expChannels, nil, nil)
-		require.Error(t, err)
-	})
-
 	t.Run("Return error if exportable channel structs are incorrect", func(t *testing.T) {
 		expChannels := []*ExportableChannel{
 			{Type: "", ID: ch1.ID},

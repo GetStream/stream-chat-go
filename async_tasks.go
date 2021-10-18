@@ -74,8 +74,8 @@ type ExportableChannel struct {
 // ExportChannels requests an asynchronous export of the provided channels and returns
 // the ID of task.
 func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
-	if len(channels) < 1 || len(channels) > 25 {
-		return "", errors.New("number of channels must be between 1 and 25")
+	if len(channels) == 0 {
+		return "", errors.New("number of channels must be between at least one")
 	}
 
 	err := verifyExportableChannels(channels)
@@ -102,31 +102,24 @@ func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessa
 }
 
 func verifyExportableChannels(channels []*ExportableChannel) error {
-	var err error
-	for _, ch := range channels {
-		switch {
-		case ch.Type == "":
-			err = errors.New("channel type must be not empty")
-		case ch.ID == "":
-			err = errors.New("channel ID must be not empty")
+	for i, ch := range channels {
+		if ch.Type == "" || ch.ID == "" {
+			return errors.New(fmt.Sprintln("channel type or id must be not empty for index: %d", i))
 		}
 	}
-
-	return err
+	return nil
 }
 
 // GetExportChannelsTask returns current state of the export task.
-func (c *Client) GetExportChannelsTask(taskID string) (TaskStatus, error) {
+func (c *Client) GetExportChannelsTask(taskID string) (*TaskStatus, error) {
+	status = &TaskStatus{}
+
 	if taskID == "" {
-		return TaskStatus{}, errors.New("task ID must be not empty")
+		return status, errors.New("task ID must be not empty")
 	}
 
 	p := path.Join("export_channels", url.PathEscape(taskID))
 
-	var resp TaskStatus
-	if err := c.makeRequest(http.MethodGet, p, nil, nil, &resp); err != nil {
-		return TaskStatus{}, err
-	}
-
-	return resp, nil
+	err := c.makeRequest(http.MethodGet, p, nil, nil, status)
+	return status, err
 }
