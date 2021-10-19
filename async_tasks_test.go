@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -22,14 +23,20 @@ func TestClient_DeleteChannels(t *testing.T) {
 	_, err = c.DeleteChannels([]string{}, true)
 	require.Error(t, err)
 
-	taskID, err := c.DeleteChannels([]string{ch.CID}, true)
+	nonExistingCID := "non-existing-cid"
+	resp, err := c.DeleteChannels([]string{ch.CID, nonExistingCID}, true)
 	require.NoError(t, err)
-	require.NotEmpty(t, taskID)
+	require.NotEmpty(t, resp.TaskID)
+	require.NotEmpty(t, resp.Result)
+
+	require.Equal(t, "ok", resp.Result[ch.CID].Status)
+	require.Equal(t, "error", resp.Result[nonExistingCID].Status)
+	require.Equal(t, fmt.Sprintf("channel %q does not exist", nonExistingCID), resp.Result[nonExistingCID].Error)
 
 	for i := 0; i < 10; i++ {
-		resp, err := c.GetTask(taskID)
+		resp, err := c.GetTask(resp.TaskID)
 		require.NoError(t, err)
-		require.Equal(t, taskID, resp.TaskID)
+		require.Equal(t, resp.TaskID, resp.TaskID)
 
 		if resp.Status == "completed" {
 			require.Equal(t, resp.Result[ch.CID], map[string]interface{}{"status": "ok"})

@@ -38,12 +38,21 @@ type AsyncTaskResponse struct {
 	TaskID string `json:"task_id"`
 }
 
+type DeleteChannelsResponse struct {
+	AsyncTaskResponse
+	Result map[string]struct {
+		Status string `json:"status"`
+		Error  string `json:"error,omitempty"`
+	}
+}
+
 // DeleteChannels deletes channels asynchronously.
 // Channels and messages will be hard deleted if hardDelete is true.
-// It returns a task ID, the status of the task can be check with client.GetTask method.
-func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) {
+// It returns a map which holds the result of the soft deletion and
+// a task ID which can be used to check the status of the task with client.GetTask method.
+func (c *Client) DeleteChannels(cids []string, hardDelete bool) (*DeleteChannelsResponse, error) {
 	if len(cids) == 0 {
-		return "", fmt.Errorf("cids parameter should not be empty")
+		return nil, fmt.Errorf("cids parameter should not be empty")
 	}
 
 	data := struct {
@@ -54,13 +63,13 @@ func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) 
 		HardDelete: hardDelete,
 	}
 
-	var resp AsyncTaskResponse
+	var resp DeleteChannelsResponse
 	err := c.makeRequest(http.MethodPost, "channels/delete", nil, data, &resp)
 	if err != nil {
-		return "", fmt.Errorf("cannot delete channels: %v", err)
+		return nil, fmt.Errorf("cannot delete channels: %v", err)
 	}
 
-	return resp.TaskID, nil
+	return &resp, nil
 }
 
 type DeleteType string
