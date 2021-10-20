@@ -154,7 +154,7 @@ func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessa
 func verifyExportableChannels(channels []*ExportableChannel) error {
 	for i, ch := range channels {
 		if ch.Type == "" || ch.ID == "" {
-			return fmt.Errorf("channel type and id must be not empty for index: %d", i)
+			return fmt.Errorf("channel type and id must not be empty for index: %d", i)
 		}
 	}
 	return nil
