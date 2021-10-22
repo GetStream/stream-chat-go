@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -8,30 +9,40 @@ import (
 	"time"
 )
 
-type TaskStatus struct {
-	TaskID    string    `json:"task_id"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+type TaskStatus string
+
+const (
+	TaskStatusWaiting   TaskStatus = "waiting"
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+)
+
+type Task struct {
+	TaskID    string     `json:"task_id"`
+	Status    TaskStatus `json:"status"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 
 	Result map[string]interface{} `json:"result,omitempty"`
 }
 
 // GetTask returns the status of a task that has been ran asynchronously.
-func (c *Client) GetTask(id string) (*TaskStatus, error) {
+func (c *Client) GetTask(id string) (*Task, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id should not be empty")
 	}
 
 	p := path.Join("tasks", url.PathEscape(id))
 
-	var status TaskStatus
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &status)
+	var task Task
+	err := c.makeRequest(http.MethodGet, p, nil, nil, &task)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get task status: %v", err)
 	}
 
-	return &status, nil
+	return &task, nil
 }
 
 type AsyncTaskResponse struct {
@@ -101,4 +112,64 @@ func (c *Client) DeleteUsers(userIDs []string, options DeleteUserOptions) (strin
 	}
 
 	return resp.TaskID, nil
+}
+
+type ExportableChannel struct {
+	Type          string     `json:"type"`
+	ID            string     `json:"id"`
+	MessagesSince *time.Time `json:"messages_since,omitempty"`
+	MessagesUntil *time.Time `json:"messages_until,omitempty"`
+}
+
+// ExportChannels requests an asynchronous export of the provided channels and returns
+// the ID of task.
+func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
+	if len(channels) == 0 {
+		return "", errors.New("number of channels must be at least one")
+	}
+
+	err := verifyExportableChannels(channels)
+	if err != nil {
+		return "", err
+	}
+
+	req := struct {
+		Channels                 []*ExportableChannel `json:"channels"`
+		ClearDeletedMessageText  *bool                `json:"clear_deleted_message_text,omitempty"`
+		IncludeTruncatedMessages *bool                `json:"include_truncated_messages,omitempty"`
+	}{
+		Channels:                 channels,
+		ClearDeletedMessageText:  clearDeletedMessageText,
+		IncludeTruncatedMessages: includeTruncatedMessages,
+	}
+
+	var resp AsyncTaskResponse
+	if err := c.makeRequest(http.MethodPost, "export_channels", nil, req, &resp); err != nil {
+		return "", err
+	}
+
+	return resp.TaskID, nil
+}
+
+func verifyExportableChannels(channels []*ExportableChannel) error {
+	for i, ch := range channels {
+		if ch.Type == "" || ch.ID == "" {
+			return fmt.Errorf("channel type and id must not be empty for index: %d", i)
+		}
+	}
+	return nil
+}
+
+// GetExportChannelsTask returns current state of the export task.
+func (c *Client) GetExportChannelsTask(taskID string) (*Task, error) {
+	task := &Task{}
+
+	if taskID == "" {
+		return task, errors.New("task ID must be not empty")
+	}
+
+	p := path.Join("export_channels", url.PathEscape(taskID))
+
+	err := c.makeRequest(http.MethodGet, p, nil, nil, task)
+	return task, err
 }
