@@ -22,14 +22,6 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
-	// _, err := c.UpsertUsers(testUsers...)
-	// require.NoError(t, err, "update users")
-
-	// members := make([]string, 0, len(testUsers))
-	// for i := range testUsers {
-	// 	members = append(members, testUsers[i].ID)
-	// }
-
 	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
 		"members": membersID,
 	})

@@ -71,10 +71,6 @@ func clearOldChannelTypes() error {
 	return nil
 }
 
-func randomUser1() *User {
-	return testUsers[rand.Intn(len(testUsers)-1)]
-}
-
 func randomUser(t *testing.T, c *Client) *User {
 	u, err := c.UpsertUser(&User{ID: randomString(10)})
 	require.NoError(t, err)
