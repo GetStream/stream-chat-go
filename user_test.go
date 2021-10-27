@@ -113,7 +113,7 @@ func TestClient_UnmuteUsers(t *testing.T) {
 func TestClient_UpsertUsers(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser(t, c)
+	user := &User{ID: randomString(10)}
 
 	resp, err := c.UpsertUsers(user)
 	require.NoError(t, err, "update users")
