@@ -114,11 +114,11 @@ func TestChannel_ImportChannelMessages(t *testing.T) {
 	resp, err := ch.ImportMessages(
 		&Message{
 			Text:      "hi 1",
-			User:      user,
+			User:      &User{ID: user.ID},
 			CreatedAt: &t1,
 		}, &Message{
 			Text:      "hi 0",
-			User:      user,
+			User:      &User{ID: user.ID},
 			CreatedAt: &t0,
 		})
 	require.NoError(t, err, "Send bulk messages")
