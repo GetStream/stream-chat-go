@@ -302,3 +302,25 @@ func (c *Client) Channel(channelType, channelID string) *Channel {
 		Type: channelType,
 	}
 }
+
+// MarkChannelsRead marks channels as read depending on given options.
+// If options is nil, all channels will be marked as read for the given userID.
+// If options["cid"] = "message_id", channel cid will be marked as read up to message_id.
+// If options["cid"] = "", channel cid will be fully marked as read.
+//
+// Only works if the `read_events` setting is enabled.
+func (c *Client) MarkChannelsRead(userID string, readByChannel map[string]string) error {
+	if userID == "" {
+		return errors.New("user ID must be not empty")
+	}
+
+	data := struct {
+		UserID        string            `json:"user_id"`
+		ReadByChannel map[string]string `json:"read_by_channel"`
+	}{
+		UserID:        userID,
+		ReadByChannel: readByChannel,
+	}
+
+	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
+}

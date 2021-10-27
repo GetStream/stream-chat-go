@@ -293,6 +293,52 @@ func TestChannel_GetReplies(t *testing.T) {
 	assert.Len(t, replies, 1)
 }
 
+func TestChannel_MarkChannelsRead(t *testing.T) {
+	c := initClient(t)
+	ch1 := initChannel(t, c)
+
+	sender := testUsers[0].ID
+	reader := testUsers[1].ID
+
+	msg, err := ch1.SendMessage(&Message{Text: "hey!"}, sender, MessageSkipPush)
+	require.NoError(t, err)
+
+	opts := QueryOption{
+		Filter: map[string]interface{}{
+			"id": ch1.ID,
+		},
+	}
+	channels, err := c.QueryChannels(&opts)
+	require.NoError(t, err)
+	require.NotEmpty(t, channels)
+	var oldLastReadAt time.Time
+	for _, read := range channels[0].Read {
+		if read.User.ID != reader {
+			continue
+		}
+		oldLastReadAt = read.LastRead
+	}
+
+	readByChannels := map[string]string{
+		ch1.CID: msg.ID,
+	}
+	err = c.MarkChannelsRead(reader, readByChannels)
+	require.NoError(t, err)
+
+	channels, err = c.QueryChannels(&opts)
+	require.NoError(t, err)
+	require.NotEmpty(t, channels)
+	var newLastReadAt time.Time
+	for _, read := range channels[0].Read {
+		if read.User.ID != reader {
+			continue
+		}
+		newLastReadAt = read.LastRead
+	}
+
+	require.True(t, newLastReadAt.After(oldLastReadAt))
+}
+
 func TestChannel_MarkRead(t *testing.T) {
 }
 
