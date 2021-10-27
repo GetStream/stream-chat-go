@@ -14,9 +14,12 @@ import (
 func TestClient_CreateChannel(t *testing.T) {
 	c := initClient(t)
 
+	userID := randomUser(t, c).ID
+
 	t.Run("get existing channel", func(t *testing.T) {
-		ch := initChannel(t, c)
-		got, err := c.CreateChannel(ch.Type, ch.ID, serverUser.ID, nil)
+		membersID := randomUsersID(t, c, 3)
+		ch := initChannel(t, c, membersID...)
+		got, err := c.CreateChannel(ch.Type, ch.ID, userID, nil)
 		require.NoError(t, err, "create channel", ch)
 
 		assert.Equal(t, c, got.client, "client link")
@@ -27,18 +30,18 @@ func TestClient_CreateChannel(t *testing.T) {
 	})
 
 	tests := []struct {
-		name    string
-		_type   string
-		id      string
-		userID  string
-		data    map[string]interface{}
-		wantErr bool
+		name        string
+		channelType string
+		id          string
+		userID      string
+		data        map[string]interface{}
+		wantErr     bool
 	}{
-		{"create channel with ID", "messaging", randomString(12), serverUser.ID, nil, false},
-		{"create channel without ID and members", "messaging", "", serverUser.ID, nil, true},
+		{"create channel with ID", "messaging", randomString(12), userID, nil, false},
+		{"create channel without ID and members", "messaging", "", userID, nil, true},
 		{
-			"create channel without ID but with members", "messaging", "", serverUser.ID,
-			map[string]interface{}{"members": []string{testUsers[0].ID, testUsers[1].ID}},
+			"create channel without ID but with members", "messaging", "", userID,
+			map[string]interface{}{"members": randomUsersID(t, c, 2)},
 			false,
 		},
 	}
@@ -46,7 +49,7 @@ func TestClient_CreateChannel(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.CreateChannel(tt._type, tt.id, tt.userID, tt.data)
+			got, err := c.CreateChannel(tt.channelType, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
 				require.Error(t, err, "create channel", tt)
 				return
@@ -54,7 +57,7 @@ func TestClient_CreateChannel(t *testing.T) {
 
 			require.NoError(t, err, "create channel", tt)
 
-			assert.Equal(t, tt._type, got.Type, "channel type")
+			assert.Equal(t, tt.channelType, got.Type, "channel type")
 			assert.NotEmpty(t, got.ID)
 			if tt.id != "" {
 				assert.Equal(t, tt.id, got.ID, "channel id")
@@ -77,7 +80,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	err = ch.AddMembers(
 		[]string{user.ID},
@@ -189,7 +192,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	err = ch.InviteMembers(user.ID)
 	require.NoError(t, err, "invite members")
@@ -216,7 +219,7 @@ func TestChannel_Moderation(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	err = ch.AddModeratorsWithMessage(
 		[]string{user.ID},
@@ -248,7 +251,7 @@ func TestChannel_BanUser(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	err := ch.BanUser(user.ID, serverUser.ID, nil)
 	require.NoError(t, err, "ban user")
@@ -277,7 +280,7 @@ func TestChannel_GetReplies(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	msg := &Message{Text: "test message"}
 
@@ -303,7 +306,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	err := ch.RemoveMembers(
 		[]string{user.ID},
 		&Message{Text: "some members", User: &User{ID: user.ID}},
@@ -326,7 +329,7 @@ func TestChannel_SendMessage(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		User: user,
@@ -358,7 +361,7 @@ func TestChannel_Truncate(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		User: user,
@@ -385,7 +388,7 @@ func TestChannel_Update(t *testing.T) {
 	ch := initChannel(t, c)
 
 	err := ch.Update(map[string]interface{}{"color": "blue"},
-		&Message{Text: "color is blue", User: &User{ID: testUsers[0].ID}})
+		&Message{Text: "color is blue", User: &User{ID: randomUser(t, c).ID}})
 	require.NoError(t, err)
 }
 
@@ -443,7 +446,7 @@ func TestChannel_SendFile(t *testing.T) {
 		url, err = ch.SendFile(SendFileRequest{
 			Reader:   file,
 			FileName: "HelloWorld.txt",
-			User:     randomUser(),
+			User:     randomUser(t, c),
 		})
 		if err != nil {
 			t.Fatalf("send file failed: %s", err)
@@ -476,7 +479,7 @@ func TestChannel_SendImage(t *testing.T) {
 		url, err = ch.SendImage(SendFileRequest{
 			Reader:      file,
 			FileName:    "HelloWorld.jpg",
-			User:        randomUser(),
+			User:        randomUser(t, c),
 			ContentType: "image/jpeg",
 		})
 

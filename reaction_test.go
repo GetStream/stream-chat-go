@@ -30,7 +30,7 @@ func TestChannel_SendReaction(t *testing.T) {
 		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		User: user,
@@ -66,7 +66,7 @@ func TestChannel_DeleteReaction(t *testing.T) {
 		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		User: user,
@@ -93,7 +93,7 @@ func TestChannel_GetReactions(t *testing.T) {
 		require.NoError(t, ch.Delete(), "delete channel")
 	}()
 
-	user := randomUser()
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		User: user,

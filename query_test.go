@@ -95,7 +95,7 @@ func TestClient_Search(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	user1, user2 := randomUser(), randomUser()
+	user1, user2 := randomUser(t, c), randomUser(t, c)
 
 	text := randomString(10)
 
@@ -185,7 +185,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	user1, user2 := randomUser(), randomUser()
+	user1, user2 := randomUser(t, c), randomUser(t, c)
 
 	text := randomString(10)
 
@@ -249,9 +249,9 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	user1, user2 := randomUser(), randomUser()
+	user1, user2 := randomUser(t, c), randomUser(t, c)
 	for user1.ID == user2.ID {
-		user2 = randomUser()
+		user2 = randomUser(t, c)
 	}
 
 	// send 2 messages

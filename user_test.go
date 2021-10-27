@@ -70,9 +70,9 @@ func TestClient_MuteUsers(t *testing.T) {
 	initChannel(t, c)
 
 	require.GreaterOrEqualf(t, len(testUsers), 2, "there should be at least 2 test users: %+v", testUsers)
-	usernames := []string{testUsers[0].ID, testUsers[1].ID}
+	targetIDs := randomUsersID(t, c, 2)
 
-	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
+	err := c.MuteUsers(targetIDs, serverUser.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	users, err := c.QueryUsers(&QueryOption{
@@ -97,14 +97,14 @@ func TestClient_UnFlagUser(t *testing.T) {
 
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
-	err := c.UnmuteUser(randomUser().ID, serverUser.ID)
+	err := c.UnmuteUser(randomUser(t, c).ID, serverUser.ID)
 	assert.NoError(t, err)
 }
 
 func TestClient_UnmuteUsers(t *testing.T) {
 	c := initClient(t)
 
-	users := []string{randomUser().ID, randomUser().ID}
+	users := []string{randomUser(t, c).ID, randomUser(t, c).ID}
 
 	err := c.UnmuteUsers(users, serverUser.ID)
 	assert.NoError(t, err, "unmute users")
@@ -113,7 +113,7 @@ func TestClient_UnmuteUsers(t *testing.T) {
 func TestClient_UpsertUsers(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	resp, err := c.UpsertUsers(user)
 	require.NoError(t, err, "update users")
@@ -126,7 +126,7 @@ func TestClient_UpsertUsers(t *testing.T) {
 func TestClient_PartialUpdateUsers(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	update := PartialUserUpdate{
 		ID: user.ID,
