@@ -11,7 +11,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	msg := &Message{Text: "test message"}
 
@@ -44,7 +44,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	msg := &Message{Text: "test message"}
 

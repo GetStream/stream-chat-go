@@ -107,7 +107,7 @@ func TestChannel_ImportChannelMessages(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	t0 := time.Unix(0, 0).UTC()
 	t1 := time.Unix(1, 0).UTC()
