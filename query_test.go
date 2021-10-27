@@ -93,9 +93,10 @@ func TestClient_QueryChannels(t *testing.T) {
 
 func TestClient_Search(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
 
 	user1, user2 := randomUser(t, c), randomUser(t, c)
+
+	ch := initChannel(t, c, user1.ID, user2.ID)
 
 	text := randomString(10)
 
