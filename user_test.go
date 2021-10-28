@@ -24,17 +24,14 @@ func TestClient_FlagUser(t *testing.T) {
 
 func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
-	initChannel(t, c)
 
-	require.NotEmptyf(t, testUsers, "there should be at least 1 test user: %+v", testUsers)
-	user := testUsers[0]
-
-	err := c.MuteUser(user.ID, serverUser.ID, nil)
+	user := randomUser(t, c)
+	err := c.MuteUser(randomUser(t, c).ID, user.ID, nil)
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": serverUser.ID},
+			"id": map[string]string{"$eq": user.ID},
 		},
 	})
 	require.NoError(t, err, "QueryUsers should not return an error")
@@ -46,13 +43,14 @@ func TestClient_MuteUser(t *testing.T) {
 	assert.NotEmpty(t, mute.Target, "mute should have a Target")
 	assert.Empty(t, mute.Expires, "mute should have no Expires")
 
+	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
-	err = c.MuteUser(user.ID, serverUser.ID, map[string]interface{}{"timeout": 60})
+	err = c.MuteUser(randomUser(t, c).ID, user.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	users, err = c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": serverUser.ID},
+			"id": map[string]string{"$eq": user.ID},
 		},
 	})
 	require.NoError(t, err, "QueryUsers should not return an error")
@@ -67,17 +65,16 @@ func TestClient_MuteUser(t *testing.T) {
 
 func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
-	initChannel(t, c)
 
-	require.GreaterOrEqualf(t, len(testUsers), 2, "there should be at least 2 test users: %+v", testUsers)
-	usernames := []string{testUsers[0].ID, testUsers[1].ID}
+	user := randomUser(t, c)
+	targetIDs := randomUsersID(t, c, 2)
 
-	err := c.MuteUsers(usernames, serverUser.ID, map[string]interface{}{"timeout": 60})
+	err := c.MuteUsers(targetIDs, user.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	users, err := c.QueryUsers(&QueryOption{
 		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": serverUser.ID},
+			"id": map[string]string{"$eq": user.ID},
 		},
 	})
 	require.NoError(t, err, "QueryUsers should not return an error")
@@ -97,23 +94,32 @@ func TestClient_UnFlagUser(t *testing.T) {
 
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
-	err := c.UnmuteUser(randomUser().ID, serverUser.ID)
+
+	user := randomUser(t, c)
+	mutedUser := randomUser(t, c)
+	err := c.MuteUser(mutedUser.ID, user.ID, nil)
+	require.NoError(t, err, "MuteUser should not return an error")
+
+	err = c.UnmuteUser(mutedUser.ID, user.ID)
 	assert.NoError(t, err)
 }
 
 func TestClient_UnmuteUsers(t *testing.T) {
 	c := initClient(t)
 
-	users := []string{randomUser().ID, randomUser().ID}
+	user := randomUser(t, c)
+	targetIDs := []string{randomUser(t, c).ID, randomUser(t, c).ID}
+	err := c.MuteUsers(targetIDs, user.ID, nil)
+	require.NoError(t, err, "MuteUsers should not return an error")
 
-	err := c.UnmuteUsers(users, serverUser.ID)
+	err = c.UnmuteUsers(targetIDs, user.ID)
 	assert.NoError(t, err, "unmute users")
 }
 
 func TestClient_UpsertUsers(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser()
+	user := &User{ID: randomString(10)}
 
 	resp, err := c.UpsertUsers(user)
 	require.NoError(t, err, "update users")
@@ -126,7 +132,7 @@ func TestClient_UpsertUsers(t *testing.T) {
 func TestClient_PartialUpdateUsers(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	update := PartialUserUpdate{
 		ID: user.ID,
