@@ -24,7 +24,6 @@ func TestClient_FlagUser(t *testing.T) {
 
 func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
-	initChannel(t, c)
 
 	user := randomUser(t, c)
 	err := c.MuteUser(randomUser(t, c).ID, user.ID, nil)
@@ -65,7 +64,6 @@ func TestClient_MuteUser(t *testing.T) {
 
 func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
-	initChannel(t, c)
 
 	user := randomUser(t, c)
 	targetIDs := randomUsersID(t, c, 2)
@@ -95,16 +93,25 @@ func TestClient_UnFlagUser(t *testing.T) {
 
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
-	err := c.UnmuteUser(randomUser(t, c).ID, randomUser(t, c).ID)
+
+	user := randomUser(t, c)
+	mutedUser := randomUser(t, c)
+	err := c.MuteUser(mutedUser.ID, user.ID, nil)
+	require.NoError(t, err, "MuteUser should not return an error")
+
+	err = c.UnmuteUser(mutedUser.ID, user.ID)
 	assert.NoError(t, err)
 }
 
 func TestClient_UnmuteUsers(t *testing.T) {
 	c := initClient(t)
 
-	users := []string{randomUser(t, c).ID, randomUser(t, c).ID}
+	user := randomUser(t, c)
+	targetIDs := []string{randomUser(t, c).ID, randomUser(t, c).ID}
+	err := c.MuteUsers(targetIDs, user.ID, nil)
+	require.NoError(t, err, "MuteUsers should not return an error")
 
-	err := c.UnmuteUsers(users, randomUser(t, c).ID)
+	err = c.UnmuteUsers(targetIDs, user.ID)
 	assert.NoError(t, err, "unmute users")
 }
 
