@@ -10,7 +10,7 @@ import (
 func TestClient_Devices(t *testing.T) {
 	c := initClient(t)
 
-	user := randomUser()
+	user := randomUser(t, c)
 
 	devices := []*Device{
 		{UserID: user.ID, ID: randomString(12), PushProvider: PushProviderFirebase},

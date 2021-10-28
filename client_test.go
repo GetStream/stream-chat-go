@@ -21,17 +21,10 @@ func initClient(t *testing.T) *Client {
 	return c
 }
 
-func initChannel(t *testing.T, c *Client) *Channel {
-	_, err := c.UpsertUsers(testUsers...)
-	require.NoError(t, err, "update users")
-
-	members := make([]string, 0, len(testUsers))
-	for i := range testUsers {
-		members = append(members, testUsers[i].ID)
-	}
-
-	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
-		"members": members,
+func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
+	owner := randomUser(t, c)
+	ch, err := c.CreateChannel("team", randomString(12), owner.ID, map[string]interface{}{
+		"members": membersID,
 	})
 
 	require.NoError(t, err, "create channel")
