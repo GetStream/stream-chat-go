@@ -43,6 +43,7 @@ func TestClient_MuteUser(t *testing.T) {
 	assert.NotEmpty(t, mute.Target, "mute should have a Target")
 	assert.Empty(t, mute.Expires, "mute should have no Expires")
 
+	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
 	err = c.MuteUser(randomUser(t, c).ID, user.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUser should not return an error")
@@ -56,7 +57,7 @@ func TestClient_MuteUser(t *testing.T) {
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
 
-	mute = users[0].Mutes[1]
+	mute = users[0].Mutes[0]
 	assert.NotEmpty(t, mute.User, "mute should have a User")
 	assert.NotEmpty(t, mute.Target, "mute should have a Target")
 	assert.NotEmpty(t, mute.Expires, "mute should have Expires")
