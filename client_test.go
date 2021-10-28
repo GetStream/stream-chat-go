@@ -22,7 +22,8 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
-	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+	owner := randomUser(t, c)
+	ch, err := c.CreateChannel("team", randomString(12), owner.ID, map[string]interface{}{
 		"members": membersID,
 	})
 

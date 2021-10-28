@@ -14,9 +14,6 @@ var (
 	APIKey     = os.Getenv("STREAM_CHAT_API_KEY")
 	APISecret  = os.Getenv("STREAM_CHAT_API_SECRET")
 	StreamHost = os.Getenv("STREAM_CHAT_API_HOST")
-
-	serverUser *User
-	testUsers  []*User
 )
 
 //nolint: gochecknoinits
@@ -25,15 +22,6 @@ func init() {
 
 	if err := clearOldChannelTypes(); err != nil {
 		panic(err) // app has bad data from previous runs
-	}
-
-	serverUser = &User{ID: randomString(10), Name: "Gandalf the Grey", ExtraData: map[string]interface{}{"race": "Istari"}}
-
-	testUsers = []*User{
-		{ID: randomString(10), Name: "Frodo Baggins", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 50}},
-		{ID: randomString(10), Name: "Samwise Gamgee", ExtraData: map[string]interface{}{"race": "Hobbit", "age": 38}},
-		{ID: randomString(10), Name: "Legolas", ExtraData: map[string]interface{}{"race": "Elf", "age": 500}},
-		serverUser,
 	}
 }
 

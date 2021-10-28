@@ -35,12 +35,12 @@ func TestChannel_SendReaction(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
 	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
@@ -71,15 +71,15 @@ func TestChannel_DeleteReaction(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	msg, err = ch.DeleteReaction(msg.ID, reaction.Type, serverUser.ID)
+	msg, err = ch.DeleteReaction(msg.ID, reaction.Type, user.ID)
 	require.NoError(t, err, "delete reaction")
 
 	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
@@ -98,7 +98,7 @@ func TestChannel_GetReactions(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	reactions, err := ch.GetReactions(msg.ID, nil)
@@ -107,7 +107,7 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, serverUser.ID)
+	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
 	reactions, err = ch.GetReactions(msg.ID, nil)

@@ -12,7 +12,6 @@ func TestClient_DeleteChannels(t *testing.T) {
 	ch := initChannel(t, c)
 
 	user := randomUser(t, c)
-
 	msg := &Message{Text: "test message"}
 
 	_, err := ch.SendMessage(msg, user.ID, MessageSkipPush)

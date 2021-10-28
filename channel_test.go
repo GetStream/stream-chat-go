@@ -71,8 +71,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	c := initClient(t)
 
 	chanID := randomString(12)
-
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := c.CreateChannel("messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
 	defer func() {
 		_ = ch.Delete()
@@ -81,7 +80,6 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
-
 	err = ch.AddMembers(
 		[]string{user.ID},
 		&Message{Text: "some members", User: &User{ID: user.ID}},
@@ -90,16 +88,16 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	// refresh channel state
 	require.NoError(t, ch.refresh(), "refresh channel")
-
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
 func TestChannel_ImportChannelMessages(t *testing.T) {
 	c := initClient(t)
 
+	owner := randomUser(t, c)
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := c.CreateChannel("messaging", chanID, owner.ID, nil)
 	require.NoError(t, err, "create channel")
 	defer func() {
 		_ = ch.Delete()
@@ -127,7 +125,7 @@ func TestChannel_ImportChannelMessages(t *testing.T) {
 	require.Equal(t, &t1, resp.Messages[1].CreatedAt)
 
 	// get the channel and validate last_message_at
-	ch, err = c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err = c.CreateChannel("messaging", chanID, owner.ID, nil)
 	require.NoError(t, err, "create channel")
 	require.Equal(t, t1, ch.LastMessageAt)
 }
@@ -137,7 +135,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := c.CreateChannel("messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
 	defer func() {
 		_ = ch.Delete()
@@ -184,7 +182,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := c.CreateChannel("messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
 	defer func() {
 		_ = ch.Delete()
@@ -211,7 +209,7 @@ func TestChannel_Moderation(t *testing.T) {
 
 	// init random channel
 	chanID := randomString(12)
-	ch, err := c.CreateChannel("messaging", chanID, serverUser.ID, nil)
+	ch, err := c.CreateChannel("messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
 	defer func() {
 		_ = ch.Delete()
@@ -252,17 +250,18 @@ func TestChannel_BanUser(t *testing.T) {
 	}()
 
 	user := randomUser(t, c)
+	target := randomUser(t, c)
 
-	err := ch.BanUser(user.ID, serverUser.ID, nil)
+	err := ch.BanUser(target.ID, user.ID, nil)
 	require.NoError(t, err, "ban user")
 
-	err = ch.BanUser(user.ID, serverUser.ID, map[string]interface{}{
+	err = ch.BanUser(target.ID, user.ID, map[string]interface{}{
 		"timeout": 3600,
 		"reason":  "offensive language is not allowed here",
 	})
 	require.NoError(t, err, "ban user")
 
-	err = ch.UnBanUser(user.ID, nil)
+	err = ch.UnBanUser(target.ID, nil)
 	require.NoError(t, err, "unban user")
 }
 
@@ -280,15 +279,13 @@ func TestChannel_GetReplies(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser(t, c)
-
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(msg, user.ID, MessageSkipPush)
+	msg, err := ch.SendMessage(msg, randomUser(t, c).ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
-	_, err = ch.SendMessage(reply, serverUser.ID)
+	_, err = ch.SendMessage(reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
 
 	replies, err := ch.GetReplies(msg.ID, nil)
@@ -329,13 +326,14 @@ func TestChannel_SendMessage(t *testing.T) {
 		_ = ch.Delete()
 	}()
 
-	user := randomUser(t, c)
+	user1 := randomUser(t, c)
+	user2 := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
-		User: user,
+		User: user1,
 	}
 
-	msg, err := ch.SendMessage(msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, user2.ID)
 	require.NoError(t, err, "send message")
 	// check that message was updated
 	assert.NotEmpty(t, msg.ID, "message has ID")
@@ -343,10 +341,10 @@ func TestChannel_SendMessage(t *testing.T) {
 
 	msg2 := &Message{
 		Text:   "text message 2",
-		User:   user,
+		User:   user1,
 		Silent: true,
 	}
-	msg2, err = ch.SendMessage(msg2, serverUser.ID)
+	msg2, err = ch.SendMessage(msg2, user2.ID)
 	require.NoError(t, err, "send message 2")
 	// check that message was updated
 	assert.NotEmpty(t, msg2.ID, "message has ID")
@@ -366,7 +364,7 @@ func TestChannel_Truncate(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, serverUser.ID)
+	msg, err := ch.SendMessage(msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	// refresh channel state
@@ -394,16 +392,15 @@ func TestChannel_Update(t *testing.T) {
 
 func TestChannel_PartialUpdate(t *testing.T) {
 	c := initClient(t)
-	_, err := c.UpsertUsers(testUsers...)
-	require.NoError(t, err, "update users")
+	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(testUsers))
-	for i := range testUsers {
-		members = append(members, testUsers[i].ID)
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
 	}
 
 	var ch *Channel
-	ch, err = c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+	ch, err := c.CreateChannel("team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"color":   "blue",
 		"age":     30,
@@ -503,15 +500,14 @@ func TestChannel_SendImage(t *testing.T) {
 func TestChannel_AcceptInvite(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpsertUsers(testUsers...)
-	require.NoError(t, err, "update users")
+	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(testUsers))
-	for i := range testUsers {
-		members = append(members, testUsers[i].ID)
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+	ch, err := c.CreateChannel("team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"invites": []string{members[0]},
 	})
@@ -524,15 +520,14 @@ func TestChannel_AcceptInvite(t *testing.T) {
 func TestChannel_RejectInvite(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpsertUsers(testUsers...)
-	require.NoError(t, err, "update users")
+	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(testUsers))
-	for i := range testUsers {
-		members = append(members, testUsers[i].ID)
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel("team", randomString(12), serverUser.ID, map[string]interface{}{
+	ch, err := c.CreateChannel("team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"invites": []string{members[0]},
 	})
@@ -545,15 +540,14 @@ func TestChannel_RejectInvite(t *testing.T) {
 func TestChannel_Mute_Unmute(t *testing.T) {
 	c := initClient(t)
 
-	_, err := c.UpsertUsers(testUsers...)
-	require.NoError(t, err, "update users")
+	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(testUsers))
-	for i := range testUsers {
-		members = append(members, testUsers[i].ID)
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel("messaging", randomString(12), serverUser.ID, map[string]interface{}{
+	ch, err := c.CreateChannel("messaging", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 	})
 	require.NoError(t, err, "create channel")
