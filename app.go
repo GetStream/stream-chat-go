@@ -6,12 +6,13 @@ import (
 )
 
 type AppSettings struct {
-	DisableAuth        *bool           `json:"disable_auth_checks,omitempty"`
-	DisablePermissions *bool           `json:"disable_permissions_checks,omitempty"`
-	APNConfig          *APNConfig      `json:"apn_config,omitempty"`
-	FirebaseConfig     *FirebaseConfig `json:"firebase_config,omitempty"`
-	WebhookURL         *string         `json:"webhook_url,omitempty"`
-	MultiTenantEnabled *bool           `json:"multi_tenant_enabled,omitempty"`
+	DisableAuth           *bool           `json:"disable_auth_checks,omitempty"`
+	DisablePermissions    *bool           `json:"disable_permissions_checks,omitempty"`
+	APNConfig             *APNConfig      `json:"apn_config,omitempty"`
+	FirebaseConfig        *FirebaseConfig `json:"firebase_config,omitempty"`
+	WebhookURL            *string         `json:"webhook_url,omitempty"`
+	MultiTenantEnabled    *bool           `json:"multi_tenant_enabled,omitempty"`
+	AsyncURLEnrichEnabled *bool           `json:"async_url_enrich_enabled,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -96,6 +97,7 @@ type AppConfig struct {
 	DisablePermissions       bool                      `json:"disable_permissions_checks"`
 	MultiTenantEnabled       bool                      `json:"multi_tenant_enabled"`
 	RevokeTokensIssuedBefore *time.Time                `json:"revoke_tokens_issued_before"`
+	AsyncURLEnrichEnabled    bool                      `json:"async_url_enrich_enabled"`
 }
 
 type appResponse struct {
