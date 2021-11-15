@@ -274,10 +274,12 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 }
 
 // PartialUpdateMessage partially updates message with given msgID.
-func (c *Client) PartialUpdateMessage(msgID, userID string, updates PartialUpdate) (*Message, error) {
+func (c *Client) PartialUpdateMessage(msgID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
 	switch {
 	case len(updates.Set) == 0 && len(updates.Unset) == 0:
 		return nil, errors.New("updates is empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	case msgID == "":
 		return nil, errors.New("message ID must be not empty")
 	}
@@ -286,15 +288,15 @@ func (c *Client) PartialUpdateMessage(msgID, userID string, updates PartialUpdat
 
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	options := map[string]interface{}{
+	data := map[string]interface{}{
 		"Set":   updates.Set,
 		"Unset": updates.Unset,
-		"User": map[string]string{
-			"id": userID,
-		},
+	}
+	for k, v := range options {
+		data[k] = v
 	}
 
-	err := c.makeRequest(http.MethodPut, p, nil, options, &resp)
+	err := c.makeRequest(http.MethodPut, p, nil, data, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +305,7 @@ func (c *Client) PartialUpdateMessage(msgID, userID string, updates PartialUpdat
 }
 
 // PinMessage pins the message with given msgID.
-func (c *Client) PinMessage(msgID, userID string, expiration *time.Duration) (*Message, error) {
+func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Duration) (*Message, error) {
 	updates := PartialUpdate{
 		Set: map[string]interface{}{
 			"pinned": true,
@@ -313,7 +315,11 @@ func (c *Client) PinMessage(msgID, userID string, expiration *time.Duration) (*M
 		updates.Set["pin_expires"] = int(expiration.Milliseconds())
 	}
 
-	return c.PartialUpdateMessage(msgID, userID, updates)
+	options := map[string]interface{}{
+		"user_id": pinnedByID,
+	}
+
+	return c.PartialUpdateMessage(msgID, updates, options)
 }
 
 // UnPinMessage unpins the message with given msgID.
@@ -324,7 +330,11 @@ func (c *Client) UnPinMessage(msgID, userID string) (*Message, error) {
 		},
 	}
 
-	return c.PartialUpdateMessage(msgID, userID, updates)
+	options := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	return c.PartialUpdateMessage(msgID, updates, options)
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
