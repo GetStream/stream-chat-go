@@ -265,6 +265,40 @@ func TestChannel_BanUser(t *testing.T) {
 	require.NoError(t, err, "unban user")
 }
 
+func TestChannel_ShadowBan(t *testing.T) {
+	c := initClient(t)
+	userA := randomUser(t, c)
+	userB := randomUser(t, c)
+
+	ch := initChannel(t, c, userA.ID, userB.ID)
+	ch, err := c.CreateChannel(ch.Type, ch.ID, userA.ID, nil)
+	require.NoError(t, err)
+
+	err = ch.ShadowBan(userB.ID, userA.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userB.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, true, msg.Shadowed)
+
+	err = ch.RemoveShadowBan(userB.ID, nil)
+	require.NoError(t, err)
+
+	msg = &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userB.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+}
+
 func TestChannel_Delete(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
