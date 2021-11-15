@@ -41,7 +41,9 @@ type Message struct {
 
 	MentionedUsers []*User `json:"mentioned_users"`
 
-	Shadowed bool `json:"shadowed"`
+	Shadowed bool       `json:"shadowed,omitempty"`
+	PinnedAt *time.Time `json:"pinned_at,omitempty"`
+	PinnedBy *User      `json:"pinned_by,omitempty"`
 
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
@@ -269,6 +271,60 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	}
 
 	return resp.Message, nil
+}
+
+// PartialUpdateMessage partially updates message with given msgID.
+func (c *Client) PartialUpdateMessage(msgID, userID string, updates PartialUpdate) (*Message, error) {
+	switch {
+	case len(updates.Set) == 0 && len(updates.Unset) == 0:
+		return nil, errors.New("updates is empty")
+	case msgID == "":
+		return nil, errors.New("message ID must be not empty")
+	}
+
+	var resp messageResponse
+
+	p := path.Join("messages", url.PathEscape(msgID))
+
+	options := map[string]interface{}{
+		"Set":   updates.Set,
+		"Unset": updates.Unset,
+		"User": map[string]string{
+			"id": userID,
+		},
+	}
+
+	err := c.makeRequest(http.MethodPut, p, nil, options, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Message, nil
+}
+
+// PinMessage pins the message with given msgID.
+func (c *Client) PinMessage(msgID, userID string, expiration *time.Duration) (*Message, error) {
+	updates := PartialUpdate{
+		Set: map[string]interface{}{
+			"pinned": true,
+		},
+	}
+	if expiration != nil {
+		updates.Set["pin_expires"] = int(expiration.Milliseconds())
+	}
+
+	return c.PartialUpdateMessage(msgID, userID, updates)
+}
+
+// UnPinMessage unpins the message with given msgID.
+func (c *Client) UnPinMessage(msgID, userID string) (*Message, error) {
+	updates := PartialUpdate{
+		Set: map[string]interface{}{
+			"pinned": false,
+		},
+	}
+
+	return c.PartialUpdateMessage(msgID, userID, updates)
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
