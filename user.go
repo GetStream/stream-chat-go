@@ -214,12 +214,12 @@ func (c *Client) UnBanUser(targetID string, options map[string]string) error {
 // ShadowBan shadow bans target userID
 // userID: user who shadow bans target.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(targetID, userID string, options map[string]interface{}) error {
+func (c *Client) ShadowBan(targetID, bannedByID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
 	options["shadow"] = true
-	return c.BanUser(targetID, userID, options)
+	return c.BanUser(targetID, bannedByID, options)
 }
 
 // RemoveShadowBan removes the ban for target userID.

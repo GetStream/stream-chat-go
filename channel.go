@@ -440,7 +440,7 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 // ShadowBan bans target userID from this channel
 // userID: user who shadow bans target.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (ch *Channel) ShadowBan(targetID, userID string, options map[string]interface{}) error {
+func (ch *Channel) ShadowBan(targetID, bannedByID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
@@ -448,7 +448,7 @@ func (ch *Channel) ShadowBan(targetID, userID string, options map[string]interfa
 	options["type"] = ch.Type
 	options["id"] = ch.ID
 
-	return ch.client.ShadowBan(targetID, userID, options)
+	return ch.client.ShadowBan(targetID, bannedByID, options)
 }
 
 // RemoveShadowBan removes the ban for target user ID on this channel.
