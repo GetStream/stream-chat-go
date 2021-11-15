@@ -222,7 +222,7 @@ func (c *Client) ShadowBan(targetID, userID string, options map[string]interface
 	return c.BanUser(targetID, userID, options)
 }
 
-// RemoveShadowBan removes the ban for target userID
+// RemoveShadowBan removes the ban for target userID.
 func (c *Client) RemoveShadowBan(targetID string, options map[string]string) error {
 	if options == nil {
 		options = map[string]string{}
