@@ -211,24 +211,24 @@ func (c *Client) UnBanUser(targetID string, options map[string]string) error {
 	return c.makeRequest(http.MethodDelete, "moderation/ban", params, nil, nil)
 }
 
-// ShadowBan shadow bans target userID
-// userID: user who shadow bans target.
+// ShadowBan shadow bans userID
+// bannedByID: user who shadow bans userID.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(targetID, bannedByID string, options map[string]interface{}) error {
+func (c *Client) ShadowBan(userID, bannedByID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
 	options["shadow"] = true
-	return c.BanUser(targetID, bannedByID, options)
+	return c.BanUser(userID, bannedByID, options)
 }
 
-// RemoveShadowBan removes the ban for target userID.
-func (c *Client) RemoveShadowBan(targetID string, options map[string]string) error {
+// RemoveShadowBan removes the ban for userID.
+func (c *Client) RemoveShadowBan(userID string, options map[string]string) error {
 	if options == nil {
 		options = map[string]string{}
 	}
 	options["shadow"] = "true"
-	return c.UnBanUser(targetID, options)
+	return c.UnBanUser(userID, options)
 }
 
 func (c *Client) ExportUser(targetID string, options map[string][]string) (user *User, err error) {
