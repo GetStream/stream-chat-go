@@ -451,7 +451,7 @@ func (ch *Channel) ShadowBan(userID, bannedByID string, options map[string]inter
 	return ch.client.ShadowBan(userID, bannedByID, options)
 }
 
-// RemoveShadowBan removes the ban for target user ID on this channel.
+// RemoveShadowBan removes the shadow ban for target user ID on this channel.
 func (ch *Channel) RemoveShadowBan(userID string, options map[string]string) error {
 	if options == nil {
 		options = map[string]string{}
