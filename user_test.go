@@ -8,6 +8,67 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestClient_ShadowBanUser(t *testing.T) {
+	c := initClient(t)
+	userA := randomUser(t, c)
+	userB := randomUser(t, c)
+	userC := randomUser(t, c)
+
+	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
+	ch, err := c.CreateChannel(ch.Type, ch.ID, userA.ID, nil)
+	require.NoError(t, err)
+
+	// shadow ban userB globally
+	err = c.ShadowBan(userB.ID, userA.ID, nil)
+	require.NoError(t, err)
+
+	// shadow ban userC on channel
+	err = ch.ShadowBan(userC.ID, userA.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userB.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, true, msg.Shadowed)
+
+	msg = &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userC.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, true, msg.Shadowed)
+
+	err = c.RemoveShadowBan(userB.ID, nil)
+	require.NoError(t, err)
+
+	msg = &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userB.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	err = ch.RemoveShadowBan(userC.ID)
+	require.NoError(t, err)
+
+	msg = &Message{Text: "test message"}
+	msg, err = ch.SendMessage(msg, userC.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+
+	msg, err = c.GetMessage(msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, msg.Shadowed)
+}
+
 func TestClient_BanUser(t *testing.T) {
 }
 

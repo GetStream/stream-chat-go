@@ -41,6 +41,10 @@ type Message struct {
 
 	MentionedUsers []*User `json:"mentioned_users"`
 
+	Shadowed bool       `json:"shadowed,omitempty"`
+	PinnedAt *time.Time `json:"pinned_at,omitempty"`
+	PinnedBy *User      `json:"pinned_by,omitempty"`
+
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -267,6 +271,71 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 	}
 
 	return resp.Message, nil
+}
+
+// PartialUpdateMessage partially updates message with given msgID.
+// options["skip_enrich_url"] do not try to enrich the URLs within message.
+func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
+	switch {
+	case len(updates.Set) == 0 && len(updates.Unset) == 0:
+		return nil, errors.New("updates should not be empty")
+	case options == nil:
+		options = map[string]interface{}{}
+	case messageID == "":
+		return nil, errors.New("messageID should not be empty")
+	}
+
+	var resp messageResponse
+
+	p := path.Join("messages", url.PathEscape(messageID))
+
+	data := map[string]interface{}{
+		"Set":   updates.Set,
+		"Unset": updates.Unset,
+	}
+	for k, v := range options {
+		data[k] = v
+	}
+
+	err := c.makeRequest(http.MethodPut, p, nil, data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Message, nil
+}
+
+// PinMessage pins the message with given msgID.
+func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Time) (*Message, error) {
+	updates := PartialUpdate{
+		Set: map[string]interface{}{
+			"pinned": true,
+		},
+	}
+	if expiration != nil {
+		updates.Set["pin_expires"] = expiration
+	}
+
+	options := map[string]interface{}{
+		"user_id": pinnedByID,
+	}
+
+	return c.PartialUpdateMessage(msgID, updates, options)
+}
+
+// UnPinMessage unpins the message with given msgID.
+func (c *Client) UnPinMessage(msgID, userID string) (*Message, error) {
+	updates := PartialUpdate{
+		Set: map[string]interface{}{
+			"pinned": false,
+		},
+	}
+
+	options := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	return c.PartialUpdateMessage(msgID, updates, options)
 }
 
 func (c *Client) DeleteMessage(msgID string) error {
