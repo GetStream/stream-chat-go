@@ -274,19 +274,19 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 }
 
 // PartialUpdateMessage partially updates message with given msgID.
-func (c *Client) PartialUpdateMessage(msgID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
+func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
 	switch {
 	case len(updates.Set) == 0 && len(updates.Unset) == 0:
-		return nil, errors.New("updates is empty")
+		return nil, errors.New("updates should not be empty")
 	case options == nil:
 		options = map[string]interface{}{}
-	case msgID == "":
-		return nil, errors.New("message ID must be not empty")
+	case messageID == "":
+		return nil, errors.New("messageID should not be empty")
 	}
 
 	var resp messageResponse
 
-	p := path.Join("messages", url.PathEscape(msgID))
+	p := path.Join("messages", url.PathEscape(messageID))
 
 	data := map[string]interface{}{
 		"Set":   updates.Set,
