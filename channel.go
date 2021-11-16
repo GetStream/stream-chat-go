@@ -632,7 +632,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 		"channel_cid": ch.cid(),
 	}
 	if expiration != nil {
-		data["expiration"] = int(expiration.Seconds())
+		data["expiration"] = int(expiration.Milliseconds())
 	}
 
 	mute := &ChannelMuteResponse{}
