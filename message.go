@@ -274,6 +274,7 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 }
 
 // PartialUpdateMessage partially updates message with given msgID.
+// options["skip_enrich_url"] do not try to enrich the URLs within message
 func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
 	switch {
 	case len(updates.Set) == 0 && len(updates.Unset) == 0:
