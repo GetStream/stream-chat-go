@@ -306,14 +306,14 @@ func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, o
 }
 
 // PinMessage pins the message with given msgID.
-func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Duration) (*Message, error) {
+func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Time) (*Message, error) {
 	updates := PartialUpdate{
 		Set: map[string]interface{}{
 			"pinned": true,
 		},
 	}
 	if expiration != nil {
-		updates.Set["pin_expires"] = int(expiration.Milliseconds())
+		updates.Set["pin_expires"] = expiration
 	}
 
 	options := map[string]interface{}{
