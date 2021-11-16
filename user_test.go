@@ -56,7 +56,7 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, false, msg.Shadowed)
 
-	err = ch.RemoveShadowBan(userC.ID, nil)
+	err = ch.RemoveShadowBan(userC.ID)
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
