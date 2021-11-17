@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.0] 2021-11-17
+
+- Add support for shadow banning user by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+  - ShadowBan
+  - RemoveShadowBan
+- Add support for pinning messages by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+  - PinMessage
+  - UnPinMessage
+- Add support for partial updating messages by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+  - PartialUpdateMessage
+- Add support for updating channel ownership for Deleted Users by @gumuz in [#147](https://github.com/GetStream/stream-chat-go/pull/147)
+
 ## [3.13.0] 2021-11-01
 
 - Add support for async endpoints
