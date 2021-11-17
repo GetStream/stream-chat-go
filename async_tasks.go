@@ -82,15 +82,17 @@ const (
 )
 
 type DeleteUserOptions struct {
-	User          DeleteType `json:"user"`
-	Messages      DeleteType `json:"messages,omitempty"`
-	Conversations DeleteType `json:"conversations,omitempty"`
+	User              DeleteType `json:"user"`
+	Messages          DeleteType `json:"messages,omitempty"`
+	Conversations     DeleteType `json:"conversations,omitempty"`
+	NewChannelOwnerID string     `json:"new_channel_owner_id,omitempty"`
 }
 
 // DeleteUsers deletes users asynchronously.
 // User will be deleted either "hard" or "soft"
 // Conversations (1to1 channels) will be deleted if either "hard" or "soft"
 // Messages will be deleted if either "hard" or "soft"
+// NewChannelOwnerID any channels owned by the hard-deleted user will be transferred to this user ID
 // It returns a task ID, the status of the task can be check with client.GetTask method.
 func (c *Client) DeleteUsers(userIDs []string, options DeleteUserOptions) (string, error) {
 	if len(userIDs) == 0 {
