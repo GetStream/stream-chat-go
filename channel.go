@@ -191,22 +191,26 @@ func (ch *Channel) Truncate() error {
 }
 
 // AddMembers adds members with given user IDs to the channel.
-func (ch *Channel) AddMembers(userIDs []string, message *Message) error {
+// You can set a message for channel object notifications.
+// If you want to hide history of the channel for new members, you can pass "hide_history": true to options parameter.
+func (ch *Channel) AddMembers(userIDs []string, message *Message, options map[string]interface{}) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
 
-	data := map[string]interface{}{
-		"add_members": userIDs,
+	if options == nil {
+		options = map[string]interface{}{}
 	}
 
+	options["add_members"] = userIDs
+
 	if message != nil {
-		data["message"] = message
+		options["message"] = message
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
 }
 
 // RemoveMembers deletes members with given IDs from the channel.

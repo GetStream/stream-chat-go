@@ -80,9 +80,13 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
+	options := map[string]interface{}{
+		"hide_history": true,
+	}
 	err = ch.AddMembers(
 		[]string{user.ID},
 		&Message{Text: "some members", User: &User{ID: user.ID}},
+		options,
 	)
 	require.NoError(t, err, "add members")
 
@@ -150,7 +154,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 		id := prefix + name
 		_, err := c.UpsertUser(&User{ID: id, Name: id})
 		require.NoError(t, err)
-		require.NoError(t, ch.AddMembers([]string{id}, nil))
+		require.NoError(t, ch.AddMembers([]string{id}, nil, nil))
 	}
 
 	members, err := ch.QueryMembers(&QueryOption{
