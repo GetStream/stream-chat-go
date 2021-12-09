@@ -66,5 +66,5 @@ func main() {
 
 ### Contributing
 
-Contributions to this project are very much welcome, please make sure that your code changes are tested and that follow
-Go best-practices.
+Contributions to this project are very much welcome, please make sure that your code changes are tested and that they follow
+Go best-practices. You can find some tips in [CONTRIBUTING.md](./CONTRIBUTING.md).

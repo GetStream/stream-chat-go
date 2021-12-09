@@ -368,21 +368,48 @@ func TestChannel_Truncate(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
+
+	// Make sure we have one message in the channel
 	msg, err := ch.SendMessage(msg, user.ID)
 	require.NoError(t, err, "send message")
-
-	// refresh channel state
 	require.NoError(t, ch.refresh(), "refresh channel")
-
 	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
 
+	// Now truncate it
 	err = ch.Truncate()
 	require.NoError(t, err, "truncate channel")
-
-	// refresh channel state
 	require.NoError(t, ch.refresh(), "refresh channel")
+	assert.Empty(t, ch.Messages, "channel is empty")
+}
 
-	assert.Empty(t, ch.Messages, "message not exists")
+func TestChannel_TruncateWithOptions(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	defer func() {
+		_ = ch.Delete()
+	}()
+
+	user := randomUser(t, c)
+	msg := &Message{
+		Text: "test message",
+		User: user,
+	}
+
+	// Make sure we have one message in the channel
+	msg, err := ch.SendMessage(msg, user.ID)
+	require.NoError(t, err, "send message")
+	require.NoError(t, ch.refresh(), "refresh channel")
+	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
+
+	// Now truncate it
+	err = ch.Truncate(
+		TruncateWithSkipPush(true),
+		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
+	)
+	require.NoError(t, err, "truncate channel")
+	require.NoError(t, ch.refresh(), "refresh channel")
+	require.Len(t, ch.Messages, 1, "channel has one message")
+	require.Equal(t, ch.Messages[0].Text, "truncated channel")
 }
 
 func TestChannel_Update(t *testing.T) {
