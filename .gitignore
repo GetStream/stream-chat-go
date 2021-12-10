@@ -13,6 +13,7 @@
 
 .vscode/
 .idea/
+.env
 .envrc
 
 # vendored dependencies and binaries

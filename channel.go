@@ -183,11 +183,52 @@ func (ch *Channel) Delete() error {
 	return ch.client.makeRequest(http.MethodDelete, p, nil, nil, nil)
 }
 
+type truncateOptions struct {
+	HardDelete  bool       `json:"hard_delete,omitempty"`
+	SkipPush    bool       `json:"skip_push,omitempty"`
+	TruncatedAt *time.Time `json:"truncated_at,omitempty"`
+	Message     *Message   `json:"message,omitempty"`
+}
+
+type TruncateOption func(*truncateOptions)
+
+func TruncateWithHardDelete(hardDelete bool) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.HardDelete = hardDelete
+	}
+}
+
+func TruncateWithSkipPush(skipPush bool) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.SkipPush = skipPush
+	}
+}
+
+func TruncateWithMessage(message *Message) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.Message = message
+	}
+}
+
+func TruncateWithTruncatedAt(truncatedAt *time.Time) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.TruncatedAt = truncatedAt
+	}
+}
+
 // Truncate removes all messages from the channel.
-func (ch *Channel) Truncate() error {
+// You can pass in options such as hard_delete, skip_push
+// or a custom message.
+func (ch *Channel) Truncate(options ...TruncateOption) error {
+	option := &truncateOptions{}
+
+	for _, fn := range options {
+		fn(option)
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, nil, nil)
+	return ch.client.makeRequest(http.MethodPost, p, nil, option, nil)
 }
 
 // AddMembers adds members with given user IDs to the channel.
