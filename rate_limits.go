@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
@@ -83,7 +84,7 @@ func WithEndpoints(endpoints ...string) GetRateLimitsOption {
 
 // GetRateLimits returns the current rate limit quotas and usage. If no options are passed, all the limits
 // for all platforms are returned.
-func (c *Client) GetRateLimits(options ...GetRateLimitsOption) (GetRateLimitsResponse, error) {
+func (c *Client) GetRateLimits(ctx context.Context, options ...GetRateLimitsOption) (GetRateLimitsResponse, error) {
 	rlParams := getRateLimitsParams{}
 	for _, opt := range options {
 		opt(&rlParams)
@@ -107,7 +108,7 @@ func (c *Client) GetRateLimits(options ...GetRateLimitsOption) (GetRateLimitsRes
 	}
 
 	var resp GetRateLimitsResponse
-	err := c.makeRequest(http.MethodGet, "rate_limits", params, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "rate_limits", params, nil, &resp)
 	if err != nil {
 		return GetRateLimitsResponse{}, err
 	}

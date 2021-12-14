@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"testing"
@@ -32,7 +33,7 @@ func clearOldChannelTypes() error {
 	}
 	c.BaseURL = defaultBaseURL
 
-	got, err := c.ListChannelTypes()
+	got, err := c.ListChannelTypes(context.Background())
 	if err != nil {
 		return err
 	}
@@ -42,25 +43,25 @@ func clearOldChannelTypes() error {
 			continue
 		}
 		filter := map[string]interface{}{"type": ct.Name}
-		chs, _ := c.QueryChannels(&QueryOption{Filter: filter})
+		chs, _ := c.QueryChannels(context.Background(), &QueryOption{Filter: filter})
 
 		hasChannel := false
 		for _, ch := range chs {
-			if err := ch.Delete(); err != nil {
+			if err := ch.Delete(context.Background()); err != nil {
 				hasChannel = true
 				break
 			}
 		}
 
 		if !hasChannel {
-			_ = c.DeleteChannelType(ct.Name)
+			_ = c.DeleteChannelType(context.Background(), ct.Name)
 		}
 	}
 	return nil
 }
 
 func randomUser(t *testing.T, c *Client) *User {
-	u, err := c.UpsertUser(&User{ID: randomString(10)})
+	u, err := c.UpsertUser(context.Background(), &User{ID: randomString(10)})
 	require.NoError(t, err)
 	return u
 }
@@ -71,7 +72,7 @@ func randomUsers(t *testing.T, c *Client, n int) []*User {
 		users = append(users, &User{ID: randomString(10)})
 	}
 
-	userss, err := c.UpsertUsers(users...)
+	userss, err := c.UpsertUsers(context.Background(), users...)
 	require.NoError(t, err)
 	users = users[:0]
 	for _, user := range userss {

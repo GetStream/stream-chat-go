@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,12 +19,12 @@ func TestClient_Devices(t *testing.T) {
 	}
 
 	for _, dev := range devices {
-		require.NoError(t, c.AddDevice(dev), "add device")
+		require.NoError(t, c.AddDevice(context.Background(), dev), "add device")
 		defer func(dev *Device) {
-			require.NoError(t, c.DeleteDevice(user.ID, dev.ID), "delete device")
+			require.NoError(t, c.DeleteDevice(context.Background(), user.ID, dev.ID), "delete device")
 		}(dev)
 
-		resp, err := c.GetDevices(user.ID)
+		resp, err := c.GetDevices(context.Background(), user.ID)
 		require.NoError(t, err, "get devices")
 
 		assert.True(t, deviceIDExists(resp, dev.ID), "device with ID %s was created", dev.ID)
@@ -42,7 +43,7 @@ func deviceIDExists(dev []*Device, id string) bool {
 func ExampleClient_AddDevice() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_ = client.AddDevice(&Device{
+	_ = client.AddDevice(context.Background(), &Device{
 		ID:           "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207",
 		UserID:       "elon",
 		PushProvider: PushProviderAPNS,
@@ -54,5 +55,5 @@ func ExampleClient_DeleteDevice() {
 
 	deviceID := "2ffca4ad6599adc9b5202d15a5286d33c19547d472cd09de44219cda5ac30207"
 	userID := "elon"
-	_ = client.DeleteDevice(userID, deviceID)
+	_ = client.DeleteDevice(context.Background(), userID, deviceID)
 }

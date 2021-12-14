@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -194,7 +195,7 @@ func MessageSkipPush(r *messageRequest) {
 }
 
 // SendMessage sends a message to the channel. Returns full message details from server.
-func (ch *Channel) SendMessage(message *Message, userID string, options ...SendMessageOption) (*Message, error) {
+func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID string, options ...SendMessageOption) (*Message, error) {
 	switch {
 	case message == nil:
 		return nil, errors.New("message is nil")
@@ -211,7 +212,7 @@ func (ch *Channel) SendMessage(message *Message, userID string, options ...SendM
 	}
 
 	var resp messageResponse
-	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +221,7 @@ func (ch *Channel) SendMessage(message *Message, userID string, options ...SendM
 }
 
 // MarkAllRead marks all messages as read for userID.
-func (c *Client) MarkAllRead(userID string) error {
+func (c *Client) MarkAllRead(ctx context.Context, userID string) error {
 	if userID == "" {
 		return errors.New("user ID must be not empty")
 	}
@@ -231,11 +232,11 @@ func (c *Client) MarkAllRead(userID string) error {
 		},
 	}
 
-	return c.makeRequest(http.MethodPost, "channels/read", nil, data, nil)
+	return c.makeRequest(ctx, http.MethodPost, "channels/read", nil, data, nil)
 }
 
 // GetMessage returns message by ID.
-func (c *Client) GetMessage(msgID string) (*Message, error) {
+func (c *Client) GetMessage(ctx context.Context, msgID string) (*Message, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID must be not empty")
 	}
@@ -244,7 +245,7 @@ func (c *Client) GetMessage(msgID string) (*Message, error) {
 
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +254,7 @@ func (c *Client) GetMessage(msgID string) (*Message, error) {
 }
 
 // UpdateMessage updates message with given msgID.
-func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
+func (c *Client) UpdateMessage(ctx context.Context, msg *Message, msgID string) (*Message, error) {
 	switch {
 	case msg == nil:
 		return nil, errors.New("message is nil")
@@ -265,7 +266,7 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 
 	p := path.Join("messages", url.PathEscape(msgID))
 
-	err := c.makeRequest(http.MethodPost, p, nil, msg.toRequest(), &resp)
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, msg.toRequest(), &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +276,7 @@ func (c *Client) UpdateMessage(msg *Message, msgID string) (*Message, error) {
 
 // PartialUpdateMessage partially updates message with given msgID.
 // options["skip_enrich_url"] do not try to enrich the URLs within message.
-func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
+func (c *Client) PartialUpdateMessage(ctx context.Context, messageID string, updates PartialUpdate, options map[string]interface{}) (*Message, error) {
 	switch {
 	case len(updates.Set) == 0 && len(updates.Unset) == 0:
 		return nil, errors.New("updates should not be empty")
@@ -297,7 +298,7 @@ func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, o
 		data[k] = v
 	}
 
-	err := c.makeRequest(http.MethodPut, p, nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, p, nil, data, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +307,7 @@ func (c *Client) PartialUpdateMessage(messageID string, updates PartialUpdate, o
 }
 
 // PinMessage pins the message with given msgID.
-func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Time) (*Message, error) {
+func (c *Client) PinMessage(ctx context.Context, msgID, pinnedByID string, expiration *time.Time) (*Message, error) {
 	updates := PartialUpdate{
 		Set: map[string]interface{}{
 			"pinned": true,
@@ -320,11 +321,11 @@ func (c *Client) PinMessage(msgID, pinnedByID string, expiration *time.Time) (*M
 		"user_id": pinnedByID,
 	}
 
-	return c.PartialUpdateMessage(msgID, updates, options)
+	return c.PartialUpdateMessage(ctx, msgID, updates, options)
 }
 
 // UnPinMessage unpins the message with given msgID.
-func (c *Client) UnPinMessage(msgID, userID string) (*Message, error) {
+func (c *Client) UnPinMessage(ctx context.Context, msgID, userID string) (*Message, error) {
 	updates := PartialUpdate{
 		Set: map[string]interface{}{
 			"pinned": false,
@@ -335,18 +336,18 @@ func (c *Client) UnPinMessage(msgID, userID string) (*Message, error) {
 		"user_id": userID,
 	}
 
-	return c.PartialUpdateMessage(msgID, updates, options)
+	return c.PartialUpdateMessage(ctx, msgID, updates, options)
 }
 
-func (c *Client) DeleteMessage(msgID string) error {
-	return c.deleteMessage(msgID, false)
+func (c *Client) DeleteMessage(ctx context.Context, msgID string) error {
+	return c.deleteMessage(ctx, msgID, false)
 }
 
-func (c *Client) HardDeleteMessage(msgID string) error {
-	return c.deleteMessage(msgID, true)
+func (c *Client) HardDeleteMessage(ctx context.Context, msgID string) error {
+	return c.deleteMessage(ctx, msgID, true)
 }
 
-func (c *Client) deleteMessage(msgID string, hard bool) error {
+func (c *Client) deleteMessage(ctx context.Context, msgID string, hard bool) error {
 	if msgID == "" {
 		return errors.New("message ID must be not empty")
 	}
@@ -356,7 +357,7 @@ func (c *Client) deleteMessage(msgID string, hard bool) error {
 	if hard {
 		params["hard"] = []string{"true"}
 	}
-	return c.makeRequest(http.MethodDelete, p, params, nil, nil)
+	return c.makeRequest(ctx, http.MethodDelete, p, params, nil, nil)
 }
 
 type MessageFlag struct {
@@ -402,7 +403,7 @@ type MessageFlag struct {
 	RejectedAt time.Time `json:"rejected_at"`
 }
 
-func (c *Client) FlagMessage(msgID, userID string) error {
+func (c *Client) FlagMessage(ctx context.Context, msgID, userID string) error {
 	if msgID == "" {
 		return errors.New("message ID is empty")
 	}
@@ -416,10 +417,10 @@ func (c *Client) FlagMessage(msgID, userID string) error {
 		"user_id":           userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/flag", nil, options, nil)
+	return c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, nil)
 }
 
-func (c *Client) UnflagMessage(msgID, userID string) error {
+func (c *Client) UnflagMessage(ctx context.Context, msgID, userID string) error {
 	if msgID == "" {
 		return errors.New("message ID is empty")
 	}
@@ -433,7 +434,7 @@ func (c *Client) UnflagMessage(msgID, userID string) error {
 		"user_id":           userID,
 	}
 
-	return c.makeRequest(http.MethodPost, "moderation/unflag", nil, options, nil)
+	return c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
 type repliesResponse struct {
@@ -442,7 +443,7 @@ type repliesResponse struct {
 
 // GetReplies returns list of the message replies for a parent message.
 // options: Pagination params, ie {limit:10, idlte: 10}
-func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*Message, error) {
+func (ch *Channel) GetReplies(ctx context.Context, parentID string, options map[string][]string) ([]*Message, error) {
 	if parentID == "" {
 		return nil, errors.New("parent ID is empty")
 	}
@@ -451,7 +452,7 @@ func (ch *Channel) GetReplies(parentID string, options map[string][]string) ([]*
 
 	var resp repliesResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
 
 	return resp.Messages, err
 }
@@ -462,7 +463,7 @@ type sendActionRequest struct {
 }
 
 // SendAction for a message.
-func (ch *Channel) SendAction(msgID string, formData map[string]string) (*Message, error) {
+func (ch *Channel) SendAction(ctx context.Context, msgID string, formData map[string]string) (*Message, error) {
 	switch {
 	case msgID == "":
 		return nil, errors.New("message ID is empty")
@@ -476,6 +477,6 @@ func (ch *Channel) SendAction(msgID string, formData map[string]string) (*Messag
 
 	var resp messageResponse
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
 	return resp.Message, err
 }

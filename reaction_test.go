@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"log"
 	"testing"
 
@@ -17,7 +18,7 @@ func ExampleChannel_SendReaction() {
 		Type:      "love",
 		ExtraData: map[string]interface{}{"my_custom_field": 123},
 	}
-	_, err := channel.SendReaction(reaction, msgID, userID)
+	_, err := channel.SendReaction(context.Background(), reaction, msgID, userID)
 	if err != nil {
 		log.Fatalf("Found Error: %v", err)
 	}
@@ -27,7 +28,7 @@ func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(context.Background()), "delete channel")
 	}()
 
 	user := randomUser(t, c)
@@ -35,12 +36,12 @@ func TestChannel_SendReaction(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, user.ID)
+	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
+	msg, err = ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
 	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
@@ -63,7 +64,7 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(context.Background()), "delete channel")
 	}()
 
 	user := randomUser(t, c)
@@ -71,15 +72,15 @@ func TestChannel_DeleteReaction(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, user.ID)
+	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
+	msg, err = ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	msg, err = ch.DeleteReaction(msg.ID, reaction.Type, user.ID)
+	msg, err = ch.DeleteReaction(context.Background(), msg.ID, reaction.Type, user.ID)
 	require.NoError(t, err, "delete reaction")
 
 	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
@@ -90,7 +91,7 @@ func TestChannel_GetReactions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(), "delete channel")
+		require.NoError(t, ch.Delete(context.Background()), "delete channel")
 	}()
 
 	user := randomUser(t, c)
@@ -98,19 +99,19 @@ func TestChannel_GetReactions(t *testing.T) {
 		Text: "test message",
 		User: user,
 	}
-	msg, err := ch.SendMessage(msg, user.ID)
+	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 
-	reactions, err := ch.GetReactions(msg.ID, nil)
+	reactions, err := ch.GetReactions(context.Background(), msg.ID, nil)
 	require.NoError(t, err, "get reactions")
 	assert.Empty(t, reactions, "reactions empty")
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(&reaction, msg.ID, user.ID)
+	msg, err = ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	reactions, err = ch.GetReactions(msg.ID, nil)
+	reactions, err = ch.GetReactions(context.Background(), msg.ID, nil)
 	require.NoError(t, err, "get reactions")
 
 	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")

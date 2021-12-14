@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -46,7 +47,7 @@ type queryUsersResponse struct {
 
 // QueryUsers returns list of users that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in the order of sort options.
-func (c *Client) QueryUsers(q *QueryOption, sorters ...*SortOption) ([]*User, error) {
+func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*SortOption) ([]*User, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,
 		Limit:            q.Limit,
@@ -63,7 +64,7 @@ func (c *Client) QueryUsers(q *QueryOption, sorters ...*SortOption) ([]*User, er
 	values.Set("payload", string(data))
 
 	var resp queryUsersResponse
-	err = c.makeRequest(http.MethodGet, "users", values, nil, &resp)
+	err = c.makeRequest(ctx, http.MethodGet, "users", values, nil, &resp)
 
 	return resp.Users, err
 }
@@ -81,7 +82,7 @@ type queryChannelResponseData struct {
 
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
-func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
+func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
 	qp := queryRequest{
 		State:            true,
 		FilterConditions: q.Filter,
@@ -94,7 +95,7 @@ func (c *Client) QueryChannels(q *QueryOption, sort ...*SortOption) ([]*Channel,
 	}
 
 	var resp queryChannelResponse
-	if err := c.makeRequest(http.MethodPost, "channels", nil, qp, &resp); err != nil {
+	if err := c.makeRequest(ctx, http.MethodPost, "channels", nil, qp, &resp); err != nil {
 		return nil, err
 	}
 
@@ -136,8 +137,8 @@ type SearchMessageResponse struct {
 }
 
 // Search returns channels matching for given keyword.
-func (c *Client) Search(request SearchRequest) ([]*Message, error) {
-	result, err := c.SearchWithFullResponse(request)
+func (c *Client) Search(ctx context.Context, request SearchRequest) ([]*Message, error) {
+	result, err := c.SearchWithFullResponse(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +151,7 @@ func (c *Client) Search(request SearchRequest) ([]*Message, error) {
 }
 
 // SearchWithFullResponse performs a search and returns the full results.
-func (c *Client) SearchWithFullResponse(request SearchRequest) (*SearchResponse, error) {
+func (c *Client) SearchWithFullResponse(ctx context.Context, request SearchRequest) (*SearchResponse, error) {
 	if request.Offset != 0 {
 		if len(request.Sort) > 0 || request.Next != "" {
 			return nil, errors.New("cannot use Offset with Next or Sort parameters")
@@ -169,7 +170,7 @@ func (c *Client) SearchWithFullResponse(request SearchRequest) (*SearchResponse,
 	values.Set("payload", buf.String())
 
 	var result SearchResponse
-	if err := c.makeRequest(http.MethodGet, "search", values, nil, &result); err != nil {
+	if err := c.makeRequest(ctx, http.MethodGet, "search", values, nil, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -180,7 +181,7 @@ type queryMessageFlagsResponse struct {
 }
 
 // QueryMessageFlags returns list of message flags that match QueryOption.
-func (c *Client) QueryMessageFlags(q *QueryOption) ([]*MessageFlag, error) {
+func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) ([]*MessageFlag, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,
 		Limit:            q.Limit,
@@ -196,7 +197,7 @@ func (c *Client) QueryMessageFlags(q *QueryOption) ([]*MessageFlag, error) {
 	values.Set("payload", string(data))
 
 	var resp queryMessageFlagsResponse
-	err = c.makeRequest(http.MethodGet, "moderation/flags/message", values, nil, &resp)
+	err = c.makeRequest(ctx, http.MethodGet, "moderation/flags/message", values, nil, &resp)
 
 	return resp.Flags, err
 }

@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -122,7 +123,7 @@ type ImportChannelMessagesResponse struct {
 }
 
 // query makes request to channel api and updates channel internal state.
-func (ch *Channel) query(options, data map[string]interface{}) (err error) {
+func (ch *Channel) query(ctx context.Context, options, data map[string]interface{}) (err error) {
 	payload := map[string]interface{}{
 		"state": true,
 	}
@@ -141,7 +142,7 @@ func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 
 	var resp queryResponse
 
-	err = ch.client.makeRequest(http.MethodPost, p, nil, payload, &resp)
+	err = ch.client.makeRequest(ctx, http.MethodPost, p, nil, payload, &resp)
 	if err != nil {
 		return err
 	}
@@ -155,7 +156,7 @@ func (ch *Channel) query(options, data map[string]interface{}) (err error) {
 //
 // options: the object to update the custom properties of this channel with
 // message: optional update message
-func (ch *Channel) Update(options map[string]interface{}, message *Message) error {
+func (ch *Channel) Update(ctx context.Context, options map[string]interface{}, message *Message) error {
 	payload := map[string]interface{}{
 		"data": options,
 	}
@@ -166,21 +167,21 @@ func (ch *Channel) Update(options map[string]interface{}, message *Message) erro
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, payload, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, payload, nil)
 }
 
 //  PartialUpdate set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
 // options: the object to update the custom properties of the channel
-func (ch *Channel) PartialUpdate(update PartialUpdate) error {
+func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-	return ch.client.makeRequest(http.MethodPatch, p, nil, update, nil)
+	return ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, nil)
 }
 
 // Delete removes the channel. Messages are permanently removed.
-func (ch *Channel) Delete() error {
+func (ch *Channel) Delete(ctx context.Context) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return ch.client.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }
 
 type truncateOptions struct {
@@ -219,7 +220,7 @@ func TruncateWithTruncatedAt(truncatedAt *time.Time) func(*truncateOptions) {
 // Truncate removes all messages from the channel.
 // You can pass in options such as hard_delete, skip_push
 // or a custom message.
-func (ch *Channel) Truncate(options ...TruncateOption) error {
+func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) error {
 	option := &truncateOptions{}
 
 	for _, fn := range options {
@@ -228,13 +229,13 @@ func (ch *Channel) Truncate(options ...TruncateOption) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, option, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, option, nil)
 }
 
 // AddMembers adds members with given user IDs to the channel.
 // You can set a message for channel object notifications.
 // If you want to hide history of the channel for new members, you can pass "hide_history": true to options parameter.
-func (ch *Channel) AddMembers(userIDs []string, message *Message, options map[string]interface{}) error {
+func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, message *Message, options map[string]interface{}) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -251,11 +252,11 @@ func (ch *Channel) AddMembers(userIDs []string, message *Message, options map[st
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
 }
 
 // RemoveMembers deletes members with given IDs from the channel.
-func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
+func (ch *Channel) RemoveMembers(ctx context.Context, userIDs []string, message *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -271,7 +272,7 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 
 	var resp queryResponse
 
-	err := ch.client.makeRequest(http.MethodPost, p, nil, data, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
 	if err != nil {
 		return err
 	}
@@ -282,7 +283,7 @@ func (ch *Channel) RemoveMembers(userIDs []string, message *Message) error {
 }
 
 // ImportMessages is a batch endpoint for inserting multiple messages.
-func (ch *Channel) ImportMessages(messages ...*Message) (*ImportChannelMessagesResponse, error) {
+func (ch *Channel) ImportMessages(ctx context.Context, messages ...*Message) (*ImportChannelMessagesResponse, error) {
 	for _, m := range messages {
 		if m.User == nil || m.User.ID == "" {
 			return nil, errors.New("message.user is a required field")
@@ -292,7 +293,7 @@ func (ch *Channel) ImportMessages(messages ...*Message) (*ImportChannelMessagesR
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "import")
 
 	var resp ImportChannelMessagesResponse
-	err := ch.client.makeRequest(http.MethodPost, p, nil, map[string]interface{}{
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, map[string]interface{}{
 		"messages": messages,
 	}, &resp)
 	if err != nil {
@@ -307,7 +308,7 @@ type queryMembersResponse struct {
 }
 
 // QueryMembers queries members of a channel.
-func (ch *Channel) QueryMembers(q *QueryOption, sorters ...*SortOption) ([]*ChannelMember, error) {
+func (ch *Channel) QueryMembers(ctx context.Context, q *QueryOption, sorters ...*SortOption) ([]*ChannelMember, error) {
 	qp := map[string]interface{}{
 		"id":                ch.ID,
 		"type":              ch.Type,
@@ -338,24 +339,24 @@ func (ch *Channel) QueryMembers(q *QueryOption, sorters ...*SortOption) ([]*Chan
 	values.Set("payload", string(data))
 
 	var resp queryMembersResponse
-	if err := ch.client.makeRequest(http.MethodGet, "members", values, nil, &resp); err != nil {
+	if err := ch.client.makeRequest(ctx, http.MethodGet, "members", values, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Members, nil
 }
 
 // AddModerators adds moderators with given IDs to the channel.
-func (ch *Channel) AddModerators(userIDs ...string) error {
-	return ch.addModerators(userIDs, nil)
+func (ch *Channel) AddModerators(ctx context.Context, userIDs ...string) error {
+	return ch.addModerators(ctx, userIDs, nil)
 }
 
 // AddModerators adds moderators with given IDs to the channel and produce system message.
-func (ch *Channel) AddModeratorsWithMessage(userIDs []string, msg *Message) error {
-	return ch.addModerators(userIDs, msg)
+func (ch *Channel) AddModeratorsWithMessage(ctx context.Context, userIDs []string, msg *Message) error {
+	return ch.addModerators(ctx, userIDs, msg)
 }
 
 // AddModerators adds moderators with given IDs to the channel.
-func (ch *Channel) addModerators(userIDs []string, msg *Message) error {
+func (ch *Channel) addModerators(ctx context.Context, userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -370,21 +371,21 @@ func (ch *Channel) addModerators(userIDs []string, msg *Message) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
 // InviteMembers invites users with given IDs to the channel.
-func (ch *Channel) InviteMembers(userIDs ...string) error {
-	return ch.inviteMembers(userIDs, nil)
+func (ch *Channel) InviteMembers(ctx context.Context, userIDs ...string) error {
+	return ch.inviteMembers(ctx, userIDs, nil)
 }
 
 // InviteMembers invites users with given IDs to the channel and produce system message.
-func (ch *Channel) InviteMembersWithMessage(userIDs []string, msg *Message) error {
-	return ch.inviteMembers(userIDs, msg)
+func (ch *Channel) InviteMembersWithMessage(ctx context.Context, userIDs []string, msg *Message) error {
+	return ch.inviteMembers(ctx, userIDs, msg)
 }
 
 // InviteMembers invites users with given IDs to the channel.
-func (ch *Channel) inviteMembers(userIDs []string, msg *Message) error {
+func (ch *Channel) inviteMembers(ctx context.Context, userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -398,21 +399,21 @@ func (ch *Channel) inviteMembers(userIDs []string, msg *Message) error {
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
 // DemoteModerators moderators with given IDs from the channel.
-func (ch *Channel) DemoteModerators(userIDs ...string) error {
-	return ch.demoteModerators(userIDs, nil)
+func (ch *Channel) DemoteModerators(ctx context.Context, userIDs ...string) error {
+	return ch.demoteModerators(ctx, userIDs, nil)
 }
 
 // DemoteModerators moderators with given IDs from the channel and produce system message.
-func (ch *Channel) DemoteModeratorsWithMessage(userIDs []string, msg *Message) error {
-	return ch.demoteModerators(userIDs, msg)
+func (ch *Channel) DemoteModeratorsWithMessage(ctx context.Context, userIDs []string, msg *Message) error {
+	return ch.demoteModerators(ctx, userIDs, msg)
 }
 
 // DemoteModerators moderators with given IDs from the channel.
-func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
+func (ch *Channel) demoteModerators(ctx context.Context, userIDs []string, msg *Message) error {
 	if len(userIDs) == 0 {
 		return errors.New("user IDs are empty")
 	}
@@ -427,13 +428,13 @@ func (ch *Channel) demoteModerators(userIDs []string, msg *Message) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
 // MarkRead send the mark read event for user with given ID,
 // only works if the `read_events` setting is enabled.
 // options: additional data, ie {"messageID": last_messageID}
-func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error {
+func (ch *Channel) MarkRead(ctx context.Context, userID string, options map[string]interface{}) error {
 	switch {
 	case userID == "":
 		return errors.New("user ID must be not empty")
@@ -445,13 +446,13 @@ func (ch *Channel) MarkRead(userID string, options map[string]interface{}) error
 
 	options["user"] = map[string]interface{}{"id": userID}
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, options, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
 }
 
 // BanUser bans target user ID from this channel
 // userID: user who bans target.
 // options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (ch *Channel) BanUser(targetID, userID string, options map[string]interface{}) error {
+func (ch *Channel) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID is empty")
@@ -464,11 +465,11 @@ func (ch *Channel) BanUser(targetID, userID string, options map[string]interface
 	options["type"] = ch.Type
 	options["id"] = ch.ID
 
-	return ch.client.BanUser(targetID, userID, options)
+	return ch.client.BanUser(ctx, targetID, userID, options)
 }
 
 // UnBanUser removes the ban for target user ID on this channel.
-func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
+func (ch *Channel) UnBanUser(ctx context.Context, targetID string, options map[string]string) error {
 	switch {
 	case targetID == "":
 		return errors.New("target ID must be not empty")
@@ -479,13 +480,13 @@ func (ch *Channel) UnBanUser(targetID string, options map[string]string) error {
 	options["type"] = ch.Type
 	options["id"] = ch.ID
 
-	return ch.client.UnBanUser(targetID, options)
+	return ch.client.UnBanUser(ctx, targetID, options)
 }
 
 // ShadowBan shadow bans userID from this channel
 // bannedByID: user who shadow bans userID.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (ch *Channel) ShadowBan(userID, bannedByID string, options map[string]interface{}) error {
+func (ch *Channel) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) error {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
@@ -493,50 +494,50 @@ func (ch *Channel) ShadowBan(userID, bannedByID string, options map[string]inter
 	options["type"] = ch.Type
 	options["id"] = ch.ID
 
-	return ch.client.ShadowBan(userID, bannedByID, options)
+	return ch.client.ShadowBan(ctx, userID, bannedByID, options)
 }
 
 // RemoveShadowBan removes the shadow ban for target user ID on this channel.
-func (ch *Channel) RemoveShadowBan(userID string) error {
+func (ch *Channel) RemoveShadowBan(ctx context.Context, userID string) error {
 	options := map[string]string{
 		"type": ch.Type,
 		"id":   ch.ID,
 	}
 
-	return ch.client.RemoveShadowBan(userID, options)
+	return ch.client.RemoveShadowBan(ctx, userID, options)
 }
 
 // Query fills channel info with state (messages, members, reads).
-func (ch *Channel) Query(data map[string]interface{}) error {
+func (ch *Channel) Query(ctx context.Context, data map[string]interface{}) error {
 	options := map[string]interface{}{
 		"state": true,
 	}
 
-	return ch.query(options, data)
+	return ch.query(ctx, options, data)
 }
 
 // Show makes channel visible for userID.
-func (ch *Channel) Show(userID string) error {
+func (ch *Channel) Show(ctx context.Context, userID string) error {
 	data := map[string]interface{}{
 		"user_id": userID,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "show")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
 // Hide makes channel hidden for userID.
-func (ch *Channel) Hide(userID string) error {
-	return ch.hide(userID, false)
+func (ch *Channel) Hide(ctx context.Context, userID string) error {
+	return ch.hide(ctx, userID, false)
 }
 
 // HideWithHistoryClear clear marks channel as hidden and remove all messages for user.
-func (ch *Channel) HideWithHistoryClear(userID string) error {
-	return ch.hide(userID, true)
+func (ch *Channel) HideWithHistoryClear(ctx context.Context, userID string) error {
+	return ch.hide(ctx, userID, true)
 }
 
-func (ch *Channel) hide(userID string, clearHistory bool) error {
+func (ch *Channel) hide(ctx context.Context, userID string, clearHistory bool) error {
 	data := map[string]interface{}{
 		"user_id":       userID,
 		"clear_history": clearHistory,
@@ -544,11 +545,11 @@ func (ch *Channel) hide(userID string, clearHistory bool) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "hide")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]interface{}) (*Channel, error) {
+func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*Channel, error) {
 	_, membersPresent := data["members"]
 
 	switch {
@@ -579,7 +580,7 @@ func (c *Client) CreateChannel(chanType, chanID, userID string, data map[string]
 
 	data["created_by"] = map[string]string{"id": userID}
 
-	if err := ch.query(options, data); err != nil {
+	if err := ch.query(ctx, options, data); err != nil {
 		return nil, err
 	}
 	return ch, nil
@@ -596,40 +597,40 @@ type SendFileRequest struct {
 }
 
 // SendFile sends file to the channel. Returns file url or error.
-func (ch *Channel) SendFile(request SendFileRequest) (string, error) {
+func (ch *Channel) SendFile(ctx context.Context, request SendFileRequest) (string, error) {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
 
-	return ch.client.sendFile(p, request)
+	return ch.client.sendFile(ctx, p, request)
 }
 
 // SendFile sends image to the channel. Returns file url or error.
-func (ch *Channel) SendImage(request SendFileRequest) (string, error) {
+func (ch *Channel) SendImage(ctx context.Context, request SendFileRequest) (string, error) {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
 
-	return ch.client.sendFile(p, request)
+	return ch.client.sendFile(ctx, p, request)
 }
 
 // DeleteFile removes uploaded file.
-func (ch *Channel) DeleteFile(location string) error {
+func (ch *Channel) DeleteFile(ctx context.Context, location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "file")
 
 	params := url.Values{}
 	params.Set("url", location)
 
-	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+	return ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, nil)
 }
 
 // DeleteImage removes uploaded image.
-func (ch *Channel) DeleteImage(location string) error {
+func (ch *Channel) DeleteImage(ctx context.Context, location string) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "image")
 
 	params := url.Values{}
 	params.Set("url", location)
 
-	return ch.client.makeRequest(http.MethodDelete, p, params, nil, nil)
+	return ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, nil)
 }
 
-func (ch *Channel) AcceptInvite(userID string, message *Message) error {
+func (ch *Channel) AcceptInvite(ctx context.Context, userID string, message *Message) error {
 	if userID == "" {
 		return errors.New("user ID must be not empty")
 	}
@@ -645,10 +646,10 @@ func (ch *Channel) AcceptInvite(userID string, message *Message) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
-func (ch *Channel) RejectInvite(userID string, message *Message) error {
+func (ch *Channel) RejectInvite(ctx context.Context, userID string, message *Message) error {
 	if userID == "" {
 		return errors.New("user ID must be not empty")
 	}
@@ -664,10 +665,10 @@ func (ch *Channel) RejectInvite(userID string, message *Message) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
-func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteResponse, error) {
+func (ch *Channel) Mute(ctx context.Context, userID string, expiration *time.Duration) (*ChannelMuteResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
 	}
@@ -681,7 +682,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 	}
 
 	mute := &ChannelMuteResponse{}
-	err := ch.client.makeRequest(http.MethodPost, "moderation/mute/channel", nil, data, mute)
+	err := ch.client.makeRequest(ctx, http.MethodPost, "moderation/mute/channel", nil, data, mute)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +690,7 @@ func (ch *Channel) Mute(userID string, expiration *time.Duration) (*ChannelMuteR
 	return mute, nil
 }
 
-func (ch *Channel) Unmute(userID string) error {
+func (ch *Channel) Unmute(ctx context.Context, userID string) error {
 	if userID == "" {
 		return errors.New("user ID must be not empty")
 	}
@@ -699,15 +700,15 @@ func (ch *Channel) Unmute(userID string) error {
 		"channel_cid": ch.cid(),
 	}
 
-	return ch.client.makeRequest(http.MethodPost, "moderation/unmute/channel", nil, data, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, "moderation/unmute/channel", nil, data, nil)
 }
 
-func (ch *Channel) refresh() error {
+func (ch *Channel) refresh(ctx context.Context) error {
 	options := map[string]interface{}{
 		"watch":    false,
 		"state":    true,
 		"presence": false,
 	}
 
-	return ch.query(options, nil)
+	return ch.query(ctx, options, nil)
 }

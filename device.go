@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -24,7 +25,7 @@ type devicesResponse struct {
 }
 
 // GetDevices retrieves the list of devices for user.
-func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
+func (c *Client) GetDevices(ctx context.Context, userID string) (devices []*Device, err error) {
 	if userID == "" {
 		return nil, errors.New("user ID is empty")
 	}
@@ -34,13 +35,13 @@ func (c *Client) GetDevices(userID string) (devices []*Device, err error) {
 
 	var resp devicesResponse
 
-	err = c.makeRequest(http.MethodGet, "devices", params, nil, &resp)
+	err = c.makeRequest(ctx, http.MethodGet, "devices", params, nil, &resp)
 
 	return resp.Devices, err
 }
 
 // AddDevice adds new device.
-func (c *Client) AddDevice(device *Device) error {
+func (c *Client) AddDevice(ctx context.Context, device *Device) error {
 	switch {
 	case device == nil:
 		return errors.New("device is nil")
@@ -52,11 +53,11 @@ func (c *Client) AddDevice(device *Device) error {
 		return errors.New("device push provider is empty")
 	}
 
-	return c.makeRequest(http.MethodPost, "devices", nil, device, nil)
+	return c.makeRequest(ctx, http.MethodPost, "devices", nil, device, nil)
 }
 
 // DeleteDevice deletes a device from the user.
-func (c *Client) DeleteDevice(userID, deviceID string) error {
+func (c *Client) DeleteDevice(ctx context.Context, userID, deviceID string) error {
 	switch {
 	case userID == "":
 		return errors.New("user ID is empty")
@@ -68,5 +69,5 @@ func (c *Client) DeleteDevice(userID, deviceID string) error {
 	params.Set("id", deviceID)
 	params.Set("user_id", userID)
 
-	return c.makeRequest(http.MethodDelete, "devices", params, nil, nil)
+	return c.makeRequest(ctx, http.MethodDelete, "devices", params, nil, nil)
 }

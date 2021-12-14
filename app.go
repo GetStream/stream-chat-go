@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
@@ -105,10 +106,10 @@ type appResponse struct {
 }
 
 // GetAppConfig returns app settings.
-func (c *Client) GetAppConfig() (*AppConfig, error) {
+func (c *Client) GetAppConfig(ctx context.Context) (*AppConfig, error) {
 	var resp appResponse
 
-	err := c.makeRequest(http.MethodGet, "app", nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "app", nil, nil, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +121,12 @@ func (c *Client) GetAppConfig() (*AppConfig, error) {
 // Example of usage:
 //  settings := NewAppSettings().SetDisableAuth(true)
 //  err := client.UpdateAppSettings(settings)
-func (c *Client) UpdateAppSettings(settings *AppSettings) error {
-	return c.makeRequest(http.MethodPatch, "app", nil, settings, nil)
+func (c *Client) UpdateAppSettings(ctx context.Context, settings *AppSettings) error {
+	return c.makeRequest(ctx, http.MethodPatch, "app", nil, settings, nil)
 }
 
 // RevokeTokens revokes all tokens for an application issued before given time.
-func (c *Client) RevokeTokens(before *time.Time) error {
+func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) error {
 	setting := make(map[string]interface{})
 	if before == nil {
 		setting["revoke_tokens_issued_before"] = nil
@@ -133,5 +134,5 @@ func (c *Client) RevokeTokens(before *time.Time) error {
 		setting["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
 	}
 
-	return c.makeRequest(http.MethodPatch, "app", nil, setting, nil)
+	return c.makeRequest(ctx, http.MethodPatch, "app", nil, setting, nil)
 }
