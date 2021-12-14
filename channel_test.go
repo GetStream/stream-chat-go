@@ -95,6 +95,26 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
+func TestChannel_AssignRoles(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	owner := randomUser(t, c)
+	chanID := randomString(12)
+
+	ch, err := c.CreateChannel(ctx, "messaging", chanID, owner.ID, map[string]interface{}{
+		"members": []string{owner.ID},
+	})
+	require.NoError(t, err, "create channel")
+	defer func() {
+		_ = ch.Delete(ctx)
+	}()
+
+	a := []*RoleAssignment{{ChannelRole: "channel_moderator", UserID: owner.ID}}
+	err = ch.AssignRole(ctx, a, nil)
+	require.NoError(t, err)
+}
+
 func TestChannel_QueryMembers(t *testing.T) {
 	c := initClient(t)
 
