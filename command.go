@@ -1,5 +1,6 @@
 package stream_chat // nolint: golint
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -25,14 +26,14 @@ type commandsResponse struct {
 }
 
 // CreateCommand registers a new custom command.
-func (c *Client) CreateCommand(cmd *Command) (*Command, error) {
+func (c *Client) CreateCommand(ctx context.Context, cmd *Command) (*Command, error) {
 	if cmd == nil {
 		return nil, errors.New("command is nil")
 	}
 
 	var resp commandResponse
 
-	err := c.makeRequest(http.MethodPost, "commands", nil, cmd, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "commands", nil, cmd, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (c *Client) CreateCommand(cmd *Command) (*Command, error) {
 }
 
 // GetCommand retrieves a custom command referenced by cmdName.
-func (c *Client) GetCommand(cmdName string) (*Command, error) {
+func (c *Client) GetCommand(ctx context.Context, cmdName string) (*Command, error) {
 	if cmdName == "" {
 		return nil, errors.New("command name is empty")
 	}
@@ -53,33 +54,33 @@ func (c *Client) GetCommand(cmdName string) (*Command, error) {
 
 	cmd := Command{}
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &cmd)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &cmd)
 
 	return &cmd, err
 }
 
 // DeleteCommand deletes a custom command referenced by cmdName.
-func (c *Client) DeleteCommand(cmdName string) error {
+func (c *Client) DeleteCommand(ctx context.Context, cmdName string) error {
 	if cmdName == "" {
 		return errors.New("command name is empty")
 	}
 
 	p := path.Join("commands", url.PathEscape(cmdName))
 
-	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }
 
 // ListCommands returns a list of custom commands.
-func (c *Client) ListCommands() ([]*Command, error) {
+func (c *Client) ListCommands(ctx context.Context) ([]*Command, error) {
 	var resp commandsResponse
 
-	err := c.makeRequest(http.MethodGet, "commands", nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "commands", nil, nil, &resp)
 
 	return resp.Commands, err
 }
 
 // UpdateCommand updates a custom command referenced by cmdName.
-func (c *Client) UpdateCommand(cmdName string, options map[string]interface{}) (*Command, error) {
+func (c *Client) UpdateCommand(ctx context.Context, cmdName string, options map[string]interface{}) (*Command, error) {
 	switch {
 	case cmdName == "":
 		return nil, errors.New("command name is empty")
@@ -91,6 +92,6 @@ func (c *Client) UpdateCommand(cmdName string, options map[string]interface{}) (
 
 	var resp commandResponse
 
-	err := c.makeRequest(http.MethodPut, p, nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, p, nil, options, &resp)
 	return resp.Command, err
 }

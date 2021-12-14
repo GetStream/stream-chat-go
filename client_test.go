@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func initClient(t *testing.T) *Client {
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 	owner := randomUser(t, c)
-	ch, err := c.CreateChannel("team", randomString(12), owner.ID, map[string]interface{}{
+	ch, err := c.CreateChannel(context.Background(), "team", randomString(12), owner.ID, map[string]interface{}{
 		"members": membersID,
 	})
 
@@ -116,11 +117,11 @@ func TestSendUserCustomEvent(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if test.expectedErr == "" {
-				_, err := c.UpsertUser(&User{ID: test.targetUserID})
+				_, err := c.UpsertUser(context.Background(), &User{ID: test.targetUserID})
 				require.NoError(t, err)
 			}
 
-			err := c.SendUserCustomEvent(test.targetUserID, test.event)
+			err := c.SendUserCustomEvent(context.Background(), test.targetUserID, test.event)
 
 			if test.expectedErr == "" {
 				require.NoError(t, err)

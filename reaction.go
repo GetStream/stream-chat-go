@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -48,7 +49,7 @@ type reactionRequest struct {
 }
 
 // SendReaction sends a reaction to message with given ID.
-func (ch *Channel) SendReaction(reaction *Reaction, messageID, userID string) (*Message, error) {
+func (ch *Channel) SendReaction(ctx context.Context, reaction *Reaction, messageID, userID string) (*Message, error) {
 	switch {
 	case reaction == nil:
 		return nil, errors.New("reaction is nil")
@@ -65,13 +66,13 @@ func (ch *Channel) SendReaction(reaction *Reaction, messageID, userID string) (*
 	p := path.Join("messages", url.PathEscape(messageID), "reaction")
 
 	req := reactionRequest{Reaction: reaction}
-	err := ch.client.makeRequest(http.MethodPost, p, nil, req, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
 
 	return resp.Message, err
 }
 
 // DeleteReaction removes a reaction from message with given ID.
-func (ch *Channel) DeleteReaction(messageID, reactionType, userID string) (*Message, error) {
+func (ch *Channel) DeleteReaction(ctx context.Context, messageID, reactionType, userID string) (*Message, error) {
 	switch {
 	case messageID == "":
 		return nil, errors.New("message ID is empty")
@@ -88,7 +89,7 @@ func (ch *Channel) DeleteReaction(messageID, reactionType, userID string) (*Mess
 
 	var resp reactionResponse
 
-	err := ch.client.makeRequest(http.MethodDelete, p, params, nil, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +106,7 @@ type reactionsResponse struct {
 
 // GetReactions returns list of the reactions for message with given ID.
 // options: Pagination params, ie {"limit":{"10"}, "idlte": {"10"}}
-func (ch *Channel) GetReactions(messageID string, options map[string][]string) ([]*Reaction, error) {
+func (ch *Channel) GetReactions(ctx context.Context, messageID string, options map[string][]string) ([]*Reaction, error) {
 	if messageID == "" {
 		return nil, errors.New("message ID is empty")
 	}
@@ -114,7 +115,7 @@ func (ch *Channel) GetReactions(messageID string, options map[string][]string) (
 
 	var resp reactionsResponse
 
-	err := ch.client.makeRequest(http.MethodGet, p, options, nil, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
 
 	return resp.Reactions, err
 }

@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ func prepareCommand(t *testing.T, c *Client) *Command {
 		Description: "test command",
 	}
 
-	cmd, err := c.CreateCommand(cmd)
+	cmd, err := c.CreateCommand(context.Background(), cmd)
 	require.NoError(t, err, "create command")
 
 	return cmd
@@ -24,10 +25,10 @@ func TestClient_GetCommand(t *testing.T) {
 
 	cmd := prepareCommand(t, c)
 	defer func() {
-		_ = c.DeleteCommand(cmd.Name)
+		_ = c.DeleteCommand(context.Background(), cmd.Name)
 	}()
 
-	got, err := c.GetCommand(cmd.Name)
+	got, err := c.GetCommand(context.Background(), cmd.Name)
 	require.NoError(t, err, "get command")
 
 	assert.Equal(t, cmd.Name, got.Name)
@@ -39,10 +40,10 @@ func TestClient_ListCommands(t *testing.T) {
 
 	cmd := prepareCommand(t, c)
 	defer func() {
-		_ = c.DeleteCommand(cmd.Name)
+		_ = c.DeleteCommand(context.Background(), cmd.Name)
 	}()
 
-	got, err := c.ListCommands()
+	got, err := c.ListCommands(context.Background())
 	require.NoError(t, err, "list commands")
 
 	assert.Contains(t, got, cmd)
@@ -53,10 +54,10 @@ func TestClient_UpdateCommand(t *testing.T) {
 
 	cmd := prepareCommand(t, c)
 	defer func() {
-		_ = c.DeleteCommand(cmd.Name)
+		_ = c.DeleteCommand(context.Background(), cmd.Name)
 	}()
 
-	got, err := c.UpdateCommand(cmd.Name, map[string]interface{}{
+	got, err := c.UpdateCommand(context.Background(), cmd.Name, map[string]interface{}{
 		"description": "new description",
 	})
 	require.NoError(t, err, "update command")
@@ -76,23 +77,23 @@ func ExampleClient_CreateCommand() {
 		Set:         "custom_cmd_set",
 	}
 
-	_, _ = client.CreateCommand(newCommand)
+	_, _ = client.CreateCommand(context.Background(), newCommand)
 }
 
 func ExampleClient_ListCommands() {
 	client := &Client{}
-	_, _ = client.ListCommands()
+	_, _ = client.ListCommands(context.Background())
 }
 
 func ExampleClient_GetCommand() {
 	client := &Client{}
-	_, _ = client.GetCommand("my-command")
+	_, _ = client.GetCommand(context.Background(), "my-command")
 }
 
 func ExampleClient_UpdateCommand() {
 	client := &Client{}
 
-	_, _ = client.UpdateCommand("my-command", map[string]interface{}{
+	_, _ = client.UpdateCommand(context.Background(), "my-command", map[string]interface{}{
 		"description": "updated description",
 	})
 }
@@ -100,5 +101,5 @@ func ExampleClient_UpdateCommand() {
 func ExampleClient_DeleteCommand() {
 	client := &Client{}
 
-	_ = client.DeleteCommand("my-command")
+	_ = client.DeleteCommand(context.Background(), "my-command")
 }

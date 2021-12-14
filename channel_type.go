@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -90,14 +91,14 @@ type channelTypeResponse struct {
 }
 
 // CreateChannelType adds new channel type.
-func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
+func (c *Client) CreateChannelType(ctx context.Context, chType *ChannelType) (*ChannelType, error) {
 	if chType == nil {
 		return nil, errors.New("channel type is nil")
 	}
 
 	var resp channelTypeRequest
 
-	err := c.makeRequest(http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func (c *Client) CreateChannelType(chType *ChannelType) (*ChannelType, error) {
 }
 
 // GetChannelType returns information about channel type.
-func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
+func (c *Client) GetChannelType(ctx context.Context, chanType string) (*ChannelType, error) {
 	if chanType == "" {
 		return nil, errors.New("channel type is empty")
 	}
@@ -122,21 +123,21 @@ func (c *Client) GetChannelType(chanType string) (*ChannelType, error) {
 
 	ct := ChannelType{}
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &ct)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &ct)
 
 	return &ct, err
 }
 
 // ListChannelTypes returns all channel types.
-func (c *Client) ListChannelTypes() (map[string]*ChannelType, error) {
+func (c *Client) ListChannelTypes(ctx context.Context) (map[string]*ChannelType, error) {
 	var resp channelTypeResponse
 
-	err := c.makeRequest(http.MethodGet, "channeltypes", nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "channeltypes", nil, nil, &resp)
 
 	return resp.ChannelTypes, err
 }
 
-func (c *Client) UpdateChannelType(name string, options map[string]interface{}) error {
+func (c *Client) UpdateChannelType(ctx context.Context, name string, options map[string]interface{}) error {
 	switch {
 	case name == "":
 		return errors.New("channel type name is empty")
@@ -146,15 +147,15 @@ func (c *Client) UpdateChannelType(name string, options map[string]interface{}) 
 
 	p := path.Join("channeltypes", url.PathEscape(name))
 
-	return c.makeRequest(http.MethodPut, p, nil, options, nil)
+	return c.makeRequest(ctx, http.MethodPut, p, nil, options, nil)
 }
 
-func (c *Client) DeleteChannelType(name string) error {
+func (c *Client) DeleteChannelType(ctx context.Context, name string) error {
 	if name == "" {
 		return errors.New("channel type name is empty")
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(name))
 
-	return c.makeRequest(http.MethodDelete, p, nil, nil, nil)
+	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }

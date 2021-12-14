@@ -2,6 +2,7 @@ package stream_chat // nolint: golint
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/hmac"
 	"encoding/hex"
@@ -77,13 +78,13 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 	return _url.String(), nil
 }
 
-func (c *Client) newRequest(method, path string, params url.Values, data interface{}) (*http.Request, error) {
+func (c *Client) newRequest(ctx context.Context, method, path string, params url.Values, data interface{}) (*http.Request, error) {
 	_url, err := c.requestURL(path, params)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := http.NewRequest(method, _url, nil)
+	r, err := http.NewRequestWithContext(ctx, method, _url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +111,8 @@ func (c *Client) newRequest(method, path string, params url.Values, data interfa
 	return r, nil
 }
 
-func (c *Client) makeRequest(method, path string, params url.Values, data, result interface{}) error {
-	r, err := c.newRequest(method, path, params, data)
+func (c *Client) makeRequest(ctx context.Context, method, path string, params url.Values, data, result interface{}) error {
+	r, err := c.newRequest(ctx, method, path, params, data)
 	if err != nil {
 		return err
 	}
@@ -208,7 +209,7 @@ func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, cont
 	return err
 }
 
-func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
+func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest) (string, error) {
 	if opts.User == nil {
 		return "", errors.New("user is nil")
 	}
@@ -243,7 +244,7 @@ func (c *Client) sendFile(link string, opts SendFileRequest) (string, error) {
 		return "", err
 	}
 
-	r, err := c.newRequest(http.MethodPost, link, nil, tmpfile)
+	r, err := c.newRequest(ctx, http.MethodPost, link, nil, tmpfile)
 	if err != nil {
 		return "", err
 	}

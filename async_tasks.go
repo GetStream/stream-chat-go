@@ -1,6 +1,7 @@
 package stream_chat //nolint: golint
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,7 +30,7 @@ type Task struct {
 }
 
 // GetTask returns the status of a task that has been ran asynchronously.
-func (c *Client) GetTask(id string) (*Task, error) {
+func (c *Client) GetTask(ctx context.Context, id string) (*Task, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id should not be empty")
 	}
@@ -37,7 +38,7 @@ func (c *Client) GetTask(id string) (*Task, error) {
 	p := path.Join("tasks", url.PathEscape(id))
 
 	var task Task
-	err := c.makeRequest(http.MethodGet, p, nil, nil, &task)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &task)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get task status: %v", err)
 	}
@@ -52,7 +53,7 @@ type AsyncTaskResponse struct {
 // DeleteChannels deletes channels asynchronously.
 // Channels and messages will be hard deleted if hardDelete is true.
 // It returns a task ID, the status of the task can be check with client.GetTask method.
-func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) {
+func (c *Client) DeleteChannels(ctx context.Context, cids []string, hardDelete bool) (string, error) {
 	if len(cids) == 0 {
 		return "", fmt.Errorf("cids parameter should not be empty")
 	}
@@ -66,7 +67,7 @@ func (c *Client) DeleteChannels(cids []string, hardDelete bool) (string, error) 
 	}
 
 	var resp AsyncTaskResponse
-	err := c.makeRequest(http.MethodPost, "channels/delete", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "channels/delete", nil, data, &resp)
 	if err != nil {
 		return "", fmt.Errorf("cannot delete channels: %v", err)
 	}
@@ -94,7 +95,7 @@ type DeleteUserOptions struct {
 // Messages will be deleted if either "hard" or "soft"
 // NewChannelOwnerID any channels owned by the hard-deleted user will be transferred to this user ID
 // It returns a task ID, the status of the task can be check with client.GetTask method.
-func (c *Client) DeleteUsers(userIDs []string, options DeleteUserOptions) (string, error) {
+func (c *Client) DeleteUsers(ctx context.Context, userIDs []string, options DeleteUserOptions) (string, error) {
 	if len(userIDs) == 0 {
 		return "", fmt.Errorf("userIDs parameter should not be empty")
 	}
@@ -108,7 +109,7 @@ func (c *Client) DeleteUsers(userIDs []string, options DeleteUserOptions) (strin
 	}
 
 	var resp AsyncTaskResponse
-	err := c.makeRequest(http.MethodPost, "users/delete", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "users/delete", nil, data, &resp)
 	if err != nil {
 		return "", fmt.Errorf("cannot delete users: %v", err)
 	}
@@ -125,7 +126,7 @@ type ExportableChannel struct {
 
 // ExportChannels requests an asynchronous export of the provided channels and returns
 // the ID of task.
-func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
+func (c *Client) ExportChannels(ctx context.Context, channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (string, error) {
 	if len(channels) == 0 {
 		return "", errors.New("number of channels must be at least one")
 	}
@@ -146,7 +147,7 @@ func (c *Client) ExportChannels(channels []*ExportableChannel, clearDeletedMessa
 	}
 
 	var resp AsyncTaskResponse
-	if err := c.makeRequest(http.MethodPost, "export_channels", nil, req, &resp); err != nil {
+	if err := c.makeRequest(ctx, http.MethodPost, "export_channels", nil, req, &resp); err != nil {
 		return "", err
 	}
 
@@ -163,7 +164,7 @@ func verifyExportableChannels(channels []*ExportableChannel) error {
 }
 
 // GetExportChannelsTask returns current state of the export task.
-func (c *Client) GetExportChannelsTask(taskID string) (*Task, error) {
+func (c *Client) GetExportChannelsTask(ctx context.Context, taskID string) (*Task, error) {
 	task := &Task{}
 
 	if taskID == "" {
@@ -172,6 +173,6 @@ func (c *Client) GetExportChannelsTask(taskID string) (*Task, error) {
 
 	p := path.Join("export_channels", url.PathEscape(taskID))
 
-	err := c.makeRequest(http.MethodGet, p, nil, nil, task)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, task)
 	return task, err
 }

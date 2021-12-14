@@ -1,6 +1,7 @@
 package stream_chat // nolint: golint
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -112,7 +113,7 @@ func (e Event) MarshalJSON() ([]byte, error) {
 }
 
 // SendEvent sends an event on this channel.
-func (ch *Channel) SendEvent(event *Event, userID string) error {
+func (ch *Channel) SendEvent(ctx context.Context, event *Event, userID string) error {
 	if event == nil {
 		return errors.New("event is nil")
 	}
@@ -127,7 +128,7 @@ func (ch *Channel) SendEvent(event *Event, userID string) error {
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
-	return ch.client.makeRequest(http.MethodPost, p, nil, req, nil)
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, nil)
 }
 
 // UserCustomEvent is a custom event sent to a particular user.
@@ -163,7 +164,7 @@ func (e UserCustomEvent) MarshalJSON() ([]byte, error) {
 }
 
 // SendUserCustomEvent sends a custom event to all connected clients for the target user id.
-func (c *Client) SendUserCustomEvent(targetUserID string, event *UserCustomEvent) error {
+func (c *Client) SendUserCustomEvent(ctx context.Context, targetUserID string, event *UserCustomEvent) error {
 	if event == nil {
 		return errors.New("event is nil")
 	}
@@ -179,5 +180,5 @@ func (c *Client) SendUserCustomEvent(targetUserID string, event *UserCustomEvent
 
 	p := path.Join("users", url.PathEscape(targetUserID), "event")
 
-	return c.makeRequest(http.MethodPost, p, nil, req, nil)
+	return c.makeRequest(ctx, http.MethodPost, p, nil, req, nil)
 }
