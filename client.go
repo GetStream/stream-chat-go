@@ -14,7 +14,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -36,93 +35,42 @@ type Client struct {
 	authToken string
 }
 
-func (c *Client) setHeaders(r *http.Request) {
-	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Stream-Client", versionHeader())
-	r.Header.Set("Authorization", c.authToken)
-	r.Header.Set("Stream-Auth-Type", "jwt")
-}
-
-func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
-	if resp.Body != nil {
-		defer resp.Body.Close()
+// NewClient creates new stream chat api client.
+func NewClient(apiKey, apiSecret string) (*Client, error) {
+	switch {
+	case apiKey == "":
+		return nil, errors.New("API key is empty")
+	case apiSecret == "":
+		return nil, errors.New("API secret is empty")
 	}
 
-	if resp.StatusCode >= 399 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("chat-client: HTTP %s %s status %s: %s",
-			resp.Request.Method, resp.Request.URL, resp.Status, string(msg))
+	client := &Client{
+		apiKey:    apiKey,
+		apiSecret: []byte(apiSecret),
+		BaseURL:   defaultBaseURL,
+		HTTP: &http.Client{
+			Timeout: defaultTimeout,
+		},
 	}
 
-	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
-	}
-
-	return nil
-}
-
-func (c *Client) requestURL(path string, values url.Values) (string, error) {
-	_url, err := url.Parse(c.BaseURL + "/" + path)
-	if err != nil {
-		return "", errors.New("url.Parse: " + err.Error())
-	}
-
-	if values == nil {
-		values = make(url.Values)
-	}
-
-	values.Add("api_key", c.apiKey)
-
-	_url.RawQuery = values.Encode()
-
-	return _url.String(), nil
-}
-
-func (c *Client) newRequest(ctx context.Context, method, path string, params url.Values, data interface{}) (*http.Request, error) {
-	_url, err := c.requestURL(path, params)
+	token, err := client.createToken(jwt.MapClaims{"server": true})
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, method, _url, nil)
-	if err != nil {
-		return nil, err
-	}
+	client.authToken = token
 
-	c.setHeaders(r)
-	switch t := data.(type) {
-	case nil:
-		r.Body = nil
-
-	case io.ReadCloser:
-		r.Body = t
-
-	case io.Reader:
-		r.Body = ioutil.NopCloser(t)
-
-	default:
-		b, err := json.Marshal(data)
-		if err != nil {
-			return nil, err
-		}
-		r.Body = ioutil.NopCloser(bytes.NewReader(b))
-	}
-
-	return r, nil
+	return client, nil
 }
 
-func (c *Client) makeRequest(ctx context.Context, method, path string, params url.Values, data, result interface{}) error {
-	r, err := c.newRequest(ctx, method, path, params, data)
-	if err != nil {
-		return err
-	}
+// Channel returns a Channel object for future API calls.
+func (c *Client) Channel(channelType, channelID string) *Channel {
+	return &Channel{
+		client: c,
 
-	resp, err := c.HTTP.Do(r)
-	if err != nil {
-		return err
+		ID:   channelID,
+		Type: channelType,
 	}
-
-	return c.parseResponse(resp, result)
 }
 
 // CreateToken creates a new token for user with optional expire time.
@@ -263,43 +211,4 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 	}
 
 	return resp.File, err
-}
-
-// NewClient creates new stream chat api client.
-func NewClient(apiKey, apiSecret string) (*Client, error) {
-	switch {
-	case apiKey == "":
-		return nil, errors.New("API key is empty")
-	case apiSecret == "":
-		return nil, errors.New("API secret is empty")
-	}
-
-	client := &Client{
-		apiKey:    apiKey,
-		apiSecret: []byte(apiSecret),
-		BaseURL:   defaultBaseURL,
-		HTTP: &http.Client{
-			Timeout: defaultTimeout,
-		},
-	}
-
-	token, err := client.createToken(jwt.MapClaims{"server": true})
-	if err != nil {
-		return nil, err
-	}
-
-	client.authToken = token
-
-	return client, nil
-}
-
-// Channel prepares a Channel object for future API calls. This does not in and
-// of itself call the API.
-func (c *Client) Channel(channelType, channelID string) *Channel {
-	return &Channel{
-		client: c,
-
-		ID:   channelID,
-		Type: channelType,
-	}
 }

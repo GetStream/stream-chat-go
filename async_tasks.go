@@ -110,11 +110,7 @@ func (c *Client) DeleteUsers(ctx context.Context, userIDs []string, options Dele
 
 	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, "users/delete", nil, data, &resp)
-	if err != nil {
-		return "", fmt.Errorf("cannot delete users: %v", err)
-	}
-
-	return resp.TaskID, nil
+	return resp.TaskID, err
 }
 
 type ExportableChannel struct {
