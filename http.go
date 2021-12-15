@@ -81,9 +81,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 			return apiErr
 		}
 
-		if resp.StatusCode == http.StatusTooManyRequests {
-			apiErr.RateLimit = NewRateLimitFromHeaders(resp.Header)
-		}
+		apiErr.RateLimit = NewRateLimitFromHeaders(resp.Header)
 		return apiErr
 	}
 
