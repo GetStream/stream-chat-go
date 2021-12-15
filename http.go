@@ -69,7 +69,8 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		var apiErr Error
 		err := json.NewDecoder(resp.Body).Decode(&apiErr)
 		if err != nil {
-			return fmt.Errorf("cannot decode error: %w", err)
+			apiErr.Message = fmt.Sprintf("cannot decode error: %v", err)
+			return apiErr
 		}
 
 		if resp.StatusCode == http.StatusTooManyRequests {
@@ -81,7 +82,6 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	if result != nil {
 		return json.NewDecoder(resp.Body).Decode(result)
 	}
-
 	return nil
 }
 
