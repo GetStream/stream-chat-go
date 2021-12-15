@@ -37,6 +37,7 @@ func TestRateLimit(t *testing.T) {
 	}
 }
 
+// TestContextExceeded asserts that the context error is correctly returned.
 func TestContextExceeded(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
