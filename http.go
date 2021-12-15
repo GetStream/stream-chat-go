@@ -60,20 +60,22 @@ func NewRateLimitFromHeaders(headers http.Header) *RateLimit {
 }
 
 func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
-	if resp.Body != nil {
-		defer resp.Body.Close()
+	if resp.Body == nil {
+		return errors.New("http body is nil")
 	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode >= 399 {
 		var apiErr Error
-		err := json.NewDecoder(resp.Body).Decode(&apiErr)
+		err := json.Unmarshal(b, &apiErr)
 		if err != nil {
 			// IP rate limit errors sent by our Edge infrastructure are not JSON encoded.
 			// If decode fails here, we need to handle this manually.
-			b, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
-			}
 			apiErr.Message = string(b)
 			apiErr.StatusCode = resp.StatusCode
 			return apiErr
@@ -86,7 +88,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	}
 
 	if result != nil {
-		return json.NewDecoder(resp.Body).Decode(result)
+		return json.Unmarshal(b, result)
 	}
 	return nil
 }
