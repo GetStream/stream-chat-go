@@ -150,6 +150,13 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, params ur
 
 	resp, err := c.HTTP.Do(r)
 	if err != nil {
+		select {
+		case <-ctx.Done():
+			// If we got an error, and the context has been canceled,
+			// return context's error which is more useful.
+			return ctx.Err()
+		default:
+		}
 		return err
 	}
 

@@ -2,8 +2,10 @@ package stream_chat
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -33,4 +35,19 @@ func TestRateLimit(t *testing.T) {
 			return
 		}
 	}
+}
+
+func TestContextExceeded(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+
+	_, err := c.DeleteUsers(ctx, []string{user.ID}, DeleteUserOptions{
+		User:     SoftDelete,
+		Messages: HardDelete,
+	})
+	require.Error(t, err)
+	require.True(t, errors.Is(err, context.DeadlineExceeded))
 }
