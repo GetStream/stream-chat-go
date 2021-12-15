@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"testing"
 	"time"
@@ -50,5 +49,5 @@ func TestContextExceeded(t *testing.T) {
 		Messages: HardDelete,
 	})
 	require.Error(t, err)
-	require.True(t, errors.Is(err, context.DeadlineExceeded))
+	require.ErrorIs(t, err, context.DeadlineExceeded)
 }

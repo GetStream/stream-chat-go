@@ -66,7 +66,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return errors.New("failed to read HTTP response")
 	}
 	defer resp.Body.Close()
 
@@ -94,7 +94,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 }
 
 func (c *Client) requestURL(path string, values url.Values) (string, error) {
-	_url, err := url.Parse(c.BaseURL + "/" + path)
+	u, err := url.Parse(c.BaseURL + "/" + path)
 	if err != nil {
 		return "", errors.New("url.Parse: " + err.Error())
 	}
@@ -105,18 +105,18 @@ func (c *Client) requestURL(path string, values url.Values) (string, error) {
 
 	values.Add("api_key", c.apiKey)
 
-	_url.RawQuery = values.Encode()
+	u.RawQuery = values.Encode()
 
-	return _url.String(), nil
+	return u.String(), nil
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, params url.Values, data interface{}) (*http.Request, error) {
-	_url, err := c.requestURL(path, params)
+	u, err := c.requestURL(path, params)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, method, _url, nil)
+	r, err := http.NewRequestWithContext(ctx, method, u, nil)
 	if err != nil {
 		return nil, err
 	}
