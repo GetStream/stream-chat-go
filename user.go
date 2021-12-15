@@ -241,7 +241,6 @@ func (c *Client) ExportUser(ctx context.Context, targetID string, options map[st
 	user = &User{}
 
 	err = c.makeRequest(ctx, http.MethodGet, p, options, nil, user)
-
 	return user, err
 }
 
@@ -320,10 +319,6 @@ func (c *Client) UpsertUsers(ctx context.Context, users ...*User) (map[string]*U
 	var resp usersResponse
 
 	err := c.makeRequest(ctx, http.MethodPost, "users", nil, req, &resp)
-	if err != nil {
-		return nil, err
-	}
-
 	return resp.Users, err
 }
 
@@ -366,7 +361,6 @@ func (c *Client) PartialUpdateUsers(ctx context.Context, updates []PartialUserUp
 	var resp usersResponse
 
 	err := c.makeRequest(ctx, http.MethodPatch, "users", nil, partialUserUpdateReq{Users: updates}, &resp)
-
 	return resp.Users, err
 }
 

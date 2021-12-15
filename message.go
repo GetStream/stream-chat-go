@@ -213,11 +213,7 @@ func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID str
 
 	var resp messageResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Message, nil
+	return resp.Message, err
 }
 
 // MarkAllRead marks all messages as read for userID.
@@ -246,11 +242,7 @@ func (c *Client) GetMessage(ctx context.Context, msgID string) (*Message, error)
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Message, nil
+	return resp.Message, err
 }
 
 // UpdateMessage updates message with given msgID.
@@ -267,11 +259,7 @@ func (c *Client) UpdateMessage(ctx context.Context, msg *Message, msgID string) 
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, msg.toRequest(), &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Message, nil
+	return resp.Message, err
 }
 
 // PartialUpdateMessage partially updates message with given msgID.
@@ -299,11 +287,7 @@ func (c *Client) PartialUpdateMessage(ctx context.Context, messageID string, upd
 	}
 
 	err := c.makeRequest(ctx, http.MethodPut, p, nil, data, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Message, nil
+	return resp.Message, err
 }
 
 // PinMessage pins the message with given msgID.
@@ -433,7 +417,6 @@ func (c *Client) UnflagMessage(ctx context.Context, msgID, userID string) error 
 		"target_message_id": msgID,
 		"user_id":           userID,
 	}
-
 	return c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
@@ -453,7 +436,6 @@ func (ch *Channel) GetReplies(ctx context.Context, parentID string, options map[
 	var resp repliesResponse
 
 	err := ch.client.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
-
 	return resp.Messages, err
 }
 

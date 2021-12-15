@@ -109,8 +109,5 @@ func (c *Client) GetRateLimits(ctx context.Context, options ...GetRateLimitsOpti
 
 	var resp GetRateLimitsResponse
 	err := c.makeRequest(ctx, http.MethodGet, "rate_limits", params, nil, &resp)
-	if err != nil {
-		return GetRateLimitsResponse{}, err
-	}
-	return resp, nil
+	return resp, err
 }

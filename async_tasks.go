@@ -39,11 +39,7 @@ func (c *Client) GetTask(ctx context.Context, id string) (*Task, error) {
 
 	var task Task
 	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &task)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get task status: %v", err)
-	}
-
-	return &task, nil
+	return &task, err
 }
 
 type AsyncTaskResponse struct {
@@ -68,11 +64,7 @@ func (c *Client) DeleteChannels(ctx context.Context, cids []string, hardDelete b
 
 	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, "channels/delete", nil, data, &resp)
-	if err != nil {
-		return "", fmt.Errorf("cannot delete channels: %v", err)
-	}
-
-	return resp.TaskID, nil
+	return resp.TaskID, err
 }
 
 type DeleteType string
@@ -110,11 +102,7 @@ func (c *Client) DeleteUsers(ctx context.Context, userIDs []string, options Dele
 
 	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, "users/delete", nil, data, &resp)
-	if err != nil {
-		return "", fmt.Errorf("cannot delete users: %v", err)
-	}
-
-	return resp.TaskID, nil
+	return resp.TaskID, err
 }
 
 type ExportableChannel struct {
@@ -147,11 +135,8 @@ func (c *Client) ExportChannels(ctx context.Context, channels []*ExportableChann
 	}
 
 	var resp AsyncTaskResponse
-	if err := c.makeRequest(ctx, http.MethodPost, "export_channels", nil, req, &resp); err != nil {
-		return "", err
-	}
-
-	return resp.TaskID, nil
+	err = c.makeRequest(ctx, http.MethodPost, "export_channels", nil, req, &resp)
+	return resp.TaskID, err
 }
 
 func verifyExportableChannels(channels []*ExportableChannel) error {

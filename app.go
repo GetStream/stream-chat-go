@@ -110,11 +110,7 @@ func (c *Client) GetAppConfig(ctx context.Context) (*AppConfig, error) {
 	var resp appResponse
 
 	err := c.makeRequest(ctx, http.MethodGet, "app", nil, nil, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.App, nil
+	return resp.App, err
 }
 
 // UpdateAppSettings makes request to update app settings
