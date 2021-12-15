@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -94,45 +93,6 @@ func TestChannel_AddMembers(t *testing.T) {
 	// refresh channel state
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
-}
-
-func TestChannel_ImportChannelMessages(t *testing.T) {
-	c := initClient(t)
-
-	owner := randomUser(t, c)
-	chanID := randomString(12)
-
-	ch, err := c.CreateChannel(context.Background(), "messaging", chanID, owner.ID, nil)
-	require.NoError(t, err, "create channel")
-	defer func() {
-		_ = ch.Delete(context.Background())
-	}()
-
-	assert.Empty(t, ch.Members, "members are empty")
-
-	user := randomUser(t, c)
-
-	t0 := time.Unix(0, 0).UTC()
-	t1 := time.Unix(1, 0).UTC()
-	resp, err := ch.ImportMessages(context.Background(),
-		&Message{
-			Text:      "hi 1",
-			User:      &User{ID: user.ID},
-			CreatedAt: &t1,
-		}, &Message{
-			Text:      "hi 0",
-			User:      &User{ID: user.ID},
-			CreatedAt: &t0,
-		})
-	require.NoError(t, err, "Send bulk messages")
-	require.Len(t, resp.Messages, 2)
-	require.Equal(t, &t0, resp.Messages[0].CreatedAt)
-	require.Equal(t, &t1, resp.Messages[1].CreatedAt)
-
-	// get the channel and validate last_message_at
-	ch, err = c.CreateChannel(context.Background(), "messaging", chanID, owner.ID, nil)
-	require.NoError(t, err, "create channel")
-	require.Equal(t, t1, ch.LastMessageAt)
 }
 
 func TestChannel_QueryMembers(t *testing.T) {
