@@ -36,7 +36,6 @@ func (c *Client) GetDevices(ctx context.Context, userID string) (devices []*Devi
 	var resp devicesResponse
 
 	err = c.makeRequest(ctx, http.MethodGet, "devices", params, nil, &resp)
-
 	return resp.Devices, err
 }
 
@@ -68,6 +67,5 @@ func (c *Client) DeleteDevice(ctx context.Context, userID, deviceID string) erro
 	params := url.Values{}
 	params.Set("id", deviceID)
 	params.Set("user_id", userID)
-
 	return c.makeRequest(ctx, http.MethodDelete, "devices", params, nil, nil)
 }

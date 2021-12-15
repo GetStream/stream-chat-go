@@ -179,6 +179,5 @@ func (c *Client) SendUserCustomEvent(ctx context.Context, targetUserID string, e
 	}
 
 	p := path.Join("users", url.PathEscape(targetUserID), "event")
-
 	return c.makeRequest(ctx, http.MethodPost, p, nil, req, nil)
 }

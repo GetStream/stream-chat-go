@@ -65,7 +65,6 @@ func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*Sor
 
 	var resp queryUsersResponse
 	err = c.makeRequest(ctx, http.MethodGet, "users", values, nil, &resp)
-
 	return resp.Users, err
 }
 
@@ -198,6 +197,5 @@ func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) ([]*Mess
 
 	var resp queryMessageFlagsResponse
 	err = c.makeRequest(ctx, http.MethodGet, "moderation/flags/message", values, nil, &resp)
-
 	return resp.Flags, err
 }

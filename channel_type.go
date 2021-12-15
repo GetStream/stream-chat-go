@@ -124,7 +124,6 @@ func (c *Client) GetChannelType(ctx context.Context, chanType string) (*ChannelT
 	ct := ChannelType{}
 
 	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &ct)
-
 	return &ct, err
 }
 
@@ -133,7 +132,6 @@ func (c *Client) ListChannelTypes(ctx context.Context) (map[string]*ChannelType,
 	var resp channelTypeResponse
 
 	err := c.makeRequest(ctx, http.MethodGet, "channeltypes", nil, nil, &resp)
-
 	return resp.ChannelTypes, err
 }
 
@@ -146,7 +144,6 @@ func (c *Client) UpdateChannelType(ctx context.Context, name string, options map
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(name))
-
 	return c.makeRequest(ctx, http.MethodPut, p, nil, options, nil)
 }
 
@@ -156,6 +153,5 @@ func (c *Client) DeleteChannelType(ctx context.Context, name string) error {
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(name))
-
 	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }

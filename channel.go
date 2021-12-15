@@ -148,7 +148,6 @@ func (ch *Channel) query(ctx context.Context, options, data map[string]interface
 	}
 
 	resp.updateChannel(ch)
-
 	return nil
 }
 
@@ -166,7 +165,6 @@ func (ch *Channel) Update(ctx context.Context, options map[string]interface{}, m
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, payload, nil)
 }
 
@@ -180,7 +178,6 @@ func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) erro
 // Delete removes the channel. Messages are permanently removed.
 func (ch *Channel) Delete(ctx context.Context) error {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }
 
@@ -228,7 +225,6 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) erro
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, option, nil)
 }
 
@@ -251,7 +247,6 @@ func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, message *Me
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
 }
 
@@ -278,7 +273,6 @@ func (ch *Channel) RemoveMembers(ctx context.Context, userIDs []string, message 
 	}
 
 	resp.updateChannel(ch)
-
 	return nil
 }
 
@@ -296,11 +290,7 @@ func (ch *Channel) ImportMessages(ctx context.Context, messages ...*Message) (*I
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, map[string]interface{}{
 		"messages": messages,
 	}, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
+	return &resp, err
 }
 
 type queryMembersResponse struct {
@@ -339,10 +329,8 @@ func (ch *Channel) QueryMembers(ctx context.Context, q *QueryOption, sorters ...
 	values.Set("payload", string(data))
 
 	var resp queryMembersResponse
-	if err := ch.client.makeRequest(ctx, http.MethodGet, "members", values, nil, &resp); err != nil {
-		return nil, err
-	}
-	return resp.Members, nil
+	err = ch.client.makeRequest(ctx, http.MethodGet, "members", values, nil, &resp)
+	return resp.Members, err
 }
 
 // AddModerators adds moderators with given IDs to the channel.
@@ -370,7 +358,6 @@ func (ch *Channel) addModerators(ctx context.Context, userIDs []string, msg *Mes
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -427,7 +414,6 @@ func (ch *Channel) demoteModerators(ctx context.Context, userIDs []string, msg *
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -445,7 +431,6 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options map[stri
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
 	options["user"] = map[string]interface{}{"id": userID}
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
 }
 
@@ -523,7 +508,6 @@ func (ch *Channel) Show(ctx context.Context, userID string) error {
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "show")
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -544,7 +528,6 @@ func (ch *Channel) hide(ctx context.Context, userID string, clearHistory bool) e
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "hide")
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -616,7 +599,6 @@ func (ch *Channel) DeleteFile(ctx context.Context, location string) error {
 
 	params := url.Values{}
 	params.Set("url", location)
-
 	return ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, nil)
 }
 
@@ -626,7 +608,6 @@ func (ch *Channel) DeleteImage(ctx context.Context, location string) error {
 
 	params := url.Values{}
 	params.Set("url", location)
-
 	return ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, nil)
 }
 
@@ -645,7 +626,6 @@ func (ch *Channel) AcceptInvite(ctx context.Context, userID string, message *Mes
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -664,7 +644,6 @@ func (ch *Channel) RejectInvite(ctx context.Context, userID string, message *Mes
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
-
 	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
 }
 
@@ -683,11 +662,7 @@ func (ch *Channel) Mute(ctx context.Context, userID string, expiration *time.Dur
 
 	mute := &ChannelMuteResponse{}
 	err := ch.client.makeRequest(ctx, http.MethodPost, "moderation/mute/channel", nil, data, mute)
-	if err != nil {
-		return nil, err
-	}
-
-	return mute, nil
+	return mute, err
 }
 
 func (ch *Channel) Unmute(ctx context.Context, userID string) error {
@@ -699,7 +674,6 @@ func (ch *Channel) Unmute(ctx context.Context, userID string) error {
 		"user_id":     userID,
 		"channel_cid": ch.cid(),
 	}
-
 	return ch.client.makeRequest(ctx, http.MethodPost, "moderation/unmute/channel", nil, data, nil)
 }
 
@@ -709,6 +683,5 @@ func (ch *Channel) refresh(ctx context.Context) error {
 		"state":    true,
 		"presence": false,
 	}
-
 	return ch.query(ctx, options, nil)
 }

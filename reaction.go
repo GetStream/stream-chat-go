@@ -67,7 +67,6 @@ func (ch *Channel) SendReaction(ctx context.Context, reaction *Reaction, message
 
 	req := reactionRequest{Reaction: reaction}
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
-
 	return resp.Message, err
 }
 
@@ -116,6 +115,5 @@ func (ch *Channel) GetReactions(ctx context.Context, messageID string, options m
 	var resp reactionsResponse
 
 	err := ch.client.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
-
 	return resp.Reactions, err
 }

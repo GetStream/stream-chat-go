@@ -55,7 +55,6 @@ func (c *Client) GetCommand(ctx context.Context, cmdName string) (*Command, erro
 	cmd := Command{}
 
 	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &cmd)
-
 	return &cmd, err
 }
 
@@ -66,7 +65,6 @@ func (c *Client) DeleteCommand(ctx context.Context, cmdName string) error {
 	}
 
 	p := path.Join("commands", url.PathEscape(cmdName))
-
 	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
 }
 
@@ -75,7 +73,6 @@ func (c *Client) ListCommands(ctx context.Context) ([]*Command, error) {
 	var resp commandsResponse
 
 	err := c.makeRequest(ctx, http.MethodGet, "commands", nil, nil, &resp)
-
 	return resp.Commands, err
 }
 
