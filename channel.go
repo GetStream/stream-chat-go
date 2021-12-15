@@ -282,27 +282,6 @@ func (ch *Channel) RemoveMembers(ctx context.Context, userIDs []string, message 
 	return nil
 }
 
-// ImportMessages is a batch endpoint for inserting multiple messages.
-func (ch *Channel) ImportMessages(ctx context.Context, messages ...*Message) (*ImportChannelMessagesResponse, error) {
-	for _, m := range messages {
-		if m.User == nil || m.User.ID == "" {
-			return nil, errors.New("message.user is a required field")
-		}
-	}
-
-	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "import")
-
-	var resp ImportChannelMessagesResponse
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, map[string]interface{}{
-		"messages": messages,
-	}, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
-}
-
 type queryMembersResponse struct {
 	Members []*ChannelMember `json:"members"`
 }
