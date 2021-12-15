@@ -82,13 +82,13 @@ func ExampleClient_CreateChannelType() {
 	newChannelType.Mutes = false
 	newChannelType.Reactions = false
 	newChannelType.Permissions = append(newChannelType.Permissions,
-		&Permission{
+		&ChannelTypePermission{
 			Name:      "Allow reads for all",
 			Priority:  999,
 			Resources: []string{"ReadChannel", "CreateMessage"},
 			Action:    "Allow",
 		},
-		&Permission{
+		&ChannelTypePermission{
 			Name:      "Deny all",
 			Priority:  1,
 			Resources: []string{"*"},

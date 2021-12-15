@@ -4,6 +4,11 @@ on:
     branches:
       - master
   pull_request:
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   test-build:
     name: Test & Build

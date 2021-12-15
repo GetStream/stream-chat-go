@@ -276,6 +276,30 @@ func (ch *Channel) RemoveMembers(ctx context.Context, userIDs []string, message 
 	return nil
 }
 
+type RoleAssignment struct {
+	// UserID is the ID of the user to assign the role to.
+	UserID string `json:"user_id"`
+
+	// ChannelRole is the role to assign to the user.
+	ChannelRole string `json:"channel_role"`
+}
+
+// AssignRoles assigns roles to members with given IDs.
+func (ch *Channel) AssignRole(ctx context.Context, assignments []*RoleAssignment, msg *Message) error {
+	if len(assignments) == 0 {
+		return errors.New("assignments are empty")
+	}
+
+	data := map[string]interface{}{"assign_roles": assignments}
+	if msg != nil {
+		data["message"] = msg
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, nil)
+}
+
 type queryMembersResponse struct {
 	Members []*ChannelMember `json:"members"`
 }

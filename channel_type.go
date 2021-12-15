@@ -35,7 +35,7 @@ type (
 	modBehaviour string
 )
 
-type Permission struct {
+type ChannelTypePermission struct {
 	Name   string `json:"name"`   // required
 	Action string `json:"action"` // one of: Deny Allow
 
@@ -48,8 +48,11 @@ type Permission struct {
 type ChannelType struct {
 	ChannelConfig
 
-	Commands    []*Command    `json:"commands"`
-	Permissions []*Permission `json:"permissions"`
+	Commands []*Command `json:"commands"`
+	// Deprecated: Use Permissions V2 API instead,
+	// that can be found in permission_client.go.
+	// See https://getstream.io/chat/docs/go-golang/migrating_from_legacy/?language=go
+	Permissions []*ChannelTypePermission `json:"permissions"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

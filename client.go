@@ -73,6 +73,11 @@ func (c *Client) Channel(channelType, channelID string) *Channel {
 	}
 }
 
+// Permissions returns a client for handling app permissions.
+func (c *Client) Permissions() *PermissionClient {
+	return &PermissionClient{client: c}
+}
+
 // CreateToken creates a new token for user with optional expire time.
 // Zero time is assumed to be no expire.
 func (c *Client) CreateToken(userID string, expire time.Time, issuedAt ...time.Time) (string, error) {
