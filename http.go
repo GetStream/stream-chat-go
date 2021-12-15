@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,7 +67,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.New("failed to read HTTP response")
+		return fmt.Errorf("failed to read HTTP response: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -81,6 +82,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 			return apiErr
 		}
 
+		// Include rate limit information.
 		apiErr.RateLimit = NewRateLimitFromHeaders(resp.Header)
 		return apiErr
 	}
