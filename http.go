@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -69,7 +68,14 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		var apiErr Error
 		err := json.NewDecoder(resp.Body).Decode(&apiErr)
 		if err != nil {
-			apiErr.Message = fmt.Sprintf("cannot decode error: %v", err)
+			// IP rate limit errors sent by our Edge infrastructure are not JSON encoded.
+			// If decode fails here, we need to handle this manually.
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				panic(err)
+			}
+			apiErr.Message = string(b)
+			apiErr.StatusCode = resp.StatusCode
 			return apiErr
 		}
 
