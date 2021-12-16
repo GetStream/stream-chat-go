@@ -41,13 +41,14 @@ type queryRequest struct {
 	Sort             []*SortOption          `json:"sort,omitempty"`
 }
 
-type queryUsersResponse struct {
+type QueryUsersResponse struct {
 	Users []*User `json:"users"`
+	Response
 }
 
 // QueryUsers returns list of users that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in the order of sort options.
-func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*SortOption) ([]*User, error) {
+func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*SortOption) (*QueryUsersResponse, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,
 		Limit:            q.Limit,
@@ -63,13 +64,14 @@ func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*Sor
 	values := make(url.Values)
 	values.Set("payload", string(data))
 
-	var resp queryUsersResponse
+	var resp QueryUsersResponse
 	err = c.makeRequest(ctx, http.MethodGet, "users", values, nil, &resp)
-	return resp.Users, err
+	return &resp, err
 }
 
 type queryChannelResponse struct {
 	Channels []queryChannelResponseData `json:"channels"`
+	Response
 }
 
 type queryChannelResponseData struct {
@@ -79,9 +81,14 @@ type queryChannelResponseData struct {
 	Members  []*ChannelMember `json:"members"`
 }
 
+type QueryChannelsResponse struct {
+	Channels []*Channel
+	Response
+}
+
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
-func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*SortOption) ([]*Channel, error) {
+func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*SortOption) (*QueryChannelsResponse, error) {
 	qp := queryRequest{
 		State:            true,
 		FilterConditions: q.Filter,
@@ -107,7 +114,7 @@ func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*Sor
 		result[i].client = c
 	}
 
-	return result, nil
+	return &QueryChannelsResponse{Channels: result, Response: resp.Response}, nil
 }
 
 type SearchRequest struct {
@@ -125,18 +132,24 @@ type SearchRequest struct {
 	Sort []SortOption `json:"sort,omitempty"`
 }
 
-type SearchResponse struct {
+type SearchFullResponse struct {
 	Results  []SearchMessageResponse `json:"results"`
 	Next     string                  `json:"next,omitempty"`
 	Previous string                  `json:"previous,omitempty"`
+	Response
 }
 
 type SearchMessageResponse struct {
 	Message *Message `json:"message"`
 }
 
-// Search returns channels matching for given keyword.
-func (c *Client) Search(ctx context.Context, request SearchRequest) ([]*Message, error) {
+type SearchResponse struct {
+	Messages []*Message
+	Response
+}
+
+// Search returns messages matching for given keyword.
+func (c *Client) Search(ctx context.Context, request SearchRequest) (*SearchResponse, error) {
 	result, err := c.SearchWithFullResponse(ctx, request)
 	if err != nil {
 		return nil, err
@@ -146,11 +159,15 @@ func (c *Client) Search(ctx context.Context, request SearchRequest) ([]*Message,
 		messages = append(messages, res.Message)
 	}
 
-	return messages, nil
+	resp := SearchResponse{
+		Messages: messages,
+		Response: result.Response,
+	}
+	return &resp, nil
 }
 
 // SearchWithFullResponse performs a search and returns the full results.
-func (c *Client) SearchWithFullResponse(ctx context.Context, request SearchRequest) (*SearchResponse, error) {
+func (c *Client) SearchWithFullResponse(ctx context.Context, request SearchRequest) (*SearchFullResponse, error) {
 	if request.Offset != 0 {
 		if len(request.Sort) > 0 || request.Next != "" {
 			return nil, errors.New("cannot use Offset with Next or Sort parameters")
@@ -168,19 +185,20 @@ func (c *Client) SearchWithFullResponse(ctx context.Context, request SearchReque
 	values := url.Values{}
 	values.Set("payload", buf.String())
 
-	var result SearchResponse
+	var result SearchFullResponse
 	if err := c.makeRequest(ctx, http.MethodGet, "search", values, nil, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
-type queryMessageFlagsResponse struct {
+type QueryMessageFlagsResponse struct {
 	Flags []*MessageFlag `json:"flags"`
+	Response
 }
 
 // QueryMessageFlags returns list of message flags that match QueryOption.
-func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) ([]*MessageFlag, error) {
+func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) (*QueryMessageFlagsResponse, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,
 		Limit:            q.Limit,
@@ -195,7 +213,7 @@ func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) ([]*Mess
 	values := make(url.Values)
 	values.Set("payload", string(data))
 
-	var resp queryMessageFlagsResponse
+	var resp QueryMessageFlagsResponse
 	err = c.makeRequest(ctx, http.MethodGet, "moderation/flags/message", values, nil, &resp)
-	return resp.Flags, err
+	return &resp, err
 }

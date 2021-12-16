@@ -42,7 +42,7 @@ func TestClient_QueryUsers(t *testing.T) {
 		})
 
 		require.NoError(tt, err)
-		require.Len(tt, results, len(ids))
+		require.Len(tt, results.Users, len(ids))
 	})
 
 	t.Run("Query with offset/limit", func(tt *testing.T) {
@@ -61,10 +61,10 @@ func TestClient_QueryUsers(t *testing.T) {
 		)
 
 		require.NoError(tt, err)
-		require.Len(tt, results, 2)
+		require.Len(tt, results.Users, 2)
 
-		require.Equal(tt, results[0].ID, ids[offset])
-		require.Equal(tt, results[1].ID, ids[offset+1])
+		require.Equal(tt, results.Users[0].ID, ids[offset])
+		require.Equal(tt, results.Users[1].ID, ids[offset+1])
 	})
 }
 
@@ -78,7 +78,7 @@ func TestClient_QueryChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	messageLimit := 1
-	got, err := c.QueryChannels(context.Background(), &QueryOption{
+	resp, err := c.QueryChannels(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]interface{}{
 				"$eq": ch.ID,
@@ -88,8 +88,8 @@ func TestClient_QueryChannels(t *testing.T) {
 	})
 
 	require.NoError(t, err, "query channels error")
-	require.Equal(t, ch.ID, got[0].ID, "received channel ID")
-	require.Len(t, got[0].Messages, messageLimit)
+	require.Equal(t, ch.ID, resp.Channels[0].ID, "received channel ID")
+	require.Len(t, resp.Channels[0].Messages, messageLimit)
 }
 
 func TestClient_Search(t *testing.T) {
@@ -108,7 +108,7 @@ func TestClient_Search(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Query", func(tt *testing.T) {
-		got, err := c.Search(context.Background(), SearchRequest{Query: text, Filters: map[string]interface{}{
+		resp, err := c.Search(context.Background(), SearchRequest{Query: text, Filters: map[string]interface{}{
 			"members": map[string][]string{
 				"$in": {user1.ID, user2.ID},
 			},
@@ -116,10 +116,10 @@ func TestClient_Search(t *testing.T) {
 
 		require.NoError(tt, err)
 
-		assert.Len(tt, got, 2)
+		assert.Len(tt, resp.Messages, 2)
 	})
 	t.Run("Message filters", func(tt *testing.T) {
-		got, err := c.Search(context.Background(), SearchRequest{
+		resp, err := c.Search(context.Background(), SearchRequest{
 			Filters: map[string]interface{}{
 				"members": map[string][]string{
 					"$in": {user1.ID, user2.ID},
@@ -133,7 +133,7 @@ func TestClient_Search(t *testing.T) {
 		})
 		require.NoError(tt, err)
 
-		assert.Len(tt, got, 2)
+		assert.Len(tt, resp.Messages, 2)
 	})
 	t.Run("Query and message filters error", func(tt *testing.T) {
 		_, err := c.Search(context.Background(), SearchRequest{
@@ -282,7 +282,7 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	assert.Len(t, got, 2)
+	assert.Len(t, got.Flags, 2)
 
 	// one flag shows up in this query by user_id
 	got, err = c.QueryMessageFlags(context.Background(), &QueryOption{
@@ -291,7 +291,7 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	assert.Len(t, got, 1)
+	assert.Len(t, got.Flags, 1)
 
 	// unflag these 2 messages
 	_, err = c.UnflagMessage(context.Background(), msg1.ID, user2.ID)
@@ -304,5 +304,5 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 		Filter: map[string]interface{}{"channel_cid": ch.cid()},
 	})
 	require.NoError(t, err)
-	assert.Len(t, got, 0)
+	assert.Len(t, got.Flags, 0)
 }
