@@ -116,7 +116,6 @@ func (c *Client) CreateChannelType(ctx context.Context, chType *ChannelType) (*C
 		return nil, errors.New("unexpected error: channel type response is nil")
 	}
 
-	// TODO: check if we can get rid of this
 	for _, cmd := range resp.Commands {
 		resp.ChannelType.Commands = append(resp.ChannelType.Commands, &Command{Name: cmd})
 	}
