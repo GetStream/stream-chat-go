@@ -33,12 +33,12 @@ func clearOldChannelTypes() error {
 	}
 	c.BaseURL = defaultBaseURL
 
-	got, err := c.ListChannelTypes(context.Background())
+	resp, err := c.ListChannelTypes(context.Background())
 	if err != nil {
 		return err
 	}
 
-	for _, ct := range got {
+	for _, ct := range resp.ChannelTypes {
 		if contains(defaultChannelTypes, ct.Name) {
 			continue
 		}
@@ -54,7 +54,7 @@ func clearOldChannelTypes() error {
 		}
 
 		if !hasChannel {
-			_ = c.DeleteChannelType(context.Background(), ct.Name)
+			_, _ = c.DeleteChannelType(context.Background(), ct.Name)
 		}
 	}
 	return nil
