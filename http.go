@@ -60,10 +60,13 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		return apiErr
 	}
 
-	//TODO: do not unmarshal if there is nothing to unmarshal to
-	err = json.Unmarshal(b, result)
-	if err != nil {
-		return fmt.Errorf("cannot unmarshal body: %w", err)
+	_, ok := result.(*Response)
+	if !ok {
+		// Unmarshal the body only when it is expected.
+		err = json.Unmarshal(b, result)
+		if err != nil {
+			return fmt.Errorf("cannot unmarshal body: %w", err)
+		}
 	}
 
 	return c.addRateLimitInfo(resp.Header, result)
