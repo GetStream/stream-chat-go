@@ -293,12 +293,6 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, got.Flags, 1)
 
-	// unflag these 2 messages
-	_, err = c.UnflagMessage(context.Background(), msg1.ID, user2.ID)
-	require.NoError(t, err)
-	_, err = c.UnflagMessage(context.Background(), msg2.ID, user1.ID)
-	require.NoError(t, err)
-
 	// none should show up
 	got, err = c.QueryMessageFlags(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{"channel_cid": ch.cid()},

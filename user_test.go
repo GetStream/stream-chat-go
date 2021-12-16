@@ -167,9 +167,6 @@ func TestClient_MuteUsers(t *testing.T) {
 func TestClient_UnBanUser(t *testing.T) {
 }
 
-func TestClient_UnFlagUser(t *testing.T) {
-}
-
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
 

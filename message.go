@@ -410,25 +410,6 @@ func (c *Client) FlagMessage(ctx context.Context, msgID, userID string) (*Respon
 	return &resp, err
 }
 
-func (c *Client) UnflagMessage(ctx context.Context, msgID, userID string) (*Response, error) {
-	if msgID == "" {
-		return nil, errors.New("message ID is empty")
-	}
-
-	if userID == "" {
-		return nil, errors.New("user ID is empty")
-	}
-
-	options := map[string]interface{}{
-		"target_message_id": msgID,
-		"user_id":           userID,
-	}
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, &resp)
-	return &resp, err
-}
-
 type RepliesResponse struct {
 	Messages []*Message `json:"messages"`
 	Response

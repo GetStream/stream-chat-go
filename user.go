@@ -171,21 +171,6 @@ func (c *Client) FlagUser(ctx context.Context, targetID string, options map[stri
 	return &resp, err
 }
 
-func (c *Client) UnFlagUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
-	}
-
-	options["target_user_id"] = targetID
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, &resp)
-	return &resp, err
-}
-
 func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case targetID == "":
