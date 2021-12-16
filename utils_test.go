@@ -61,9 +61,9 @@ func clearOldChannelTypes() error {
 }
 
 func randomUser(t *testing.T, c *Client) *User {
-	u, err := c.UpsertUser(context.Background(), &User{ID: randomString(10)})
+	resp, err := c.UpsertUser(context.Background(), &User{ID: randomString(10)})
 	require.NoError(t, err)
-	return u
+	return resp.User
 }
 
 func randomUsers(t *testing.T, c *Client, n int) []*User {
@@ -72,10 +72,10 @@ func randomUsers(t *testing.T, c *Client, n int) []*User {
 		users = append(users, &User{ID: randomString(10)})
 	}
 
-	userss, err := c.UpsertUsers(context.Background(), users...)
+	resp, err := c.UpsertUsers(context.Background(), users...)
 	require.NoError(t, err)
 	users = users[:0]
-	for _, user := range userss {
+	for _, user := range resp.Users {
 		users = append(users, user)
 	}
 	return users

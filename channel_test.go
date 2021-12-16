@@ -605,13 +605,15 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
 	require.Equal(t, members[0], mute.ChannelMute.User.ID)
 	// query for muted the channel
-	channels, err := c.QueryChannels(context.Background(), &QueryOption{
+	queryChannResp, err := c.QueryChannels(context.Background(), &QueryOption{
 		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": true,
 			"cid":   ch.CID,
 		},
 	})
+
+	channels := queryChannResp.Channels
 	require.NoError(t, err, "query muted channel")
 	require.Len(t, channels, 1)
 	require.Equal(t, channels[0].CID, ch.CID)
@@ -621,15 +623,16 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.NoError(t, err, "mute channel")
 
 	// query for unmuted the channel should return 1 results
-	channels, err = c.QueryChannels(context.Background(), &QueryOption{
+	queryChannResp, err = c.QueryChannels(context.Background(), &QueryOption{
 		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": false,
 			"cid":   ch.CID,
 		},
 	})
+
 	require.NoError(t, err, "query muted channel")
-	require.Len(t, channels, 1)
+	require.Len(t, queryChannResp.Channels, 1)
 }
 
 func ExampleChannel_Update() {

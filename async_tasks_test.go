@@ -97,7 +97,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		}
 
 		for _, u := range chMembers {
-			_ = c.DeleteUser(context.Background(), u.UserID, options)
+			_, _ = c.DeleteUser(context.Background(), u.UserID, options)
 		}
 	}()
 

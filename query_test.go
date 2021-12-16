@@ -18,7 +18,7 @@ func TestClient_QueryUsers(t *testing.T) {
 	defer func() {
 		for _, id := range ids {
 			if id != "" {
-				_ = c.DeleteUser(context.Background(), id, nil)
+				_, _ = c.DeleteUser(context.Background(), id, nil)
 			}
 		}
 	}()
