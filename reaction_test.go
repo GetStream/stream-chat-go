@@ -104,16 +104,16 @@ func TestChannel_GetReactions(t *testing.T) {
 	require.NoError(t, err, "send message")
 	msg = resp.Message
 
-	reactions, err := ch.GetReactions(context.Background(), msg.ID, nil)
+	reactionsResp, err := ch.GetReactions(context.Background(), msg.ID, nil)
 	require.NoError(t, err, "get reactions")
-	assert.Empty(t, reactions, "reactions empty")
+	assert.Empty(t, reactionsResp.Reactions, "reactions empty")
 
 	reaction := Reaction{Type: "love"}
 
 	reactionResp, err := ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	reactionsResp, err := ch.GetReactions(context.Background(), reactionResp.Message.ID, nil)
+	reactionsResp, err = ch.GetReactions(context.Background(), reactionResp.Message.ID, nil)
 	require.NoError(t, err, "get reactions")
 
 	assert.Condition(t, reactionExistsCondition(reactionsResp.Reactions, reaction.Type), "reaction exists")
