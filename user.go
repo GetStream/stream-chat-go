@@ -309,13 +309,6 @@ func (c *Client) UpsertUser(ctx context.Context, user *User) (*UpsertUserRespons
 	}, err
 }
 
-// UpdateUser sending update users request, returns updated user info.
-//
-// Deprecated: Use UpsertUser. Renamed for clarification, functionality remains the same.
-func (c *Client) UpdateUser(ctx context.Context, user *User) (*UpsertUserResponse, error) {
-	return c.UpsertUser(ctx, user)
-}
-
 type UsersResponse struct {
 	Users map[string]*User `json:"users"`
 	Response
@@ -336,13 +329,6 @@ func (c *Client) UpsertUsers(ctx context.Context, users ...*User) (*UsersRespons
 	var resp UsersResponse
 	err := c.makeRequest(ctx, http.MethodPost, "users", nil, req, &resp)
 	return &resp, err
-}
-
-// UpdateUsers sends update user request, returns updated user info.
-//
-// Deprecated: Use UpsertUsers. Renamed for clarification, functionality remains the same.
-func (c *Client) UpdateUsers(ctx context.Context, users ...*User) (*UsersResponse, error) {
-	return c.UpsertUsers(ctx, users...)
 }
 
 // PartialUserUpdate request; Set and Unset fields can be set at same time, but should not be same field,
