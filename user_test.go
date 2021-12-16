@@ -16,22 +16,24 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	userC := randomUser(t, c)
 
 	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
-	ch, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
+	resp, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
 	require.NoError(t, err)
 
+	ch = resp.Channel
+
 	// shadow ban userB globally
-	err = c.ShadowBan(context.Background(), userB.ID, userA.ID, nil)
+	_, err = c.ShadowBan(context.Background(), userB.ID, userA.ID, nil)
 	require.NoError(t, err)
 
 	// shadow ban userC on channel
-	err = ch.ShadowBan(context.Background(), userC.ID, userA.ID, nil)
+	_, err = ch.ShadowBan(context.Background(), userC.ID, userA.ID, nil)
 	require.NoError(t, err)
 
 	msg := &Message{Text: "test message"}
-	resp, err := ch.SendMessage(context.Background(), msg, userB.ID)
+	resp1, err := ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
-	msg = resp.Message
+	msg = resp1.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
@@ -39,38 +41,38 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.Equal(t, true, msg.Shadowed)
 
 	msg = &Message{Text: "test message"}
-	resp, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	resp1, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
 
-	msg = resp.Message
+	msg = resp1.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
 	require.Equal(t, true, msg.Shadowed)
 
-	err = c.RemoveShadowBan(context.Background(), userB.ID, nil)
+	_, err = c.RemoveShadowBan(context.Background(), userB.ID, nil)
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	resp, err = ch.SendMessage(context.Background(), msg, userB.ID)
+	resp1, err = ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
-	msg = resp.Message
+	msg = resp1.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
 	require.Equal(t, false, msg.Shadowed)
 
-	err = ch.RemoveShadowBan(context.Background(), userC.ID)
+	_, err = ch.RemoveShadowBan(context.Background(), userC.ID)
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	resp, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	resp1, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
 
-	msg = resp.Message
+	msg = resp1.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
@@ -289,18 +291,18 @@ func ExampleClient_BanUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
 	// ban a user for 60 minutes from all channel
-	_ = client.BanUser(context.Background(), "eviluser", "modUser",
+	_, _ = client.BanUser(context.Background(), "eviluser", "modUser",
 		map[string]interface{}{"timeout": 60, "reason": "Banned for one hour"})
 
 	// ban a user from the livestream:fortnite channel
 	channel := client.Channel("livestream", "fortnite")
-	_ = channel.BanUser(context.Background(), "eviluser", "modUser",
+	_, _ = channel.BanUser(context.Background(), "eviluser", "modUser",
 		map[string]interface{}{"reason": "Profanity is not allowed here"})
 
 	// remove ban from channel
 	channel = client.Channel("livestream", "fortnite")
-	_ = channel.UnBanUser(context.Background(), "eviluser", nil)
+	_, _ = channel.UnBanUser(context.Background(), "eviluser", nil)
 
 	// remove global ban
-	_ = client.UnBanUser(context.Background(), "eviluser", nil)
+	_, _ = client.UnBanUser(context.Background(), "eviluser", nil)
 }

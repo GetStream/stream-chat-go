@@ -47,7 +47,7 @@ func clearOldChannelTypes() error {
 
 		hasChannel := false
 		for _, ch := range chs {
-			if err := ch.Delete(context.Background()); err != nil {
+			if _, err := ch.Delete(context.Background()); err != nil {
 				hasChannel = true
 				break
 			}

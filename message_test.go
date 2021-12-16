@@ -14,14 +14,14 @@ func TestClient_PinMessage(t *testing.T) {
 	userB := randomUser(t, c)
 
 	ch := initChannel(t, c, userA.ID, userB.ID)
-	ch, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
+	resp1, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
 	require.NoError(t, err)
 
 	msg := &Message{Text: "test message"}
-	resp, err := ch.SendMessage(context.Background(), msg, userB.ID)
+	resp2, err := resp1.Channel.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
-	msg, err = c.PinMessage(context.Background(), resp.Message.ID, userA.ID, nil)
+	msg, err = c.PinMessage(context.Background(), resp2.Message.ID, userA.ID, nil)
 	require.NoError(t, err)
 	require.NotZero(t, msg.PinnedAt)
 	require.NotZero(t, msg.PinnedBy)

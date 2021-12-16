@@ -29,10 +29,6 @@ type ChannelMute struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-type ChannelMuteResponse struct {
-	ChannelMute ChannelMute `json:"channel_mute"`
-}
-
 type User struct {
 	ID    string   `json:"id"`
 	Name  string   `json:"name,omitempty"`
@@ -178,12 +174,12 @@ func (c *Client) UnFlagUser(ctx context.Context, targetID string, options map[st
 	return c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, nil)
 }
 
-func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) error {
+func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	case options == nil:
 		options = map[string]interface{}{}
 	}
@@ -191,13 +187,15 @@ func (c *Client) BanUser(ctx context.Context, targetID, userID string, options m
 	options["target_user_id"] = targetID
 	options["user_id"] = userID
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) error {
+func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case options == nil:
 		options = map[string]string{}
 	}
@@ -209,13 +207,15 @@ func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[str
 	}
 	params.Set("target_user_id", targetID)
 
-	return c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
+	return &resp, err
 }
 
 // ShadowBan shadow bans userID
 // bannedByID: user who shadow bans userID.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) error {
+func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
@@ -224,7 +224,7 @@ func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, optio
 }
 
 // RemoveShadowBan removes the ban for userID.
-func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) error {
+func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) (*Response, error) {
 	if options == nil {
 		options = map[string]string{}
 	}

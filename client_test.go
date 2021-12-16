@@ -24,12 +24,12 @@ func initClient(t *testing.T) *Client {
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 	owner := randomUser(t, c)
-	ch, err := c.CreateChannel(context.Background(), "team", randomString(12), owner.ID, map[string]interface{}{
+	resp, err := c.CreateChannel(context.Background(), "team", randomString(12), owner.ID, map[string]interface{}{
 		"members": membersID,
 	})
 
 	require.NoError(t, err, "create channel")
-	return ch
+	return resp.Channel
 }
 
 func TestNewClient(t *testing.T) {

@@ -28,7 +28,8 @@ func TestChannel_SendReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(context.Background()), "delete channel")
+		_, err := ch.Delete(context.Background())
+		require.NoError(t, err, "delete channel")
 	}()
 
 	user := randomUser(t, c)
@@ -63,7 +64,8 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(context.Background()), "delete channel")
+		_, err := ch.Delete(context.Background())
+		require.NoError(t, err, "delete channel")
 	}()
 
 	user := randomUser(t, c)
@@ -89,7 +91,8 @@ func TestChannel_GetReactions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		require.NoError(t, ch.Delete(context.Background()), "delete channel")
+		_, err := ch.Delete(context.Background())
+		require.NoError(t, err, "delete channel")
 	}()
 
 	user := randomUser(t, c)
