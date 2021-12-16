@@ -140,10 +140,6 @@ type messageRequestUser struct {
 	ID string `json:"id"`
 }
 
-type messageResponse struct {
-	Message *Message `json:"message"`
-}
-
 type Attachment struct {
 	Type string `json:"type,omitempty"` // text, image, audio, video
 
