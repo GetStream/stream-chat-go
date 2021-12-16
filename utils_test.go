@@ -43,10 +43,10 @@ func clearOldChannelTypes() error {
 			continue
 		}
 		filter := map[string]interface{}{"type": ct.Name}
-		chs, _ := c.QueryChannels(context.Background(), &QueryOption{Filter: filter})
+		resp, _ := c.QueryChannels(context.Background(), &QueryOption{Filter: filter})
 
 		hasChannel := false
-		for _, ch := range chs {
+		for _, ch := range resp.Channels {
 			if _, err := ch.Delete(context.Background()); err != nil {
 				hasChannel = true
 				break

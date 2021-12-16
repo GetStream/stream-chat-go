@@ -39,9 +39,10 @@ func (s Reaction) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(s.ExtraData, reactionForJSON(s))
 }
 
-type reactionResponse struct {
+type ReactionResponse struct {
 	Message  *Message  `json:"message"`
 	Reaction *Reaction `json:"reaction"`
+	Response
 }
 
 type reactionRequest struct {
@@ -49,7 +50,7 @@ type reactionRequest struct {
 }
 
 // SendReaction sends a reaction to message with given ID.
-func (ch *Channel) SendReaction(ctx context.Context, reaction *Reaction, messageID, userID string) (*Message, error) {
+func (ch *Channel) SendReaction(ctx context.Context, reaction *Reaction, messageID, userID string) (*ReactionResponse, error) {
 	switch {
 	case reaction == nil:
 		return nil, errors.New("reaction is nil")
@@ -59,19 +60,18 @@ func (ch *Channel) SendReaction(ctx context.Context, reaction *Reaction, message
 		return nil, errors.New("user ID must be not empty")
 	}
 
-	var resp reactionResponse
-
 	reaction.UserID = userID
-
 	p := path.Join("messages", url.PathEscape(messageID), "reaction")
 
 	req := reactionRequest{Reaction: reaction}
+
+	var resp ReactionResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
-	return resp.Message, err
+	return &resp, err
 }
 
 // DeleteReaction removes a reaction from message with given ID.
-func (ch *Channel) DeleteReaction(ctx context.Context, messageID, reactionType, userID string) (*Message, error) {
+func (ch *Channel) DeleteReaction(ctx context.Context, messageID, reactionType, userID string) (*ReactionResponse, error) {
 	switch {
 	case messageID == "":
 		return nil, errors.New("message ID is empty")
@@ -86,8 +86,7 @@ func (ch *Channel) DeleteReaction(ctx context.Context, messageID, reactionType, 
 	params := url.Values{}
 	params.Set("user_id", userID)
 
-	var resp reactionResponse
-
+	var resp ReactionResponse
 	err := ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, &resp)
 	if err != nil {
 		return nil, err
@@ -96,24 +95,24 @@ func (ch *Channel) DeleteReaction(ctx context.Context, messageID, reactionType, 
 		return nil, errors.New("unexpected error: response message nil")
 	}
 
-	return resp.Message, nil
+	return &resp, nil
 }
 
-type reactionsResponse struct {
+type ReactionsResponse struct {
 	Reactions []*Reaction `json:"reactions"`
+	Response
 }
 
 // GetReactions returns list of the reactions for message with given ID.
 // options: Pagination params, ie {"limit":{"10"}, "idlte": {"10"}}
-func (ch *Channel) GetReactions(ctx context.Context, messageID string, options map[string][]string) ([]*Reaction, error) {
+func (ch *Channel) GetReactions(ctx context.Context, messageID string, options map[string][]string) (*ReactionsResponse, error) {
 	if messageID == "" {
 		return nil, errors.New("message ID is empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(messageID), "reactions")
 
-	var resp reactionsResponse
-
+	var resp ReactionsResponse
 	err := ch.client.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
-	return resp.Reactions, err
+	return &resp, err
 }

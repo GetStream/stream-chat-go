@@ -101,11 +101,13 @@ func TestClient_MuteUser(t *testing.T) {
 	err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, nil)
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	users, err := c.QueryUsers(context.Background(), &QueryOption{
+	resp, err := c.QueryUsers(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
 	})
+
+	users := resp.Users
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
@@ -120,11 +122,13 @@ func TestClient_MuteUser(t *testing.T) {
 	err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	users, err = c.QueryUsers(context.Background(), &QueryOption{
+	resp, err = c.QueryUsers(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
 	})
+
+	users = resp.Users
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
@@ -144,11 +148,13 @@ func TestClient_MuteUsers(t *testing.T) {
 	err := c.MuteUsers(context.Background(), targetIDs, user.ID, map[string]interface{}{"timeout": 60})
 	require.NoError(t, err, "MuteUsers should not return an error")
 
-	users, err := c.QueryUsers(context.Background(), &QueryOption{
+	resp, err := c.QueryUsers(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
 	})
+
+	users := resp.Users
 	require.NoError(t, err, "QueryUsers should not return an error")
 	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])

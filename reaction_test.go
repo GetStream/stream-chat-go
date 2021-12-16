@@ -41,12 +41,12 @@ func TestChannel_SendReaction(t *testing.T) {
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
-	msg, err = ch.SendReaction(context.Background(), &reaction, resp.Message.ID, user.ID)
+	reactionResp, err := ch.SendReaction(context.Background(), &reaction, resp.Message.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	assert.Equal(t, 1, msg.ReactionCounts[reaction.Type], "reaction count", reaction)
+	assert.Equal(t, 1, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count", reaction)
 
-	assert.Condition(t, reactionExistsCondition(msg.LatestReactions, reaction.Type), "latest reaction exists")
+	assert.Condition(t, reactionExistsCondition(reactionResp.Message.LatestReactions, reaction.Type), "latest reaction exists")
 }
 
 func reactionExistsCondition(reactions []*Reaction, searchType string) func() bool {
@@ -77,14 +77,14 @@ func TestChannel_DeleteReaction(t *testing.T) {
 	require.NoError(t, err, "send message")
 
 	reaction := Reaction{Type: "love"}
-	msg, err = ch.SendReaction(context.Background(), &reaction, resp.Message.ID, user.ID)
+	reactionResp, err := ch.SendReaction(context.Background(), &reaction, resp.Message.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	msg, err = ch.DeleteReaction(context.Background(), msg.ID, reaction.Type, user.ID)
+	reactionResp, err = ch.DeleteReaction(context.Background(), reactionResp.Message.ID, reaction.Type, user.ID)
 	require.NoError(t, err, "delete reaction")
 
-	assert.Equal(t, 0, msg.ReactionCounts[reaction.Type], "reaction count")
-	assert.Empty(t, msg.LatestReactions, "latest reactions empty")
+	assert.Equal(t, 0, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count")
+	assert.Empty(t, reactionResp.Message.LatestReactions, "latest reactions empty")
 }
 
 func TestChannel_GetReactions(t *testing.T) {
@@ -110,11 +110,11 @@ func TestChannel_GetReactions(t *testing.T) {
 
 	reaction := Reaction{Type: "love"}
 
-	msg, err = ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
+	reactionResp, err := ch.SendReaction(context.Background(), &reaction, msg.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	reactions, err = ch.GetReactions(context.Background(), msg.ID, nil)
+	reactionsResp, err := ch.GetReactions(context.Background(), reactionResp.Message.ID, nil)
 	require.NoError(t, err, "get reactions")
 
-	assert.Condition(t, reactionExistsCondition(reactions, reaction.Type), "reaction exists")
+	assert.Condition(t, reactionExistsCondition(reactionsResp.Reactions, reaction.Type), "reaction exists")
 }
