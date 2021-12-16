@@ -30,11 +30,11 @@ func NewRateLimitFromHeaders(headers http.Header) *RateLimitInfo {
 
 	limit, err := strconv.ParseInt(headers.Get(HeaderRateLimit), 10, 64)
 	if err == nil {
-		rl.Limit = int64(limit)
+		rl.Limit = limit
 	}
 	remaining, err := strconv.ParseInt(headers.Get(HeaderRateRemaining), 10, 64)
 	if err == nil {
-		rl.Remaining = int64(remaining)
+		rl.Remaining = remaining
 	}
 	reset, err := strconv.ParseInt(headers.Get(HeaderRateReset), 10, 64)
 	if err == nil && reset > 0 {

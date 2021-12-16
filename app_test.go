@@ -21,7 +21,7 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 		SetDisableAuth(true).
 		SetDisablePermissions(true)
 
-	err := c.UpdateAppSettings(context.Background(), settings)
+	_, err := c.UpdateAppSettings(context.Background(), settings)
 	require.NoError(t, err)
 }
 
@@ -35,13 +35,13 @@ func ExampleClient_UpdateAppSettings_disable_auth() {
 
 	// disable auth checks, allows dev token usage
 	settings := NewAppSettings().SetDisableAuth(true)
-	err = client.UpdateAppSettings(context.Background(), settings)
+	_, err = client.UpdateAppSettings(context.Background(), settings)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
 
 	// re-enable auth checks
-	err = client.UpdateAppSettings(context.Background(), NewAppSettings().SetDisableAuth(false))
+	_, err = client.UpdateAppSettings(context.Background(), NewAppSettings().SetDisableAuth(false))
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -55,13 +55,13 @@ func ExampleClient_UpdateAppSettings_disable_permission() {
 
 	// disable permission checkse
 	settings := NewAppSettings().SetDisablePermissions(true)
-	err = client.UpdateAppSettings(context.Background(), settings)
+	_, err = client.UpdateAppSettings(context.Background(), settings)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
 
 	// re-enable permission checks
-	err = client.UpdateAppSettings(context.Background(), NewAppSettings().SetDisablePermissions(false))
+	_, err = client.UpdateAppSettings(context.Background(), NewAppSettings().SetDisablePermissions(false))
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
