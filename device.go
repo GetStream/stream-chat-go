@@ -20,12 +20,13 @@ type Device struct {
 	PushProvider pushProvider `json:"push_provider"` // The push provider for this device. One of constants PushProvider*
 }
 
-type devicesResponse struct {
+type DevicesResponse struct {
 	Devices []*Device `json:"devices"`
+	Response
 }
 
 // GetDevices retrieves the list of devices for user.
-func (c *Client) GetDevices(ctx context.Context, userID string) (devices []*Device, err error) {
+func (c *Client) GetDevices(ctx context.Context, userID string) (*DevicesResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID is empty")
 	}
@@ -33,39 +34,44 @@ func (c *Client) GetDevices(ctx context.Context, userID string) (devices []*Devi
 	params := url.Values{}
 	params.Set("user_id", userID)
 
-	var resp devicesResponse
+	var resp DevicesResponse
 
-	err = c.makeRequest(ctx, http.MethodGet, "devices", params, nil, &resp)
-	return resp.Devices, err
+	err := c.makeRequest(ctx, http.MethodGet, "devices", params, nil, &resp)
+	return &resp, err
 }
 
 // AddDevice adds new device.
-func (c *Client) AddDevice(ctx context.Context, device *Device) error {
+func (c *Client) AddDevice(ctx context.Context, device *Device) (*Response, error) {
 	switch {
 	case device == nil:
-		return errors.New("device is nil")
+		return nil, errors.New("device is nil")
 	case device.ID == "":
-		return errors.New("device ID is empty")
+		return nil, errors.New("device ID is empty")
 	case device.UserID == "":
-		return errors.New("device user ID is empty")
+		return nil, errors.New("device user ID is empty")
 	case device.PushProvider == "":
-		return errors.New("device push provider is empty")
+		return nil, errors.New("device push provider is empty")
 	}
 
-	return c.makeRequest(ctx, http.MethodPost, "devices", nil, device, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "devices", nil, device, &resp)
+	return &resp, err
 }
 
 // DeleteDevice deletes a device from the user.
-func (c *Client) DeleteDevice(ctx context.Context, userID, deviceID string) error {
+func (c *Client) DeleteDevice(ctx context.Context, userID, deviceID string) (*Response, error) {
 	switch {
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	case deviceID == "":
-		return errors.New("device ID is empty")
+		return nil, errors.New("device ID is empty")
 	}
 
 	params := url.Values{}
 	params.Set("id", deviceID)
 	params.Set("user_id", userID)
-	return c.makeRequest(ctx, http.MethodDelete, "devices", params, nil, nil)
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, "devices", params, nil, &resp)
+	return &resp, err
 }

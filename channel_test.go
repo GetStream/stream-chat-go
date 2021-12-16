@@ -11,6 +11,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func (ch *Channel) refresh(ctx context.Context) error {
+	options := map[string]interface{}{
+		"watch":    false,
+		"state":    true,
+		"presence": false,
+	}
+	_, err := ch.query(ctx, options, nil)
+	return err
+}
+
 func TestClient_CreateChannel(t *testing.T) {
 	c := initClient(t)
 
@@ -19,14 +29,15 @@ func TestClient_CreateChannel(t *testing.T) {
 	t.Run("get existing channel", func(t *testing.T) {
 		membersID := randomUsersID(t, c, 3)
 		ch := initChannel(t, c, membersID...)
-		got, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userID, nil)
+		resp, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userID, nil)
 		require.NoError(t, err, "create channel", ch)
 
-		assert.Equal(t, c, got.client, "client link")
-		assert.Equal(t, ch.Type, got.Type, "channel type")
-		assert.Equal(t, ch.ID, got.ID, "channel id")
-		assert.Equal(t, ch.MemberCount, got.MemberCount, "member count")
-		assert.Len(t, got.Members, ch.MemberCount, "members length")
+		channel := resp.Channel
+		assert.Equal(t, c, channel.client, "client link")
+		assert.Equal(t, ch.Type, channel.Type, "channel type")
+		assert.Equal(t, ch.ID, channel.ID, "channel id")
+		assert.Equal(t, ch.MemberCount, channel.MemberCount, "member count")
+		assert.Len(t, channel.Members, ch.MemberCount, "members length")
 	})
 
 	tests := []struct {
@@ -49,20 +60,20 @@ func TestClient_CreateChannel(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.CreateChannel(context.Background(), tt.channelType, tt.id, tt.userID, tt.data)
+			resp, err := c.CreateChannel(context.Background(), tt.channelType, tt.id, tt.userID, tt.data)
 			if tt.wantErr {
 				require.Error(t, err, "create channel", tt)
 				return
 			}
-
 			require.NoError(t, err, "create channel", tt)
 
-			assert.Equal(t, tt.channelType, got.Type, "channel type")
-			assert.NotEmpty(t, got.ID)
+			channel := resp.Channel
+			assert.Equal(t, tt.channelType, channel.Type, "channel type")
+			assert.NotEmpty(t, channel.ID)
 			if tt.id != "" {
-				assert.Equal(t, tt.id, got.ID, "channel id")
+				assert.Equal(t, tt.id, channel.ID, "channel id")
 			}
-			assert.Equal(t, tt.userID, got.CreatedBy.ID, "channel created by")
+			assert.Equal(t, tt.userID, channel.CreatedBy.ID, "channel created by")
 		})
 	}
 }
@@ -71,10 +82,12 @@ func TestChannel_AddMembers(t *testing.T) {
 	c := initClient(t)
 
 	chanID := randomString(12)
-	ch, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
+	resp, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
+
+	ch := resp.Channel
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -83,7 +96,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	options := map[string]interface{}{
 		"hide_history": true,
 	}
-	err = ch.AddMembers(context.Background(),
+	_, err = ch.AddMembers(context.Background(),
 		[]string{user.ID},
 		&Message{Text: "some members", User: &User{ID: user.ID}},
 		options,
@@ -102,16 +115,18 @@ func TestChannel_AssignRoles(t *testing.T) {
 	owner := randomUser(t, c)
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel(ctx, "messaging", chanID, owner.ID, map[string]interface{}{
+	resp, err := c.CreateChannel(ctx, "messaging", chanID, owner.ID, map[string]interface{}{
 		"members": []string{owner.ID},
 	})
 	require.NoError(t, err, "create channel")
+
+	ch := resp.Channel
 	defer func() {
-		_ = ch.Delete(ctx)
+		_, _ = ch.Delete(ctx)
 	}()
 
 	a := []*RoleAssignment{{ChannelRole: "channel_moderator", UserID: owner.ID}}
-	err = ch.AssignRole(ctx, a, nil)
+	_, err = ch.AssignRole(ctx, a, nil)
 	require.NoError(t, err)
 }
 
@@ -120,10 +135,12 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
+	resp1, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
+
+	ch := resp1.Channel
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
@@ -135,10 +152,11 @@ func TestChannel_QueryMembers(t *testing.T) {
 		id := prefix + name
 		_, err := c.UpsertUser(context.Background(), &User{ID: id, Name: id})
 		require.NoError(t, err)
-		require.NoError(t, ch.AddMembers(context.Background(), []string{id}, nil, nil))
+		_, err = ch.AddMembers(context.Background(), []string{id}, nil, nil)
+		require.NoError(t, err)
 	}
 
-	members, err := ch.QueryMembers(context.Background(), &QueryOption{
+	resp2, err := ch.QueryMembers(context.Background(), &QueryOption{
 		Filter: map[string]interface{}{
 			"name": map[string]interface{}{"$autocomplete": prefix + "j"},
 		},
@@ -146,6 +164,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 		Limit:  10,
 	}, &SortOption{Field: "created_at", Direction: 1})
 
+	members := resp2.Members
 	require.NoError(t, err)
 	require.Len(t, members, 2)
 	require.Equal(t, prefix+"jessica", members[0].User.ID)
@@ -157,9 +176,9 @@ func ExampleChannel_AddModerators() {
 	channel := &Channel{}
 	newModerators := []string{"bob", "sue"}
 
-	_ = channel.AddModerators(context.Background(), "thierry", "josh")
-	_ = channel.AddModerators(context.Background(), newModerators...)
-	_ = channel.DemoteModerators(context.Background(), newModerators...)
+	_, _ = channel.AddModerators(context.Background(), "thierry", "josh")
+	_, _ = channel.AddModerators(context.Background(), newModerators...)
+	_, _ = channel.DemoteModerators(context.Background(), newModerators...)
 }
 
 func TestChannel_InviteMembers(t *testing.T) {
@@ -167,17 +186,19 @@ func TestChannel_InviteMembers(t *testing.T) {
 
 	chanID := randomString(12)
 
-	ch, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
+	resp, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
+
+	ch := resp.Channel
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
 
-	err = ch.InviteMembers(context.Background(), user.ID)
+	_, err = ch.InviteMembers(context.Background(), user.ID)
 	require.NoError(t, err, "invite members")
 
 	// refresh channel state
@@ -194,17 +215,19 @@ func TestChannel_Moderation(t *testing.T) {
 
 	// init random channel
 	chanID := randomString(12)
-	ch, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
+	resp, err := c.CreateChannel(context.Background(), "messaging", chanID, randomUser(t, c).ID, nil)
 	require.NoError(t, err, "create channel")
+
+	ch := resp.Channel
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
 
-	err = ch.AddModeratorsWithMessage(context.Background(),
+	_, err = ch.AddModeratorsWithMessage(context.Background(),
 		[]string{user.ID},
 		&Message{Text: "accepted", User: &User{ID: user.ID}},
 	)
@@ -217,7 +240,7 @@ func TestChannel_Moderation(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
-	err = ch.DemoteModerators(context.Background(), user.ID)
+	_, err = ch.DemoteModerators(context.Background(), user.ID)
 	require.NoError(t, err, "demote moderators")
 
 	// refresh channel state
@@ -231,22 +254,22 @@ func TestChannel_BanUser(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	user := randomUser(t, c)
 	target := randomUser(t, c)
 
-	err := ch.BanUser(context.Background(), target.ID, user.ID, nil)
+	_, err := ch.BanUser(context.Background(), target.ID, user.ID, nil)
 	require.NoError(t, err, "ban user")
 
-	err = ch.BanUser(context.Background(), target.ID, user.ID, map[string]interface{}{
+	_, err = ch.BanUser(context.Background(), target.ID, user.ID, map[string]interface{}{
 		"timeout": 3600,
 		"reason":  "offensive language is not allowed here",
 	})
 	require.NoError(t, err, "ban user")
 
-	err = ch.UnBanUser(context.Background(), target.ID, nil)
+	_, err = ch.UnBanUser(context.Background(), target.ID, nil)
 	require.NoError(t, err, "unban user")
 }
 
@@ -254,28 +277,31 @@ func TestChannel_Delete(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	require.NoError(t, ch.Delete(context.Background()), "delete channel")
+	_, err := ch.Delete(context.Background())
+	require.NoError(t, err, "delete channel")
 }
 
 func TestChannel_GetReplies(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(context.Background(), msg, randomUser(t, c).ID, MessageSkipPush)
+	resp, err := ch.SendMessage(context.Background(), msg, randomUser(t, c).ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
+
+	msg = resp.Message
 
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
 	_, err = ch.SendMessage(context.Background(), reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
 
-	replies, err := ch.GetReplies(context.Background(), msg.ID, nil)
+	repliesResp, err := ch.GetReplies(context.Background(), msg.ID, nil)
 	require.NoError(t, err, "get replies")
-	assert.Len(t, replies, 1)
+	assert.Len(t, repliesResp.Messages, 1)
 }
 
 func TestChannel_MarkRead(t *testing.T) {
@@ -285,11 +311,11 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	user := randomUser(t, c)
-	err := ch.RemoveMembers(context.Background(),
+	_, err := ch.RemoveMembers(context.Background(),
 		[]string{user.ID},
 		&Message{Text: "some members", User: &User{ID: user.ID}},
 	)
@@ -308,7 +334,7 @@ func TestChannel_SendMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	user1 := randomUser(t, c)
@@ -318,9 +344,11 @@ func TestChannel_SendMessage(t *testing.T) {
 		User: user1,
 	}
 
-	msg, err := ch.SendMessage(context.Background(), msg, user2.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user2.ID)
 	require.NoError(t, err, "send message")
+
 	// check that message was updated
+	msg = resp.Message
 	assert.NotEmpty(t, msg.ID, "message has ID")
 	assert.NotEmpty(t, msg.HTML, "message has HTML body")
 
@@ -329,9 +357,11 @@ func TestChannel_SendMessage(t *testing.T) {
 		User:   user1,
 		Silent: true,
 	}
-	msg2, err = ch.SendMessage(context.Background(), msg2, user2.ID)
+	resp, err = ch.SendMessage(context.Background(), msg2, user2.ID)
 	require.NoError(t, err, "send message 2")
+
 	// check that message was updated
+	msg2 = resp.Message
 	assert.NotEmpty(t, msg2.ID, "message has ID")
 	assert.NotEmpty(t, msg2.HTML, "message has HTML body")
 	assert.True(t, msg2.Silent, "message silent flag is set")
@@ -341,7 +371,7 @@ func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	user := randomUser(t, c)
@@ -351,13 +381,13 @@ func TestChannel_Truncate(t *testing.T) {
 	}
 
 	// Make sure we have one message in the channel
-	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
+	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
-	err = ch.Truncate(context.Background())
+	_, err = ch.Truncate(context.Background())
 	require.NoError(t, err, "truncate channel")
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
 	assert.Empty(t, ch.Messages, "channel is empty")
@@ -367,7 +397,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	defer func() {
-		_ = ch.Delete(context.Background())
+		_, _ = ch.Delete(context.Background())
 	}()
 
 	user := randomUser(t, c)
@@ -377,13 +407,13 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	}
 
 	// Make sure we have one message in the channel
-	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
+	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
-	err = ch.Truncate(context.Background(),
+	_, err = ch.Truncate(context.Background(),
 		TruncateWithSkipPush(true),
 		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
 	)
@@ -397,7 +427,7 @@ func TestChannel_Update(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 
-	err := ch.Update(context.Background(), map[string]interface{}{"color": "blue"},
+	_, err := ch.Update(context.Background(), map[string]interface{}{"color": "blue"},
 		&Message{Text: "color is blue", User: &User{ID: randomUser(t, c).ID}})
 	require.NoError(t, err)
 }
@@ -411,14 +441,15 @@ func TestChannel_PartialUpdate(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	var ch *Channel
-	ch, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
+	resp, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"color":   "blue",
 		"age":     30,
 	})
 	require.NoError(t, err)
-	err = ch.PartialUpdate(context.Background(), PartialUpdate{
+
+	ch := resp.Channel
+	_, err = ch.PartialUpdate(context.Background(), PartialUpdate{
 		Set: map[string]interface{}{
 			"color": "red",
 		},
@@ -452,11 +483,12 @@ func TestChannel_SendFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		url, err = ch.SendFile(context.Background(), SendFileRequest{
+		resp, err := ch.SendFile(context.Background(), SendFileRequest{
 			Reader:   file,
 			FileName: "HelloWorld.txt",
 			User:     randomUser(t, c),
 		})
+		url = resp.File
 		if err != nil {
 			t.Fatalf("send file failed: %s", err)
 		}
@@ -466,7 +498,7 @@ func TestChannel_SendFile(t *testing.T) {
 	})
 
 	t.Run("Delete file", func(t *testing.T) {
-		err := ch.DeleteFile(context.Background(), url)
+		_, err := ch.DeleteFile(context.Background(), url)
 		if err != nil {
 			t.Fatalf("delete file failed: %s", err.Error())
 		}
@@ -485,24 +517,24 @@ func TestChannel_SendImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		url, err = ch.SendImage(context.Background(), SendFileRequest{
+		resp, err := ch.SendImage(context.Background(), SendFileRequest{
 			Reader:      file,
 			FileName:    "HelloWorld.jpg",
 			User:        randomUser(t, c),
 			ContentType: "image/jpeg",
 		})
-
 		if err != nil {
 			t.Fatalf("Send image failed: %s", err.Error())
 		}
 
+		url = resp.File
 		if url == "" {
 			t.Fatal("upload image returned empty url")
 		}
 	})
 
 	t.Run("Delete image", func(t *testing.T) {
-		err := ch.DeleteImage(context.Background(), url)
+		_, err := ch.DeleteImage(context.Background(), url)
 		if err != nil {
 			t.Fatalf("delete image failed: %s", err.Error())
 		}
@@ -519,13 +551,13 @@ func TestChannel_AcceptInvite(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
+	resp, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"invites": []string{members[0]},
 	})
 
 	require.NoError(t, err, "create channel")
-	err = ch.AcceptInvite(context.Background(), members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
+	_, err = resp.Channel.AcceptInvite(context.Background(), members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
 	require.NoError(t, err, "accept invite")
 }
 
@@ -539,13 +571,13 @@ func TestChannel_RejectInvite(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
+	resp, err := c.CreateChannel(context.Background(), "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 		"invites": []string{members[0]},
 	})
 
 	require.NoError(t, err, "create channel")
-	err = ch.RejectInvite(context.Background(), members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
+	_, err = resp.Channel.RejectInvite(context.Background(), members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
 	require.NoError(t, err, "reject invite")
 }
 
@@ -559,11 +591,12 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	ch, err := c.CreateChannel(context.Background(), "messaging", randomString(12), randomUser(t, c).ID, map[string]interface{}{
+	resp, err := c.CreateChannel(context.Background(), "messaging", randomString(12), randomUser(t, c).ID, map[string]interface{}{
 		"members": members,
 	})
 	require.NoError(t, err, "create channel")
 
+	ch := resp.Channel
 	// mute the channel
 	mute, err := ch.Mute(context.Background(), members[0], nil)
 	require.NoError(t, err, "mute channel")
@@ -571,31 +604,34 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
 	require.Equal(t, members[0], mute.ChannelMute.User.ID)
 	// query for muted the channel
-	channels, err := c.QueryChannels(context.Background(), &QueryOption{
+	queryChannResp, err := c.QueryChannels(context.Background(), &QueryOption{
 		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": true,
 			"cid":   ch.CID,
 		},
 	})
+
+	channels := queryChannResp.Channels
 	require.NoError(t, err, "query muted channel")
 	require.Len(t, channels, 1)
 	require.Equal(t, channels[0].CID, ch.CID)
 
 	// unmute the channel
-	err = ch.Unmute(context.Background(), members[0])
+	_, err = ch.Unmute(context.Background(), members[0])
 	require.NoError(t, err, "mute channel")
 
 	// query for unmuted the channel should return 1 results
-	channels, err = c.QueryChannels(context.Background(), &QueryOption{
+	queryChannResp, err = c.QueryChannels(context.Background(), &QueryOption{
 		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": false,
 			"cid":   ch.CID,
 		},
 	})
+
 	require.NoError(t, err, "query muted channel")
-	require.Len(t, channels, 1)
+	require.Len(t, queryChannResp.Channels, 1)
 }
 
 func ExampleChannel_Update() {
@@ -609,7 +645,7 @@ func ExampleChannel_Update() {
 	}
 
 	spacexChannel := client.Channel("team", "spacex")
-	if err := spacexChannel.Update(context.Background(), data, nil); err != nil {
+	if _, err := spacexChannel.Update(context.Background(), data, nil); err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 }
@@ -617,8 +653,8 @@ func ExampleChannel_Update() {
 func (c *Client) ExampleClient_CreateChannel() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	channel, _ := client.CreateChannel(context.Background(), "team", "stream", "tommaso", nil)
-	_, _ = channel.SendMessage(context.Background(), &Message{
+	resp, _ := client.CreateChannel(context.Background(), "team", "stream", "tommaso", nil)
+	_, _ = resp.Channel.SendMessage(context.Background(), &Message{
 		User: &User{ID: "tomosso"},
 		Text: "hi there!",
 	}, "tomosso")

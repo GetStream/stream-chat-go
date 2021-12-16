@@ -22,17 +22,17 @@ func TestClient_DeleteChannels(t *testing.T) {
 	_, err = c.DeleteChannels(context.Background(), []string{}, true)
 	require.Error(t, err)
 
-	taskID, err := c.DeleteChannels(context.Background(), []string{ch.CID}, true)
+	resp1, err := c.DeleteChannels(context.Background(), []string{ch.CID}, true)
 	require.NoError(t, err)
-	require.NotEmpty(t, taskID)
+	require.NotEmpty(t, resp1.TaskID)
 
 	for i := 0; i < 10; i++ {
-		resp, err := c.GetTask(context.Background(), taskID)
+		resp2, err := c.GetTask(context.Background(), resp1.TaskID)
 		require.NoError(t, err)
-		require.Equal(t, taskID, resp.TaskID)
+		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
-		if resp.Status == TaskStatusCompleted {
-			require.Equal(t, resp.Result[ch.CID], map[string]interface{}{"status": "ok"})
+		if resp2.Status == TaskStatusCompleted {
+			require.Equal(t, resp2.Result[ch.CID], map[string]interface{}{"status": "ok"})
 			return
 		}
 
@@ -58,20 +58,20 @@ func TestClient_DeleteUsers(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	taskID, err := c.DeleteUsers(context.Background(), []string{user.ID}, DeleteUserOptions{
+	resp1, err := c.DeleteUsers(context.Background(), []string{user.ID}, DeleteUserOptions{
 		User:     SoftDelete,
 		Messages: HardDelete,
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, taskID)
+	require.NotEmpty(t, resp1.TaskID)
 
 	for i := 0; i < 10; i++ {
-		resp, err := c.GetTask(context.Background(), taskID)
+		resp2, err := c.GetTask(context.Background(), resp1.TaskID)
 		require.NoError(t, err)
-		require.Equal(t, taskID, resp.TaskID)
+		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
-		if resp.Status == TaskStatusCompleted {
-			require.Equal(t, resp.Result[user.ID], map[string]interface{}{"status": "ok"})
+		if resp2.Status == TaskStatusCompleted {
+			require.Equal(t, resp2.Result[user.ID], map[string]interface{}{"status": "ok"})
 			return
 		}
 
@@ -97,7 +97,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		}
 
 		for _, u := range chMembers {
-			_ = c.DeleteUser(context.Background(), u.UserID, options)
+			_, _ = c.DeleteUser(context.Background(), u.UserID, options)
 		}
 	}()
 
@@ -120,14 +120,14 @@ func TestClient_ExportChannels(t *testing.T) {
 			{Type: ch2.Type, ID: ch2.ID},
 		}
 
-		taskID, err := c.ExportChannels(context.Background(), expChannels, nil, nil)
+		resp1, err := c.ExportChannels(context.Background(), expChannels, nil, nil)
 		require.NoError(t, err)
-		require.NotEmpty(t, taskID)
+		require.NotEmpty(t, resp1.TaskID)
 
 		for i := 0; i < 10; i++ {
-			task, err := c.GetExportChannelsTask(context.Background(), taskID)
+			task, err := c.GetExportChannelsTask(context.Background(), resp1.TaskID)
 			require.NoError(t, err)
-			require.Equal(t, taskID, task.TaskID)
+			require.Equal(t, resp1.TaskID, task.TaskID)
 			require.NotEmpty(t, task.Status)
 
 			if task.Status == TaskStatusCompleted {

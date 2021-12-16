@@ -29,10 +29,6 @@ type ChannelMute struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-type ChannelMuteResponse struct {
-	ChannelMute ChannelMute `json:"channel_mute"`
-}
-
 type User struct {
 	ID    string   `json:"id"`
 	Name  string   `json:"name,omitempty"`
@@ -79,12 +75,12 @@ func (u User) MarshalJSON() ([]byte, error) {
 // MuteUser creates a mute.
 // targetID: the user getting muted.
 // userID: the user is muting the target.
-func (c *Client) MuteUser(ctx context.Context, targetID, userID string, options map[string]interface{}) error {
+func (c *Client) MuteUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	case options == nil:
 		options = map[string]interface{}{}
 	}
@@ -92,18 +88,20 @@ func (c *Client) MuteUser(ctx context.Context, targetID, userID string, options 
 	options["target_id"] = targetID
 	options["user_id"] = userID
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	return &resp, err
 }
 
 // MuteUsers creates mutes for multiple users.
 // targetIDs: the users getting muted.
 // userID: the user is muting the target.
-func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, userID string, options map[string]interface{}) error {
+func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, userID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
-		return errors.New("target IDs are empty")
+		return nil, errors.New("target IDs are empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	case options == nil:
 		options = map[string]interface{}{}
 	}
@@ -111,18 +109,20 @@ func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, userID strin
 	options["target_ids"] = targetIDs
 	options["user_id"] = userID
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	return &resp, err
 }
 
 // UnmuteUser removes a mute.
 // targetID: the user is getting un-muted.
 // userID: the user is muting the target.
-func (c *Client) UnmuteUser(ctx context.Context, targetID, userID string) error {
+func (c *Client) UnmuteUser(ctx context.Context, targetID, userID string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target IDs is empty")
+		return nil, errors.New("target IDs is empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	}
 
 	data := map[string]interface{}{
@@ -130,18 +130,20 @@ func (c *Client) UnmuteUser(ctx context.Context, targetID, userID string) error 
 		"user_id":   userID,
 	}
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	return &resp, err
 }
 
 // UnmuteUsers removes a mute.
 // targetID: the users are getting un-muted.
 // userID: the user is muting the target.
-func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID string) error {
+func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID string) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
-		return errors.New("target IDs is empty")
+		return nil, errors.New("target IDs is empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	}
 
 	data := map[string]interface{}{
@@ -149,28 +151,32 @@ func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID str
 		"user_id":    userID,
 	}
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	return &resp, err
 }
 
-func (c *Client) FlagUser(ctx context.Context, targetID string, options map[string]interface{}) error {
+func (c *Client) FlagUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case len(options) == 0:
-		return errors.New("flag user: options must be not empty")
+		return nil, errors.New("flag user: options must be not empty")
 	}
 
 	options["target_user_id"] = targetID
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) error {
+func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case userID == "":
-		return errors.New("user ID is empty")
+		return nil, errors.New("user ID is empty")
 	case options == nil:
 		options = map[string]interface{}{}
 	}
@@ -178,13 +184,15 @@ func (c *Client) BanUser(ctx context.Context, targetID, userID string, options m
 	options["target_user_id"] = targetID
 	options["user_id"] = userID
 
-	return c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) error {
+func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	case options == nil:
 		options = map[string]string{}
 	}
@@ -196,13 +204,15 @@ func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[str
 	}
 	params.Set("target_user_id", targetID)
 
-	return c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
+	return &resp, err
 }
 
 // ShadowBan shadow bans userID
 // bannedByID: user who shadow bans userID.
 // options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) error {
+func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
 	if options == nil {
 		options = map[string]interface{}{}
 	}
@@ -211,7 +221,7 @@ func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, optio
 }
 
 // RemoveShadowBan removes the ban for userID.
-func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) error {
+func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) (*Response, error) {
 	if options == nil {
 		options = map[string]string{}
 	}
@@ -219,50 +229,57 @@ func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map
 	return c.UnBanUser(ctx, userID, options)
 }
 
-func (c *Client) ExportUser(ctx context.Context, targetID string, options map[string][]string) (user *User, err error) {
+type ExportUserResponse struct {
+	*User
+	Response
+}
+
+func (c *Client) ExportUser(ctx context.Context, targetID string, options map[string][]string) (*ExportUserResponse, error) {
 	if targetID == "" {
-		return user, errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "export")
-	user = &User{}
 
-	err = c.makeRequest(ctx, http.MethodGet, p, options, nil, user)
-	return user, err
+	var resp ExportUserResponse
+	err := c.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
+	return &resp, err
 }
 
-func (c *Client) DeactivateUser(ctx context.Context, targetID string, options map[string]interface{}) error {
+func (c *Client) DeactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "deactivate")
 
-	return c.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) ReactivateUser(ctx context.Context, targetID string, options map[string]interface{}) error {
+func (c *Client) ReactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "reactivate")
 
-	return c.makeRequest(ctx, http.MethodPost, p, nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) DeleteUser(ctx context.Context, targetID string, options map[string][]string) error {
+func (c *Client) DeleteUser(ctx context.Context, targetID string, options map[string][]string) (*Response, error) {
 	if targetID == "" {
-		return errors.New("target ID is empty")
+		return nil, errors.New("target ID is empty")
 	}
 
 	p := path.Join("users", url.PathEscape(targetID))
 
-	return c.makeRequest(ctx, http.MethodDelete, p, options, nil, nil)
-}
-
-type usersResponse struct {
-	Users map[string]*User `json:"users"`
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, p, options, nil, &resp)
+	return &resp, err
 }
 
 type usersRequest struct {
@@ -278,22 +295,35 @@ type userRequest struct {
 	LastActive time.Time `json:"-"`
 }
 
+type UpsertUserResponse struct {
+	User *User
+	Response
+}
+
 // UpsertUser is a single user version of UpsertUsers for convenience.
-func (c *Client) UpsertUser(ctx context.Context, user *User) (*User, error) {
-	users, err := c.UpsertUsers(ctx, user)
-	return users[user.ID], err
+func (c *Client) UpsertUser(ctx context.Context, user *User) (*UpsertUserResponse, error) {
+	resp, err := c.UpsertUsers(ctx, user)
+	return &UpsertUserResponse{
+		User:     resp.Users[user.ID],
+		Response: resp.Response,
+	}, err
 }
 
 // UpdateUser sending update users request, returns updated user info.
 //
 // Deprecated: Use UpsertUser. Renamed for clarification, functionality remains the same.
-func (c *Client) UpdateUser(ctx context.Context, user *User) (*User, error) {
+func (c *Client) UpdateUser(ctx context.Context, user *User) (*UpsertUserResponse, error) {
 	return c.UpsertUser(ctx, user)
+}
+
+type UsersResponse struct {
+	Users map[string]*User `json:"users"`
+	Response
 }
 
 // UpsertUsers creates the given users. If a user doesn't exist, it will be created.
 // Otherwise, custom data will be extended or updated. Missing data is never removed.
-func (c *Client) UpsertUsers(ctx context.Context, users ...*User) (map[string]*User, error) {
+func (c *Client) UpsertUsers(ctx context.Context, users ...*User) (*UsersResponse, error) {
 	if len(users) == 0 {
 		return nil, errors.New("users are not set")
 	}
@@ -303,16 +333,15 @@ func (c *Client) UpsertUsers(ctx context.Context, users ...*User) (map[string]*U
 		req.Users[u.ID] = userRequest{User: u}
 	}
 
-	var resp usersResponse
-
+	var resp UsersResponse
 	err := c.makeRequest(ctx, http.MethodPost, "users", nil, req, &resp)
-	return resp.Users, err
+	return &resp, err
 }
 
 // UpdateUsers sends update user request, returns updated user info.
 //
 // Deprecated: Use UpsertUsers. Renamed for clarification, functionality remains the same.
-func (c *Client) UpdateUsers(ctx context.Context, users ...*User) (map[string]*User, error) {
+func (c *Client) UpdateUsers(ctx context.Context, users ...*User) (*UsersResponse, error) {
 	return c.UpsertUsers(ctx, users...)
 }
 
@@ -327,12 +356,12 @@ type PartialUserUpdate struct {
 
 // PartialUpdateUser makes partial update for single user.
 func (c *Client) PartialUpdateUser(ctx context.Context, update PartialUserUpdate) (*User, error) {
-	res, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	resp, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	if err != nil {
 		return nil, err
 	}
 
-	if user, ok := res[update.ID]; ok {
+	if user, ok := resp.Users[update.ID]; ok {
 		return user, nil
 	}
 
@@ -344,20 +373,20 @@ type partialUserUpdateReq struct {
 }
 
 // PartialUpdateUsers makes partial update for users.
-func (c *Client) PartialUpdateUsers(ctx context.Context, updates []PartialUserUpdate) (map[string]*User, error) {
-	var resp usersResponse
+func (c *Client) PartialUpdateUsers(ctx context.Context, updates []PartialUserUpdate) (*UsersResponse, error) {
+	var resp UsersResponse
 
 	err := c.makeRequest(ctx, http.MethodPatch, "users", nil, partialUserUpdateReq{Users: updates}, &resp)
-	return resp.Users, err
+	return &resp, err
 }
 
 // RevokeUserToken revoke token for a user issued before given time.
-func (c *Client) RevokeUserToken(ctx context.Context, userID string, before *time.Time) error {
+func (c *Client) RevokeUserToken(ctx context.Context, userID string, before *time.Time) (*Response, error) {
 	return c.RevokeUsersTokens(ctx, []string{userID}, before)
 }
 
 // RevokeUsersTokens revoke tokens for users issued before given time.
-func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before *time.Time) error {
+func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before *time.Time) (*Response, error) {
 	userUpdates := make([]PartialUserUpdate, 0)
 	for _, userID := range userIDs {
 		userUpdate := PartialUserUpdate{
@@ -372,6 +401,6 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 		userUpdates = append(userUpdates, userUpdate)
 	}
 
-	_, err := c.PartialUpdateUsers(ctx, userUpdates)
-	return err
+	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
+	return &resp.Response, err
 }

@@ -111,10 +111,6 @@ func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	return bytes.Equal(signature, []byte(expectedMAC))
 }
 
-type sendFileResponse struct {
-	File string `json:"file"`
-}
-
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 func escapeQuotes(s string) string {
@@ -162,14 +158,19 @@ func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, cont
 	return err
 }
 
-func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest) (string, error) {
+type SendFileResponse struct {
+	File string `json:"file"`
+	Response
+}
+
+func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest) (*SendFileResponse, error) {
 	if opts.User == nil {
-		return "", errors.New("user is nil")
+		return nil, errors.New("user is nil")
 	}
 
 	tmpfile, err := ioutil.TempFile("", opts.FileName)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer func() {
@@ -180,40 +181,40 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 	form := multipartForm{multipart.NewWriter(tmpfile)}
 
 	if err := form.setData("user", opts.User); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = form.setFile("file", opts.Reader, opts.FileName, opts.ContentType)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = form.Close()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if _, err = tmpfile.Seek(0, 0); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	r, err := c.newRequest(ctx, http.MethodPost, link, nil, tmpfile)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	r.Header.Set("Content-Type", form.FormDataContentType())
 
 	res, err := c.HTTP.Do(r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var resp sendFileResponse
+	var resp SendFileResponse
 	err = c.parseResponse(res, &resp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return resp.File, err
+	return &resp, err
 }

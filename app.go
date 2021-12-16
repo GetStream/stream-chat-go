@@ -101,28 +101,31 @@ type AppConfig struct {
 	AsyncURLEnrichEnabled    bool                      `json:"async_url_enrich_enabled"`
 }
 
-type appResponse struct {
+type AppResponse struct {
 	App *AppConfig `json:"app"`
+	Response
 }
 
 // GetAppConfig returns app settings.
-func (c *Client) GetAppConfig(ctx context.Context) (*AppConfig, error) {
-	var resp appResponse
+func (c *Client) GetAppConfig(ctx context.Context) (*AppResponse, error) {
+	var resp AppResponse
 
 	err := c.makeRequest(ctx, http.MethodGet, "app", nil, nil, &resp)
-	return resp.App, err
+	return &resp, err
 }
 
 // UpdateAppSettings makes request to update app settings
 // Example of usage:
 //  settings := NewAppSettings().SetDisableAuth(true)
 //  err := client.UpdateAppSettings(settings)
-func (c *Client) UpdateAppSettings(ctx context.Context, settings *AppSettings) error {
-	return c.makeRequest(ctx, http.MethodPatch, "app", nil, settings, nil)
+func (c *Client) UpdateAppSettings(ctx context.Context, settings *AppSettings) (*Response, error) {
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPatch, "app", nil, settings, &resp)
+	return &resp, err
 }
 
 // RevokeTokens revokes all tokens for an application issued before given time.
-func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) error {
+func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) (*Response, error) {
 	setting := make(map[string]interface{})
 	if before == nil {
 		setting["revoke_tokens_issued_before"] = nil
@@ -130,5 +133,7 @@ func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) error {
 		setting["revoke_tokens_issued_before"] = before.Format(time.RFC3339)
 	}
 
-	return c.makeRequest(ctx, http.MethodPatch, "app", nil, setting, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPatch, "app", nil, setting, &resp)
+	return &resp, err
 }

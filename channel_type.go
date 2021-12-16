@@ -89,17 +89,24 @@ type channelTypeRequest struct {
 	UpdatedAt time.Time `json:"-"`
 }
 
-type channelTypeResponse struct {
-	ChannelTypes map[string]*ChannelType `json:"channel_types"`
+type ChannelTypeResponse struct {
+	*ChannelType
+
+	Commands []string `json:"commands"`
+
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+
+	Response
 }
 
 // CreateChannelType adds new channel type.
-func (c *Client) CreateChannelType(ctx context.Context, chType *ChannelType) (*ChannelType, error) {
+func (c *Client) CreateChannelType(ctx context.Context, chType *ChannelType) (*ChannelTypeResponse, error) {
 	if chType == nil {
 		return nil, errors.New("channel type is nil")
 	}
 
-	var resp channelTypeRequest
+	var resp ChannelTypeResponse
 
 	err := c.makeRequest(ctx, http.MethodPost, "channeltypes", nil, chType.toRequest(), &resp)
 	if err != nil {
@@ -113,48 +120,60 @@ func (c *Client) CreateChannelType(ctx context.Context, chType *ChannelType) (*C
 		resp.ChannelType.Commands = append(resp.ChannelType.Commands, &Command{Name: cmd})
 	}
 
-	return resp.ChannelType, nil
+	return &resp, nil
+}
+
+type GetChannelTypeResponse struct {
+	*ChannelType
+	Response
 }
 
 // GetChannelType returns information about channel type.
-func (c *Client) GetChannelType(ctx context.Context, chanType string) (*ChannelType, error) {
+func (c *Client) GetChannelType(ctx context.Context, chanType string) (*GetChannelTypeResponse, error) {
 	if chanType == "" {
 		return nil, errors.New("channel type is empty")
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(chanType))
 
-	ct := ChannelType{}
+	var resp GetChannelTypeResponse
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
+	return &resp, err
+}
 
-	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &ct)
-	return &ct, err
+type ChannelTypesResponse struct {
+	ChannelTypes map[string]*ChannelType `json:"channel_types"`
+	Response
 }
 
 // ListChannelTypes returns all channel types.
-func (c *Client) ListChannelTypes(ctx context.Context) (map[string]*ChannelType, error) {
-	var resp channelTypeResponse
-
+func (c *Client) ListChannelTypes(ctx context.Context) (*ChannelTypesResponse, error) {
+	var resp ChannelTypesResponse
 	err := c.makeRequest(ctx, http.MethodGet, "channeltypes", nil, nil, &resp)
-	return resp.ChannelTypes, err
+	return &resp, err
 }
 
-func (c *Client) UpdateChannelType(ctx context.Context, name string, options map[string]interface{}) error {
+func (c *Client) UpdateChannelType(ctx context.Context, name string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case name == "":
-		return errors.New("channel type name is empty")
+		return nil, errors.New("channel type name is empty")
 	case len(options) == 0:
-		return errors.New("options are empty")
+		return nil, errors.New("options are empty")
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(name))
-	return c.makeRequest(ctx, http.MethodPut, p, nil, options, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPut, p, nil, options, &resp)
+	return &resp, err
 }
 
-func (c *Client) DeleteChannelType(ctx context.Context, name string) error {
+func (c *Client) DeleteChannelType(ctx context.Context, name string) (*Response, error) {
 	if name == "" {
-		return errors.New("channel type name is empty")
+		return nil, errors.New("channel type name is empty")
 	}
 
 	p := path.Join("channeltypes", url.PathEscape(name))
-	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, p, nil, nil, &resp)
+	return &resp, err
 }

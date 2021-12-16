@@ -15,23 +15,19 @@ type Command struct {
 	Set         string `json:"set"`
 }
 
-// commandResponse represents an API response containing one Command.
-type commandResponse struct {
-	Command *Command
-}
-
-// commandsResponse represents an API response containing a list of Command.
-type commandsResponse struct {
-	Commands []*Command
+// CommandResponse represents an API response containing one Command.
+type CommandResponse struct {
+	Command *Command `json:"command"`
+	Response
 }
 
 // CreateCommand registers a new custom command.
-func (c *Client) CreateCommand(ctx context.Context, cmd *Command) (*Command, error) {
+func (c *Client) CreateCommand(ctx context.Context, cmd *Command) (*CommandResponse, error) {
 	if cmd == nil {
 		return nil, errors.New("command is nil")
 	}
 
-	var resp commandResponse
+	var resp CommandResponse
 
 	err := c.makeRequest(ctx, http.MethodPost, "commands", nil, cmd, &resp)
 	if err != nil {
@@ -41,43 +37,54 @@ func (c *Client) CreateCommand(ctx context.Context, cmd *Command) (*Command, err
 		return nil, errors.New("unexpected error: command response is nil")
 	}
 
-	return resp.Command, nil
+	return &resp, nil
+}
+
+type GetCommandResponse struct {
+	*Command
+	Response
 }
 
 // GetCommand retrieves a custom command referenced by cmdName.
-func (c *Client) GetCommand(ctx context.Context, cmdName string) (*Command, error) {
+func (c *Client) GetCommand(ctx context.Context, cmdName string) (*GetCommandResponse, error) {
 	if cmdName == "" {
 		return nil, errors.New("command name is empty")
 	}
 
 	p := path.Join("commands", url.PathEscape(cmdName))
 
-	cmd := Command{}
-
-	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &cmd)
-	return &cmd, err
+	var resp GetCommandResponse
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
+	return &resp, err
 }
 
 // DeleteCommand deletes a custom command referenced by cmdName.
-func (c *Client) DeleteCommand(ctx context.Context, cmdName string) error {
+func (c *Client) DeleteCommand(ctx context.Context, cmdName string) (*Response, error) {
 	if cmdName == "" {
-		return errors.New("command name is empty")
+		return nil, errors.New("command name is empty")
 	}
 
 	p := path.Join("commands", url.PathEscape(cmdName))
-	return c.makeRequest(ctx, http.MethodDelete, p, nil, nil, nil)
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, p, nil, nil, &resp)
+	return &resp, err
+}
+
+// CommandsResponse represents an API response containing a list of Command.
+type CommandsResponse struct {
+	Commands []*Command
 }
 
 // ListCommands returns a list of custom commands.
-func (c *Client) ListCommands(ctx context.Context) ([]*Command, error) {
-	var resp commandsResponse
-
+func (c *Client) ListCommands(ctx context.Context) (*CommandsResponse, error) {
+	var resp CommandsResponse
 	err := c.makeRequest(ctx, http.MethodGet, "commands", nil, nil, &resp)
-	return resp.Commands, err
+	return &resp, err
 }
 
 // UpdateCommand updates a custom command referenced by cmdName.
-func (c *Client) UpdateCommand(ctx context.Context, cmdName string, options map[string]interface{}) (*Command, error) {
+func (c *Client) UpdateCommand(ctx context.Context, cmdName string, options map[string]interface{}) (*CommandResponse, error) {
 	switch {
 	case cmdName == "":
 		return nil, errors.New("command name is empty")
@@ -87,8 +94,7 @@ func (c *Client) UpdateCommand(ctx context.Context, cmdName string, options map[
 
 	p := path.Join("commands", url.PathEscape(cmdName))
 
-	var resp commandResponse
-
+	var resp CommandResponse
 	err := c.makeRequest(ctx, http.MethodPut, p, nil, options, &resp)
-	return resp.Command, err
+	return &resp, err
 }
