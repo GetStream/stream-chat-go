@@ -266,8 +266,10 @@ func TestChannel_GetReplies(t *testing.T) {
 
 	msg := &Message{Text: "test message"}
 
-	msg, err := ch.SendMessage(context.Background(), msg, randomUser(t, c).ID, MessageSkipPush)
+	resp, err := ch.SendMessage(context.Background(), msg, randomUser(t, c).ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
+
+	msg = resp.Message
 
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
 	_, err = ch.SendMessage(context.Background(), reply, randomUser(t, c).ID)
@@ -318,9 +320,11 @@ func TestChannel_SendMessage(t *testing.T) {
 		User: user1,
 	}
 
-	msg, err := ch.SendMessage(context.Background(), msg, user2.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user2.ID)
 	require.NoError(t, err, "send message")
+
 	// check that message was updated
+	msg = resp.Message
 	assert.NotEmpty(t, msg.ID, "message has ID")
 	assert.NotEmpty(t, msg.HTML, "message has HTML body")
 
@@ -329,9 +333,11 @@ func TestChannel_SendMessage(t *testing.T) {
 		User:   user1,
 		Silent: true,
 	}
-	msg2, err = ch.SendMessage(context.Background(), msg2, user2.ID)
+	resp, err = ch.SendMessage(context.Background(), msg2, user2.ID)
 	require.NoError(t, err, "send message 2")
+
 	// check that message was updated
+	msg2 = resp.Message
 	assert.NotEmpty(t, msg2.ID, "message has ID")
 	assert.NotEmpty(t, msg2.HTML, "message has HTML body")
 	assert.True(t, msg2.Silent, "message silent flag is set")
@@ -351,10 +357,10 @@ func TestChannel_Truncate(t *testing.T) {
 	}
 
 	// Make sure we have one message in the channel
-	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
+	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
 	err = ch.Truncate(context.Background())
@@ -377,10 +383,10 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	}
 
 	// Make sure we have one message in the channel
-	msg, err := ch.SendMessage(context.Background(), msg, user.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(context.Background()), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, msg.ID, "message exists")
+	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
 	err = ch.Truncate(context.Background(),

@@ -10,8 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
-	"time"
 )
 
 type Error struct {
@@ -22,42 +20,17 @@ type Error struct {
 	Duration        string            `json:"duration"`
 	MoreInfo        string            `json:"more_info"`
 
-	RateLimit *RateLimit `json:"-"`
+	RateLimit *RateLimitInfo `json:"-"`
 }
 
 func (e Error) Error() string {
 	return e.Message
 }
 
-const (
-	HeaderRateLimit     = "X-Ratelimit-Limit"
-	HeaderRateRemaining = "X-Ratelimit-Remaining"
-	HeaderRateReset     = "X-Ratelimit-Reset"
-)
-
-type RateLimit struct {
-	Reset     time.Time
-	Limit     int
-	Remaining int
-}
-
-func NewRateLimitFromHeaders(headers http.Header) *RateLimit {
-	var rl RateLimit
-
-	limit, err := strconv.Atoi(headers.Get(HeaderRateLimit))
-	if err == nil {
-		rl.Limit = limit
-	}
-	remaining, err := strconv.Atoi(headers.Get(HeaderRateRemaining))
-	if err == nil {
-		rl.Remaining = remaining
-	}
-	reset, err := strconv.ParseInt(headers.Get(HeaderRateReset), 10, 64)
-	if err == nil && reset > 0 {
-		rl.Reset = time.Unix(reset, 0)
-	}
-
-	return &rl
+// Response is the base response returned to client. It contains rate limit information.
+// All specific response returned to the client should embed this type.
+type Response struct {
+	RateLimitInfo *RateLimitInfo `json:"ratelimit"`
 }
 
 func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
@@ -87,10 +60,12 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		return apiErr
 	}
 
-	if result != nil {
-		return json.Unmarshal(b, result)
+	err = json.Unmarshal(b, result)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal body: %w", err)
 	}
-	return nil
+
+	return c.addRateLimitInfo(resp.Header, result)
 }
 
 func (c *Client) requestURL(path string, values url.Values) (string, error) {
@@ -169,4 +144,21 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, params ur
 	}
 
 	return c.parseResponse(resp, result)
+}
+
+func (c *Client) addRateLimitInfo(headers http.Header, result interface{}) error {
+	rl := map[string]interface{}{
+		"ratelimit": NewRateLimitFromHeaders(headers),
+	}
+
+	b, err := json.Marshal(rl)
+	if err != nil {
+		return fmt.Errorf("cannot marshal rate limit info: %w", err)
+	}
+
+	err = json.Unmarshal(b, result)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal rate limit info: %w", err)
+	}
+	return nil
 }

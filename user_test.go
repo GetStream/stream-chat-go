@@ -28,8 +28,10 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg := &Message{Text: "test message"}
-	msg, err = ch.SendMessage(context.Background(), msg, userB.ID)
+	resp, err := ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
+
+	msg = resp.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
@@ -37,8 +39,10 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.Equal(t, true, msg.Shadowed)
 
 	msg = &Message{Text: "test message"}
-	msg, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	resp, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
+
+	msg = resp.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
@@ -49,8 +53,10 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	msg, err = ch.SendMessage(context.Background(), msg, userB.ID)
+	resp, err = ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
+
+	msg = resp.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)
@@ -61,8 +67,10 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	msg, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	resp, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
+
+	msg = resp.Message
 	require.Equal(t, false, msg.Shadowed)
 
 	msg, err = c.GetMessage(context.Background(), msg.ID)

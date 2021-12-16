@@ -194,8 +194,14 @@ func MessageSkipPush(r *messageRequest) {
 	}
 }
 
+type MessageResponse struct {
+	Message *Message `json:"message"`
+
+	Response
+}
+
 // SendMessage sends a message to the channel. Returns full message details from server.
-func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID string, options ...SendMessageOption) (*Message, error) {
+func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID string, options ...SendMessageOption) (*MessageResponse, error) {
 	switch {
 	case message == nil:
 		return nil, errors.New("message is nil")
@@ -211,9 +217,9 @@ func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID str
 		op(&req)
 	}
 
-	var resp messageResponse
+	var resp MessageResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
-	return resp.Message, err
+	return &resp, err
 }
 
 // MarkAllRead marks all messages as read for userID.

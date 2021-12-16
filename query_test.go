@@ -258,10 +258,13 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 
 	// send 2 messages
 	text := randomString(10)
-	msg1, err := ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user1.ID)
+	resp, err := ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user1.ID)
 	require.NoError(t, err)
-	msg2, err := ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user2.ID)
+	msg1 := resp.Message
+
+	resp, err = ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user2.ID)
 	require.NoError(t, err)
+	msg2 := resp.Message
 
 	// flag 2 messages
 	err = c.FlagMessage(context.Background(), msg2.ID, user1.ID)
