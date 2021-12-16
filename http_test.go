@@ -30,7 +30,7 @@ func TestRateLimit(t *testing.T) {
 			require.Equal(t, http.StatusTooManyRequests, apiErr.StatusCode)
 			require.NotZero(t, apiErr.RateLimit.Limit)
 			require.NotZero(t, apiErr.RateLimit.Reset)
-			require.Equal(t, 0, apiErr.RateLimit.Remaining)
+			require.EqualValues(t, 0, apiErr.RateLimit.Remaining)
 			return
 		}
 	}
