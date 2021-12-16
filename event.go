@@ -113,9 +113,9 @@ func (e Event) MarshalJSON() ([]byte, error) {
 }
 
 // SendEvent sends an event on this channel.
-func (ch *Channel) SendEvent(ctx context.Context, event *Event, userID string) error {
+func (ch *Channel) SendEvent(ctx context.Context, event *Event, userID string) (*Response, error) {
 	if event == nil {
-		return errors.New("event is nil")
+		return nil, errors.New("event is nil")
 	}
 
 	event.User = &User{ID: userID}
@@ -128,7 +128,9 @@ func (ch *Channel) SendEvent(ctx context.Context, event *Event, userID string) e
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "event")
 
-	return ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, nil)
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
+	return &resp, err
 }
 
 // UserCustomEvent is a custom event sent to a particular user.
@@ -164,12 +166,12 @@ func (e UserCustomEvent) MarshalJSON() ([]byte, error) {
 }
 
 // SendUserCustomEvent sends a custom event to all connected clients for the target user id.
-func (c *Client) SendUserCustomEvent(ctx context.Context, targetUserID string, event *UserCustomEvent) error {
+func (c *Client) SendUserCustomEvent(ctx context.Context, targetUserID string, event *UserCustomEvent) (*Response, error) {
 	if event == nil {
-		return errors.New("event is nil")
+		return nil, errors.New("event is nil")
 	}
 	if targetUserID == "" {
-		return errors.New("targetUserID should not be empty")
+		return nil, errors.New("targetUserID should not be empty")
 	}
 
 	req := struct {
@@ -179,5 +181,8 @@ func (c *Client) SendUserCustomEvent(ctx context.Context, targetUserID string, e
 	}
 
 	p := path.Join("users", url.PathEscape(targetUserID), "event")
-	return c.makeRequest(ctx, http.MethodPost, p, nil, req, nil)
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, req, &resp)
+	return &resp, err
 }
