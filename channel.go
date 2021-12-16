@@ -174,7 +174,7 @@ func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) (*Re
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, nil)
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, &resp)
 	return &resp, err
 }
 
