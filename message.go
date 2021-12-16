@@ -404,22 +404,6 @@ func (c *Client) FlagMessage(ctx context.Context, msgID, userID string) error {
 	return c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, nil)
 }
 
-func (c *Client) UnflagMessage(ctx context.Context, msgID, userID string) error {
-	if msgID == "" {
-		return errors.New("message ID is empty")
-	}
-
-	if userID == "" {
-		return errors.New("user ID is empty")
-	}
-
-	options := map[string]interface{}{
-		"target_message_id": msgID,
-		"user_id":           userID,
-	}
-	return c.makeRequest(ctx, http.MethodPost, "moderation/unflag", nil, options, nil)
-}
-
 type repliesResponse struct {
 	Messages []*Message `json:"messages"`
 }
