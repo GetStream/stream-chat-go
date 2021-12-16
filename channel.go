@@ -151,11 +151,11 @@ func (ch *Channel) query(ctx context.Context, options, data map[string]interface
 
 // Update edits the channel's custom properties.
 //
-// options: the object to update the custom properties of this channel with
+// properties: the object to update the custom properties of this channel with
 // message: optional update message
-func (ch *Channel) Update(ctx context.Context, options map[string]interface{}, message *Message) (*Response, error) {
+func (ch *Channel) Update(ctx context.Context, properties map[string]interface{}, message *Message) (*Response, error) {
 	payload := map[string]interface{}{
-		"data": options,
+		"data": properties,
 	}
 
 	if message != nil {
@@ -168,8 +168,7 @@ func (ch *Channel) Update(ctx context.Context, options map[string]interface{}, m
 	return &resp, err
 }
 
-//  PartialUpdate set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
-// options: the object to update the custom properties of the channel
+// PartialUpdate set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
 func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) (*Response, error) {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
