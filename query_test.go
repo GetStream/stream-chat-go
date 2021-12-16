@@ -267,10 +267,10 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	msg2 := resp.Message
 
 	// flag 2 messages
-	err = c.FlagMessage(context.Background(), msg2.ID, user1.ID)
+	_, err = c.FlagMessage(context.Background(), msg2.ID, user1.ID)
 	require.NoError(t, err)
 
-	err = c.FlagMessage(context.Background(), msg1.ID, user2.ID)
+	_, err = c.FlagMessage(context.Background(), msg1.ID, user2.ID)
 	require.NoError(t, err)
 
 	// both flags show up in this query by channel_cid
@@ -294,9 +294,9 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	assert.Len(t, got, 1)
 
 	// unflag these 2 messages
-	err = c.UnflagMessage(context.Background(), msg1.ID, user2.ID)
+	_, err = c.UnflagMessage(context.Background(), msg1.ID, user2.ID)
 	require.NoError(t, err)
-	err = c.UnflagMessage(context.Background(), msg2.ID, user1.ID)
+	_, err = c.UnflagMessage(context.Background(), msg2.ID, user1.ID)
 	require.NoError(t, err)
 
 	// none should show up

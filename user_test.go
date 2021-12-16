@@ -30,54 +30,54 @@ func TestClient_ShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg := &Message{Text: "test message"}
-	resp1, err := ch.SendMessage(context.Background(), msg, userB.ID)
+	messageResp, err := ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
-	msg = resp1.Message
+	msg = messageResp.Message
 	require.Equal(t, false, msg.Shadowed)
 
-	msg, err = c.GetMessage(context.Background(), msg.ID)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, true, msg.Shadowed)
+	require.Equal(t, true, messageResp.Message.Shadowed)
 
 	msg = &Message{Text: "test message"}
-	resp1, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
 
-	msg = resp1.Message
+	msg = messageResp.Message
 	require.Equal(t, false, msg.Shadowed)
 
-	msg, err = c.GetMessage(context.Background(), msg.ID)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, true, msg.Shadowed)
+	require.Equal(t, true, messageResp.Message.Shadowed)
 
 	_, err = c.RemoveShadowBan(context.Background(), userB.ID, nil)
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	resp1, err = ch.SendMessage(context.Background(), msg, userB.ID)
+	messageResp, err = ch.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
-	msg = resp1.Message
+	msg = messageResp.Message
 	require.Equal(t, false, msg.Shadowed)
 
-	msg, err = c.GetMessage(context.Background(), msg.ID)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, false, msg.Shadowed)
+	require.Equal(t, false, messageResp.Message.Shadowed)
 
 	_, err = ch.RemoveShadowBan(context.Background(), userC.ID)
 	require.NoError(t, err)
 
 	msg = &Message{Text: "test message"}
-	resp1, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
 	require.NoError(t, err)
 
-	msg = resp1.Message
+	msg = messageResp.Message
 	require.Equal(t, false, msg.Shadowed)
 
-	msg, err = c.GetMessage(context.Background(), msg.ID)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, false, msg.Shadowed)
+	require.Equal(t, false, messageResp.Message.Shadowed)
 }
 
 func TestClient_BanUser(t *testing.T) {
