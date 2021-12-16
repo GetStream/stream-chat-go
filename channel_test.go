@@ -523,7 +523,6 @@ func TestChannel_SendImage(t *testing.T) {
 			User:        randomUser(t, c),
 			ContentType: "image/jpeg",
 		})
-
 		if err != nil {
 			t.Fatalf("Send image failed: %s", err.Error())
 		}
