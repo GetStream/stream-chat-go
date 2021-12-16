@@ -299,9 +299,9 @@ func TestChannel_GetReplies(t *testing.T) {
 	_, err = ch.SendMessage(context.Background(), reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
 
-	replies, err := ch.GetReplies(context.Background(), msg.ID, nil)
+	repliesResp, err := ch.GetReplies(context.Background(), msg.ID, nil)
 	require.NoError(t, err, "get replies")
-	assert.Len(t, replies, 1)
+	assert.Len(t, repliesResp.Messages, 1)
 }
 
 func TestChannel_MarkRead(t *testing.T) {
