@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -137,11 +136,7 @@ func TestChannelShadowBan(t *testing.T) {
 	target := randomUser(t, c)
 	user := randomUser(t, c)
 
-	fmt.Println("user", user.ID)
-	fmt.Println("target", target.ID)
-
 	ch := initChannel(t, c, user.ID, target.ID)
-	fmt.Println("ch", ch.CID)
 
 	_, err := ch.ShadowBan(context.Background(), target.ID, user.ID, BanWithReason("spammer"), BanWithExpiration(10))
 	require.NoError(t, err)

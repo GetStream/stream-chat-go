@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -138,7 +137,6 @@ type BanOption func(*banOptions)
 
 func BanWithReason(reason string) func(*banOptions) {
 	return func(opt *banOptions) {
-		fmt.Println("reason")
 		opt.Reason = reason
 	}
 }
@@ -147,8 +145,6 @@ func BanWithReason(reason string) func(*banOptions) {
 // eg. to ban during one hour: BanWithExpiration(60)
 func BanWithExpiration(timeout int) func(*banOptions) {
 	return func(opt *banOptions) {
-		fmt.Println("expires")
-
 		opt.Timeout = timeout
 	}
 }
