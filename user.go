@@ -207,15 +207,39 @@ func (c *Client) ExportUser(ctx context.Context, targetID string) (*ExportUserRe
 	return &resp, err
 }
 
-func (c *Client) DeactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+type deactivateUserOptions struct {
+	MarkMessagesDeleted bool   `json:"mark_messages_deleted"`
+	CreatedByID         string `json:"created_by_id"`
+}
+
+type DeactivateUserOptions func(*deactivateUserOptions)
+
+func DeactivateUserWithMarkMessagesDeleted() func(*deactivateUserOptions) {
+	return func(opt *deactivateUserOptions) {
+		opt.MarkMessagesDeleted = true
+	}
+}
+
+func DeactivateUserWithCreatedBy(userID string) func(*deactivateUserOptions) {
+	return func(opt *deactivateUserOptions) {
+		opt.CreatedByID = userID
+	}
+}
+
+func (c *Client) DeactivateUser(ctx context.Context, targetID string, options ...DeactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
+	}
+
+	opts := &deactivateUserOptions{}
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "deactivate")
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 

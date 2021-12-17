@@ -189,7 +189,7 @@ func ExampleClient_ExportUser() {
 func ExampleClient_DeactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.DeactivateUser(context.Background(), "userID", nil)
+	_, _ = client.DeactivateUser(context.Background(), "userID")
 }
 
 func ExampleClient_ReactivateUser() {
