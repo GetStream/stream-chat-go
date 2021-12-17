@@ -448,23 +448,40 @@ func (ch *Channel) demoteModerators(ctx context.Context, userIDs []string, msg *
 	return &resp, err
 }
 
-// MarkRead send the mark read event for user with given ID,
+type markReadOption struct {
+	MessageID string `json:"message_id"`
+
+	UserID string `json:"user_id"`
+}
+
+type MarkReadOption func(*markReadOption)
+
+func MarkReadUntilMessage(id string) func(*markReadOption) {
+	return func(opt *markReadOption) {
+		opt.MessageID = id
+	}
+}
+
+// MarkRead sends the mark read event for user with given ID,
 // only works if the `read_events` setting is enabled.
-// options: additional data, ie {"messageID": last_messageID}
-func (ch *Channel) MarkRead(ctx context.Context, userID string, options map[string]interface{}) (*Response, error) {
+func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkReadOption) (*Response, error) {
 	switch {
 	case userID == "":
 		return nil, errors.New("user ID must be not empty")
-	case options == nil:
-		options = map[string]interface{}{}
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
-	options["user"] = map[string]interface{}{"id": userID}
+	opts := &markReadOption{
+		UserID: userID,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 
