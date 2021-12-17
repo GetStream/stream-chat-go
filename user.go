@@ -243,15 +243,46 @@ func (c *Client) DeactivateUser(ctx context.Context, targetID string, options ..
 	return &resp, err
 }
 
-func (c *Client) ReactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+type reactivateUserOptions struct {
+	RestoreMessages bool   `json:"restore_messages"`
+	Name            string `json:"name"`
+	CreatedByID     string `json:"created_by_id"`
+}
+
+type ReactivateUserOptions func(*reactivateUserOptions)
+
+func ReactivateUserWithRestoreMessages() func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.RestoreMessages = true
+	}
+}
+
+func ReactivateUserWithCreatedBy(userID string) func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.CreatedByID = userID
+	}
+}
+
+func ReactivateUserWithName(name string) func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.Name = name
+	}
+}
+
+func (c *Client) ReactivateUser(ctx context.Context, targetID string, options ...ReactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
+	}
+
+	opts := &reactivateUserOptions{}
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "reactivate")
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 

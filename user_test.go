@@ -195,13 +195,13 @@ func ExampleClient_DeactivateUser() {
 func ExampleClient_ReactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.ReactivateUser(context.Background(), "userID", nil)
+	_, _ = client.ReactivateUser(context.Background(), "userID")
 }
 
 func ExampleClient_DeleteUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.DeleteUser(context.Background(), "userID", nil)
+	_, _ = client.DeleteUser(context.Background(), "userID")
 }
 
 func ExampleClient_DeleteUser_hard() {
