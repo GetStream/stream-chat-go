@@ -5,17 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] 2021-12-17
+
+- Add support for hiding history while adding a member [#149](https://github.com/GetStream/stream-chat-go/pull/149)
+- Add support for truncate options (hard_delete, truncated_at, system message) [#151](https://github.com/GetStream/stream-chat-go/pull/151)
+- Add support for context in every call [#153](https://github.com/GetStream/stream-chat-go/pull/153)
+- Add support for exposing API errors [#154](https://github.com/GetStream/stream-chat-go/pull/154)
+- Add support for rate limit headers in responses [#156](https://github.com/GetStream/stream-chat-go/pull/156)
+- Add support for permissions v2 [#152](https://github.com/GetStream/stream-chat-go/pull/152) [#161](https://github.com/GetStream/stream-chat-go/pull/161)
+- Drop import channel messages endpoint support [#155](https://github.com/GetStream/stream-chat-go/pull/155)
+- Drop unflag endpoint support [#157](https://github.com/GetStream/stream-chat-go/pull/157)
+- Drop update user in favor of upsert user [#158](https://github.com/GetStream/stream-chat-go/pull/158)
+- Require go1.16 [#159](https://github.com/GetStream/stream-chat-go/pull/159)
+
 ## [3.14.0] 2021-11-17
 
-- Add support for shadow banning user by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+- Add support for shadow banning user [#148](https://github.com/GetStream/stream-chat-go/pull/148)
   - ShadowBan
   - RemoveShadowBan
-- Add support for pinning messages by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+- Add support for pinning messages [#148](https://github.com/GetStream/stream-chat-go/pull/148)
   - PinMessage
   - UnPinMessage
-- Add support for partial updating messages by @gumuz in [#148](https://github.com/GetStream/stream-chat-go/pull/148)
+- Add support for partial updating messages [#148](https://github.com/GetStream/stream-chat-go/pull/148)
   - PartialUpdateMessage
-- Add support for updating channel ownership for Deleted Users by @gumuz in [#147](https://github.com/GetStream/stream-chat-go/pull/147)
+- Add support for updating channel ownership for Deleted Users [#147](https://github.com/GetStream/stream-chat-go/pull/147)
 
 ## [3.13.0] 2021-11-01
 
