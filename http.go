@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -38,7 +37,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		return errors.New("http body is nil")
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read HTTP response: %w", err)
 	}
@@ -95,7 +94,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, params url
 		return nil, err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, method, u, nil)
+	r, err := http.NewRequestWithContext(ctx, method, u, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -109,14 +108,14 @@ func (c *Client) newRequest(ctx context.Context, method, path string, params url
 		r.Body = t
 
 	case io.Reader:
-		r.Body = ioutil.NopCloser(t)
+		r.Body = io.NopCloser(t)
 
 	default:
 		b, err := json.Marshal(data)
 		if err != nil {
 			return nil, err
 		}
-		r.Body = ioutil.NopCloser(bytes.NewReader(b))
+		r.Body = io.NopCloser(bytes.NewReader(b))
 	}
 
 	return r, nil
