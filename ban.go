@@ -121,8 +121,8 @@ func (c *Client) QueryBannedUsers(ctx context.Context, q *QueryBannedUsersOption
 }
 
 type banOptions struct {
-	Reason  string `json:"reason,omitempty"`
-	Timeout int    `json:"timeout,omitempty"`
+	Reason     string `json:"reason,omitempty"`
+	Expiration int    `json:"timeout,omitempty"`
 
 	TargetUserID string `json:"target_user_id"`
 	BannedBy     string `json:"user_id"`
@@ -143,9 +143,9 @@ func BanWithReason(reason string) func(*banOptions) {
 
 // BanWithExpiration set when the ban will expire. Should be in minutes.
 // eg. to ban during one hour: BanWithExpiration(60)
-func BanWithExpiration(timeout int) func(*banOptions) {
+func BanWithExpiration(expiration int) func(*banOptions) {
 	return func(opt *banOptions) {
-		opt.Timeout = timeout
+		opt.Expiration = expiration
 	}
 }
 

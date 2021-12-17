@@ -24,7 +24,7 @@ func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
 
 	user := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, nil)
+	_, err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	resp, err := c.QueryUsers(context.Background(), &QueryOption{
@@ -45,7 +45,7 @@ func TestClient_MuteUser(t *testing.T) {
 
 	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
-	_, err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, map[string]interface{}{"timeout": 60})
+	_, err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	resp, err = c.QueryUsers(context.Background(), &QueryOption{
@@ -71,7 +71,7 @@ func TestClient_MuteUsers(t *testing.T) {
 	user := randomUser(t, c)
 	targetIDs := randomUsersID(t, c, 2)
 
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, map[string]interface{}{"timeout": 60})
+	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	resp, err := c.QueryUsers(context.Background(), &QueryOption{
@@ -95,7 +95,7 @@ func TestClient_UnmuteUser(t *testing.T) {
 
 	user := randomUser(t, c)
 	mutedUser := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), mutedUser.ID, user.ID, nil)
+	_, err := c.MuteUser(context.Background(), mutedUser.ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	_, err = c.UnmuteUser(context.Background(), mutedUser.ID, user.ID)
@@ -107,7 +107,7 @@ func TestClient_UnmuteUsers(t *testing.T) {
 
 	user := randomUser(t, c)
 	targetIDs := []string{randomUser(t, c).ID, randomUser(t, c).ID}
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, nil)
+	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID)
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	_, err = c.UnmuteUsers(context.Background(), targetIDs, user.ID)

@@ -72,87 +72,103 @@ func (u User) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(u.ExtraData, userForJSON(u))
 }
 
-// MuteUser creates a mute.
-// targetID: the user getting muted.
-// userID: the user is muting the target.
-func (c *Client) MuteUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
+type muteOptions struct {
+	Expiration int `json:"timeout,omitempty"`
+
+	TargetID  string   `json:"target_id"`
+	TargetIDs []string `json:"target_ids"`
+	UserID    string   `json:"user_id"`
+}
+
+type MuteOption func(*muteOptions)
+
+func MuteWithExpiration(expiration int) func(*muteOptions) {
+	return func(opt *muteOptions) {
+		opt.Expiration = expiration
+	}
+}
+
+// MuteUser mutes targetID.
+func (c *Client) MuteUser(ctx context.Context, targetID, mutedBy string, options ...MuteOption) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return nil, errors.New("targetID should not be empty")
+	case mutedBy == "":
+		return nil, errors.New("mutedBy should not be empty")
 	}
 
-	options["target_id"] = targetID
-	options["user_id"] = userID
+	opts := &muteOptions{
+		TargetID: targetID,
+		UserID:   mutedBy,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, opts, &resp)
 	return &resp, err
 }
 
-// MuteUsers creates mutes for multiple users.
-// targetIDs: the users getting muted.
-// userID: the user is muting the target.
-func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, userID string, options map[string]interface{}) (*Response, error) {
+// MuteUsers mutes all users in targetIDs.
+func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, mutedBy string, options ...MuteOption) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
-		return nil, errors.New("target IDs are empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return nil, errors.New("targetIDs should not be empty")
+	case mutedBy == "":
+		return nil, errors.New("mutedBy should not be empty")
 	}
 
-	options["target_ids"] = targetIDs
-	options["user_id"] = userID
+	opts := &muteOptions{
+		TargetIDs: targetIDs,
+		UserID:    mutedBy,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, opts, &resp)
 	return &resp, err
 }
 
-// UnmuteUser removes a mute.
-// targetID: the user is getting un-muted.
-// userID: the user is muting the target.
-func (c *Client) UnmuteUser(ctx context.Context, targetID, userID string) (*Response, error) {
+// UnmuteUser unmute targetID.
+func (c *Client) UnmuteUser(ctx context.Context, targetID, unmutedBy string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target IDs is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
+		return nil, errors.New("targetID should not be empty")
+	case unmutedBy == "":
+		return nil, errors.New("unmutedBy should not be empty")
 	}
 
-	data := map[string]interface{}{
-		"target_id": targetID,
-		"user_id":   userID,
+	opts := &muteOptions{
+		TargetID: targetID,
+		UserID:   unmutedBy,
 	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, opts, &resp)
 	return &resp, err
 }
 
-// UnmuteUsers removes a mute.
-// targetID: the users are getting un-muted.
-// userID: the user is muting the target.
-func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID string) (*Response, error) {
+// UnmuteUsers unmute all users in targetIDs
+func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, unmutedBy string) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
 		return nil, errors.New("target IDs is empty")
-	case userID == "":
+	case unmutedBy == "":
 		return nil, errors.New("user ID is empty")
 	}
 
-	data := map[string]interface{}{
-		"target_ids": targetIDs,
-		"user_id":    userID,
+	opts := &muteOptions{
+		TargetIDs: targetIDs,
+		UserID:    unmutedBy,
 	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, opts, &resp)
 	return &resp, err
 }
 
