@@ -482,8 +482,7 @@ func MarkReadUntilMessage(id string) func(*markReadOption) {
 // MarkRead sends the mark read event for user with given ID,
 // only works if the `read_events` setting is enabled.
 func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkReadOption) (*Response, error) {
-	switch {
-	case userID == "":
+	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
 	}
 

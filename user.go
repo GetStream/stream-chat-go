@@ -153,7 +153,7 @@ func (c *Client) UnmuteUser(ctx context.Context, targetID, unmutedBy string) (*R
 	return &resp, err
 }
 
-// UnmuteUsers unmute all users in targetIDs
+// UnmuteUsers unmute all users in targetIDs.
 func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, unmutedBy string) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
@@ -294,21 +294,23 @@ type deleteUserOptions struct {
 
 type DeleteUserOption func(*deleteUserOptions)
 
+const _true = "true"
+
 func DeleteUserWithHardDelete() func(*deleteUserOptions) {
 	return func(opt *deleteUserOptions) {
-		opt.HardDelete = "true"
+		opt.HardDelete = _true
 	}
 }
 
 func DeleteUserWithMarkMessagesDeleted() func(*deleteUserOptions) {
 	return func(opt *deleteUserOptions) {
-		opt.MarkMessagesDeleted = "true"
+		opt.MarkMessagesDeleted = _true
 	}
 }
 
 func DeleteUserWithDeleteConversations() func(*deleteUserOptions) {
 	return func(opt *deleteUserOptions) {
-		opt.DeleteConversations = "true"
+		opt.DeleteConversations = _true
 	}
 }
 

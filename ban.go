@@ -142,7 +142,7 @@ func BanWithReason(reason string) func(*banOptions) {
 }
 
 // BanWithExpiration set when the ban will expire. Should be in minutes.
-// eg. to ban during one hour: BanWithExpiration(60)
+// eg. to ban during one hour: BanWithExpiration(60).
 func BanWithExpiration(expiration int) func(*banOptions) {
 	return func(opt *banOptions) {
 		opt.Expiration = expiration

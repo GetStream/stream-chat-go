@@ -91,7 +91,8 @@ func TestBanUnbanUser(t *testing.T) {
 	resp, err := c.QueryBannedUsers(context.Background(), &QueryBannedUsersOptions{
 		QueryOption: &QueryOption{Filter: map[string]interface{}{
 			"user_id": map[string]string{"$eq": target.ID},
-		}}})
+		}},
+	})
 	require.NoError(t, err)
 	require.Equal(t, resp.Bans[0].Reason, "spammer")
 	require.NotZero(t, resp.Bans[0].Expires)
@@ -102,7 +103,8 @@ func TestBanUnbanUser(t *testing.T) {
 	resp, err = c.QueryBannedUsers(context.Background(), &QueryBannedUsersOptions{
 		QueryOption: &QueryOption{Filter: map[string]interface{}{
 			"user_id": map[string]string{"$eq": target.ID},
-		}}})
+		}},
+	})
 	require.NoError(t, err)
 	require.Empty(t, resp.Bans)
 }
@@ -123,7 +125,8 @@ func TestChannelBanUnban(t *testing.T) {
 	resp, err := c.QueryBannedUsers(context.Background(), &QueryBannedUsersOptions{
 		QueryOption: &QueryOption{Filter: map[string]interface{}{
 			"channel_cid": map[string]string{"$eq": ch.CID},
-		}}})
+		}},
+	})
 	require.NoError(t, err)
 	require.Empty(t, resp.Bans)
 }
