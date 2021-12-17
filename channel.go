@@ -300,8 +300,12 @@ func (ch *Channel) AssignRole(ctx context.Context, assignments []*RoleAssignment
 	if len(assignments) == 0 {
 		return nil, errors.New("assignments are empty")
 	}
+	ids := make([]string, 0, len(assignments))
+	for _, a := range assignments {
+		ids = append(ids, a.UserID)
+	}
 
-	data := map[string]interface{}{"assign_roles": assignments}
+	data := map[string]interface{}{"assign_roles": assignments, "add_members": ids}
 	if msg != nil {
 		data["message"] = msg
 	}

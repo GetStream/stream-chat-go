@@ -113,11 +113,10 @@ func TestChannel_AssignRoles(t *testing.T) {
 	ctx := context.Background()
 
 	owner := randomUser(t, c)
+	other := randomUser(t, c)
 	chanID := randomString(12)
 
-	resp, err := c.CreateChannel(ctx, "messaging", chanID, owner.ID, map[string]interface{}{
-		"members": []string{owner.ID},
-	})
+	resp, err := c.CreateChannel(ctx, "messaging", chanID, owner.ID, nil)
 	require.NoError(t, err, "create channel")
 
 	ch := resp.Channel
@@ -125,7 +124,7 @@ func TestChannel_AssignRoles(t *testing.T) {
 		_, _ = ch.Delete(ctx)
 	}()
 
-	a := []*RoleAssignment{{ChannelRole: "channel_moderator", UserID: owner.ID}}
+	a := []*RoleAssignment{{ChannelRole: "channel_moderator", UserID: other.ID}}
 	_, err = ch.AssignRole(ctx, a, nil)
 	require.NoError(t, err)
 }
