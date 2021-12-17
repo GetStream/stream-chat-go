@@ -2,92 +2,90 @@ package stream_chat
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-// func TestClient_ShadowBanUser(t *testing.T) {
-// 	c := initClient(t)
-// 	userA := randomUser(t, c)
-// 	userB := randomUser(t, c)
-// 	userC := randomUser(t, c)
+func TestShadowBanUser(t *testing.T) {
+	c := initClient(t)
+	userA := randomUser(t, c)
+	userB := randomUser(t, c)
+	userC := randomUser(t, c)
 
-// 	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
-// 	resp, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
-// 	require.NoError(t, err)
+	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
+	resp, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
+	require.NoError(t, err)
 
-// 	ch = resp.Channel
+	ch = resp.Channel
 
-// 	// shadow ban userB globally
-// 	_, err = c.ShadowBan(context.Background(), userB.ID, userA.ID)
-// 	require.NoError(t, err)
+	// shadow ban userB globally
+	_, err = c.ShadowBan(context.Background(), userB.ID, userA.ID)
+	require.NoError(t, err)
 
-// 	// shadow ban userC on channel
-// 	_, err = ch.ShadowBan(context.Background(), userC.ID, userA.ID)
-// 	require.NoError(t, err)
+	// shadow ban userC on channel
+	_, err = ch.ShadowBan(context.Background(), userC.ID, userA.ID)
+	require.NoError(t, err)
 
-// 	msg := &Message{Text: "test message"}
-// 	messageResp, err := ch.SendMessage(context.Background(), msg, userB.ID)
-// 	require.NoError(t, err)
+	msg := &Message{Text: "test message"}
+	messageResp, err := ch.SendMessage(context.Background(), msg, userB.ID)
+	require.NoError(t, err)
 
-// 	msg = messageResp.Message
-// 	require.Equal(t, false, msg.Shadowed)
+	msg = messageResp.Message
+	require.Equal(t, false, msg.Shadowed)
 
-// 	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-// 	require.NoError(t, err)
-// 	require.Equal(t, true, messageResp.Message.Shadowed)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, true, messageResp.Message.Shadowed)
 
-// 	msg = &Message{Text: "test message"}
-// 	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
-// 	require.NoError(t, err)
+	msg = &Message{Text: "test message"}
+	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	require.NoError(t, err)
 
-// 	msg = messageResp.Message
-// 	require.Equal(t, false, msg.Shadowed)
+	msg = messageResp.Message
+	require.Equal(t, false, msg.Shadowed)
 
-// 	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-// 	require.NoError(t, err)
-// 	require.Equal(t, true, messageResp.Message.Shadowed)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, true, messageResp.Message.Shadowed)
 
-// 	_, err = c.UnBanUser(context.Background(), userB.ID)
-// 	require.NoError(t, err)
+	_, err = c.UnBanUser(context.Background(), userB.ID)
+	require.NoError(t, err)
 
-// 	msg = &Message{Text: "test message"}
-// 	messageResp, err = ch.SendMessage(context.Background(), msg, userB.ID)
-// 	require.NoError(t, err)
+	msg = &Message{Text: "test message"}
+	messageResp, err = ch.SendMessage(context.Background(), msg, userB.ID)
+	require.NoError(t, err)
 
-// 	msg = messageResp.Message
-// 	require.Equal(t, false, msg.Shadowed)
+	msg = messageResp.Message
+	require.Equal(t, false, msg.Shadowed)
 
-// 	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-// 	require.NoError(t, err)
-// 	require.Equal(t, false, messageResp.Message.Shadowed)
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
+	require.NoError(t, err)
+	require.Equal(t, false, messageResp.Message.Shadowed)
 
-// 	_, err = ch.UnBanUser(context.Background(), userC.ID)
-// 	require.NoError(t, err)
+	_, err = ch.UnBanUser(context.Background(), userC.ID)
+	require.NoError(t, err)
 
-// 	msg = &Message{Text: "test message"}
-// 	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
-// 	require.NoError(t, err)
+	msg = &Message{Text: "test message"}
+	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
+	require.NoError(t, err)
 
-// 	msg = messageResp.Message
-// 	require.Equal(t, false, msg.Shadowed)
+	msg = messageResp.Message
+	require.Equal(t, false, msg.Shadowed)
 
-// 	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-// 	require.NoError(t, err)
-// 	require.Equal(t, false, messageResp.Message.Shadowed)
-// }
+	messageResp, err = c.GetMessage(context.Background(), msg.ID)
+	fmt.Printf("%+v\n\n", messageResp.Message)
+	require.NoError(t, err)
+	require.Equal(t, false, messageResp.Message.Shadowed)
+}
 
 func TestBanUnbanUser(t *testing.T) {
 	c := initClient(t)
 	target := randomUser(t, c)
 	user := randomUser(t, c)
 
-	// TODO: check reason and timeout
 	_, err := c.BanUser(context.Background(), target.ID, user.ID, BanWithReason("spammer"), BanWithExpiration(60))
-	require.NoError(t, err)
-
-	_, err = c.UnBanUser(context.Background(), target.ID)
 	require.NoError(t, err)
 
 	resp, err := c.QueryBannedUsers(context.Background(), &QueryBannedUsersOptions{
@@ -95,19 +93,18 @@ func TestBanUnbanUser(t *testing.T) {
 			"user_id": map[string]string{"$eq": target.ID},
 		}}})
 	require.NoError(t, err)
-	require.Empty(t, resp.Bans)
-}
-
-func TestShadowBan(t *testing.T) {
-	c := initClient(t)
-	target := randomUser(t, c)
-	user := randomUser(t, c)
-
-	_, err := c.ShadowBan(context.Background(), target.ID, user.ID, BanWithReason("spammer"), BanWithExpiration(5))
-	require.NoError(t, err)
+	require.Equal(t, resp.Bans[0].Reason, "spammer")
+	require.NotZero(t, resp.Bans[0].Expires)
 
 	_, err = c.UnBanUser(context.Background(), target.ID)
 	require.NoError(t, err)
+
+	resp, err = c.QueryBannedUsers(context.Background(), &QueryBannedUsersOptions{
+		QueryOption: &QueryOption{Filter: map[string]interface{}{
+			"user_id": map[string]string{"$eq": target.ID},
+		}}})
+	require.NoError(t, err)
+	require.Empty(t, resp.Bans)
 }
 
 func TestChannelBanUnban(t *testing.T) {
@@ -129,17 +126,6 @@ func TestChannelBanUnban(t *testing.T) {
 		}}})
 	require.NoError(t, err)
 	require.Empty(t, resp.Bans)
-}
-
-func TestChannelShadowBan(t *testing.T) {
-	c := initClient(t)
-	target := randomUser(t, c)
-	user := randomUser(t, c)
-
-	ch := initChannel(t, c, user.ID, target.ID)
-
-	_, err := ch.ShadowBan(context.Background(), target.ID, user.ID, BanWithReason("spammer"), BanWithExpiration(10))
-	require.NoError(t, err)
 }
 
 func ExampleClient_BanUser() {

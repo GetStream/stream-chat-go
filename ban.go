@@ -76,7 +76,7 @@ func (ch *Channel) UnBanUser(ctx context.Context, targetID string) (*Response, e
 
 // ShadowBan shadow bans targetID on the channel ch.
 func (ch *Channel) ShadowBan(ctx context.Context, targetID, bannedByID string, options ...BanOption) (*Response, error) {
-	options = append(options, banWithShadow())
+	options = append(options, banWithShadow(), banFromChannel(ch.ID, ch.Type))
 	return ch.client.ShadowBan(ctx, targetID, bannedByID, options...)
 }
 
