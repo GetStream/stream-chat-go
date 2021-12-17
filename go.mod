@@ -1,4 +1,4 @@
-module github.com/GetStream/stream-chat-go/v3
+module github.com/GetStream/stream-chat-go/v4
 
 go 1.16
 
