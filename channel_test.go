@@ -93,13 +93,12 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
-	options := map[string]interface{}{
-		"hide_history": true,
-	}
+
+	msg := &Message{Text: "some members", User: &User{ID: user.ID}}
 	_, err = ch.AddMembers(context.Background(),
 		[]string{user.ID},
-		&Message{Text: "some members", User: &User{ID: user.ID}},
-		options,
+		AddMembersWithMessage(msg),
+		AddMembersWithHideHistory(),
 	)
 	require.NoError(t, err, "add members")
 
@@ -152,7 +151,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 		id := prefix + name
 		_, err := c.UpsertUser(context.Background(), &User{ID: id, Name: id})
 		require.NoError(t, err)
-		_, err = ch.AddMembers(context.Background(), []string{id}, nil, nil)
+		_, err = ch.AddMembers(context.Background(), []string{id})
 		require.NoError(t, err)
 	}
 
@@ -391,7 +390,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 
 	// Now truncate it
 	_, err = ch.Truncate(context.Background(),
-		TruncateWithSkipPush(true),
+		TruncateWithSkipPush(),
 		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
 	)
 	require.NoError(t, err, "truncate channel")

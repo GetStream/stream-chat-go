@@ -195,15 +195,15 @@ type truncateOptions struct {
 
 type TruncateOption func(*truncateOptions)
 
-func TruncateWithHardDelete(hardDelete bool) func(*truncateOptions) {
+func TruncateWithHardDelete() func(*truncateOptions) {
 	return func(o *truncateOptions) {
-		o.HardDelete = hardDelete
+		o.HardDelete = true
 	}
 }
 
-func TruncateWithSkipPush(skipPush bool) func(*truncateOptions) {
+func TruncateWithSkipPush() func(*truncateOptions) {
 	return func(o *truncateOptions) {
-		o.SkipPush = skipPush
+		o.SkipPush = true
 	}
 }
 
@@ -236,28 +236,45 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Re
 	return &resp, err
 }
 
+type addMembersOptions struct {
+	MemberIDs []string `json:"add_members"`
+
+	HideHistory bool     `json:"hide_history"`
+	Message     *Message `json:"message,omitempty"`
+}
+
+type AddMembersOptions func(*addMembersOptions)
+
+func AddMembersWithMessage(message *Message) func(*addMembersOptions) {
+	return func(opt *addMembersOptions) {
+		opt.Message = message
+	}
+}
+
+func AddMembersWithHideHistory() func(*addMembersOptions) {
+	return func(opt *addMembersOptions) {
+		opt.HideHistory = true
+	}
+}
+
 // AddMembers adds members with given user IDs to the channel.
-// You can set a message for channel object notifications.
-// If you want to hide history of the channel for new members, you can pass "hide_history": true to options parameter.
-func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, message *Message, options map[string]interface{}) (*Response, error) {
+func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...AddMembersOptions) (*Response, error) {
 	if len(userIDs) == 0 {
 		return nil, errors.New("user IDs are empty")
 	}
 
-	if options == nil {
-		options = map[string]interface{}{}
+	opts := &addMembersOptions{
+		MemberIDs: userIDs,
 	}
 
-	options["add_members"] = userIDs
-
-	if message != nil {
-		options["message"] = message
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 
