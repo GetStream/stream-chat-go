@@ -156,15 +156,18 @@ func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID str
 	return &resp, err
 }
 
-func (c *Client) FlagUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+func (c *Client) FlagUser(ctx context.Context, targetID, flaggedBy string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case len(options) == 0:
-		return nil, errors.New("flag user: options must be not empty")
+		return nil, errors.New("targetID should not be empty")
+	case flaggedBy == "":
+		return nil, errors.New("flaggedBy should not be empty")
 	}
 
-	options["target_user_id"] = targetID
+	options := map[string]string{
+		"target_user_id": targetID,
+		"user_id":        flaggedBy,
+	}
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, &resp)
