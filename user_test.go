@@ -182,7 +182,7 @@ func ExampleClient_UpsertUser() {
 func ExampleClient_ExportUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	user, _ := client.ExportUser(context.Background(), "userID", nil)
+	user, _ := client.ExportUser(context.Background(), "userID")
 	log.Printf("%#v", user)
 }
 

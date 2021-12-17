@@ -195,7 +195,7 @@ type ExportUserResponse struct {
 	Response
 }
 
-func (c *Client) ExportUser(ctx context.Context, targetID string, options map[string][]string) (*ExportUserResponse, error) {
+func (c *Client) ExportUser(ctx context.Context, targetID string) (*ExportUserResponse, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
 	}
@@ -203,7 +203,7 @@ func (c *Client) ExportUser(ctx context.Context, targetID string, options map[st
 	p := path.Join("users", url.PathEscape(targetID), "export")
 
 	var resp ExportUserResponse
-	err := c.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
 	return &resp, err
 }
 
