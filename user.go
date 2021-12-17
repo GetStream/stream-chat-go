@@ -171,64 +171,6 @@ func (c *Client) FlagUser(ctx context.Context, targetID string, options map[stri
 	return &resp, err
 }
 
-func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
-	}
-
-	options["target_user_id"] = targetID
-	options["user_id"] = userID
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, &resp)
-	return &resp, err
-}
-
-func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case options == nil:
-		options = map[string]string{}
-	}
-
-	params := url.Values{}
-
-	for k, v := range options {
-		params.Add(k, v)
-	}
-	params.Set("target_user_id", targetID)
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
-	return &resp, err
-}
-
-// ShadowBan shadow bans userID
-// bannedByID: user who shadow bans userID.
-// options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
-	if options == nil {
-		options = map[string]interface{}{}
-	}
-	options["shadow"] = true
-	return c.BanUser(ctx, userID, bannedByID, options)
-}
-
-// RemoveShadowBan removes the ban for userID.
-func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) (*Response, error) {
-	if options == nil {
-		options = map[string]string{}
-	}
-	options["shadow"] = "true"
-	return c.UnBanUser(ctx, userID, options)
-}
-
 type ExportUserResponse struct {
 	*User
 	Response

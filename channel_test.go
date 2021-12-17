@@ -250,29 +250,6 @@ func TestChannel_Moderation(t *testing.T) {
 	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
 }
 
-func TestChannel_BanUser(t *testing.T) {
-	c := initClient(t)
-	ch := initChannel(t, c)
-	defer func() {
-		_, _ = ch.Delete(context.Background())
-	}()
-
-	user := randomUser(t, c)
-	target := randomUser(t, c)
-
-	_, err := ch.BanUser(context.Background(), target.ID, user.ID, nil)
-	require.NoError(t, err, "ban user")
-
-	_, err = ch.BanUser(context.Background(), target.ID, user.ID, map[string]interface{}{
-		"timeout": 3600,
-		"reason":  "offensive language is not allowed here",
-	})
-	require.NoError(t, err, "ban user")
-
-	_, err = ch.UnBanUser(context.Background(), target.ID, nil)
-	require.NoError(t, err, "unban user")
-}
-
 func TestChannel_Delete(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)

@@ -468,64 +468,6 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options map[stri
 	return &resp, err
 }
 
-// BanUser bans target user ID from this channel
-// userID: user who bans target.
-// options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (ch *Channel) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
-	}
-
-	options["type"] = ch.Type
-	options["id"] = ch.ID
-
-	return ch.client.BanUser(ctx, targetID, userID, options)
-}
-
-// UnBanUser removes the ban for target user ID on this channel.
-func (ch *Channel) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID must be not empty")
-	case options == nil:
-		options = map[string]string{}
-	}
-
-	options["type"] = ch.Type
-	options["id"] = ch.ID
-
-	return ch.client.UnBanUser(ctx, targetID, options)
-}
-
-// ShadowBan shadow bans userID from this channel
-// bannedByID: user who shadow bans userID.
-// options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (ch *Channel) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
-	if options == nil {
-		options = map[string]interface{}{}
-	}
-
-	options["type"] = ch.Type
-	options["id"] = ch.ID
-
-	return ch.client.ShadowBan(ctx, userID, bannedByID, options)
-}
-
-// RemoveShadowBan removes the shadow ban for target user ID on this channel.
-func (ch *Channel) RemoveShadowBan(ctx context.Context, userID string) (*Response, error) {
-	options := map[string]string{
-		"type": ch.Type,
-		"id":   ch.ID,
-	}
-
-	return ch.client.RemoveShadowBan(ctx, userID, options)
-}
-
 // Query fills channel info with state (messages, members, reads).
 func (ch *Channel) Query(ctx context.Context, data map[string]interface{}) (*Response, error) {
 	options := map[string]interface{}{
