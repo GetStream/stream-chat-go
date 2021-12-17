@@ -207,10 +207,8 @@ func ExampleClient_DeleteUser() {
 func ExampleClient_DeleteUser_hard() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	options := map[string][]string{
-		"mark_messages_deleted": {"true"},
-		"hard_delete":           {"true"},
-	}
-
-	_, _ = client.DeleteUser(context.Background(), "userID", options)
+	_, _ = client.DeleteUser(context.Background(), "userID",
+		DeleteUserWithHardDelete(),
+		DeleteUserWithMarkMessagesDeleted(),
+	)
 }

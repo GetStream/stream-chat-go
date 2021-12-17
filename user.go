@@ -212,15 +212,51 @@ func (c *Client) ReactivateUser(ctx context.Context, targetID string, options ma
 	return &resp, err
 }
 
-func (c *Client) DeleteUser(ctx context.Context, targetID string, options map[string][]string) (*Response, error) {
-	if targetID == "" {
-		return nil, errors.New("target ID is empty")
+type deleteUserOptions struct {
+	MarkMessagesDeleted string
+	HardDelete          string
+	DeleteConversations string
+}
+
+type DeleteUserOption func(*deleteUserOptions)
+
+func DeleteUserWithHardDelete() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.HardDelete = "true"
 	}
+}
+
+func DeleteUserWithMarkMessagesDeleted() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.MarkMessagesDeleted = "true"
+	}
+}
+
+func DeleteUserWithDeleteConversations() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.DeleteConversations = "true"
+	}
+}
+
+func (c *Client) DeleteUser(ctx context.Context, targetID string, options ...DeleteUserOption) (*Response, error) {
+	if targetID == "" {
+		return nil, errors.New("targetID should not be empty")
+	}
+
+	option := &deleteUserOptions{}
+	for _, fn := range options {
+		fn(option)
+	}
+
+	params := url.Values{}
+	params.Set("mark_messages_deleted", option.MarkMessagesDeleted)
+	params.Set("hard_delete", option.HardDelete)
+	params.Set("delete_conversation_channels", option.DeleteConversations)
 
 	p := path.Join("users", url.PathEscape(targetID))
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, p, options, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodDelete, p, params, nil, &resp)
 	return &resp, err
 }
 
