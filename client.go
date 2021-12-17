@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -111,12 +110,6 @@ func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	return bytes.Equal(signature, []byte(expectedMAC))
 }
 
-var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
-
-func escapeQuotes(s string) string {
-	return quoteEscaper.Replace(s)
-}
-
 // this makes possible to set content type.
 type multipartForm struct {
 	*multipart.Writer
@@ -128,8 +121,7 @@ func (form *multipartForm) CreateFormFile(fieldName, filename, contentType strin
 	h := make(textproto.MIMEHeader)
 
 	h.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-			escapeQuotes(fieldName), escapeQuotes(filename)))
+		fmt.Sprintf(`form-data; name=%q; filename=%q`, fieldName, filename))
 
 	if contentType == "" {
 		contentType = "application/octet-stream"
