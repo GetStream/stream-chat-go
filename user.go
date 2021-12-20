@@ -72,161 +72,122 @@ func (u User) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(u.ExtraData, userForJSON(u))
 }
 
-// MuteUser creates a mute.
-// targetID: the user getting muted.
-// userID: the user is muting the target.
-func (c *Client) MuteUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
+type muteOptions struct {
+	Expiration int `json:"timeout,omitempty"`
+
+	TargetID  string   `json:"target_id"`
+	TargetIDs []string `json:"target_ids"`
+	UserID    string   `json:"user_id"`
+}
+
+type MuteOption func(*muteOptions)
+
+func MuteWithExpiration(expiration int) func(*muteOptions) {
+	return func(opt *muteOptions) {
+		opt.Expiration = expiration
+	}
+}
+
+// MuteUser mutes targetID.
+func (c *Client) MuteUser(ctx context.Context, targetID, mutedBy string, options ...MuteOption) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return nil, errors.New("targetID should not be empty")
+	case mutedBy == "":
+		return nil, errors.New("mutedBy should not be empty")
 	}
 
-	options["target_id"] = targetID
-	options["user_id"] = userID
+	opts := &muteOptions{
+		TargetID: targetID,
+		UserID:   mutedBy,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, opts, &resp)
 	return &resp, err
 }
 
-// MuteUsers creates mutes for multiple users.
-// targetIDs: the users getting muted.
-// userID: the user is muting the target.
-func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, userID string, options map[string]interface{}) (*Response, error) {
+// MuteUsers mutes all users in targetIDs.
+func (c *Client) MuteUsers(ctx context.Context, targetIDs []string, mutedBy string, options ...MuteOption) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
-		return nil, errors.New("target IDs are empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
+		return nil, errors.New("targetIDs should not be empty")
+	case mutedBy == "":
+		return nil, errors.New("mutedBy should not be empty")
 	}
 
-	options["target_ids"] = targetIDs
-	options["user_id"] = userID
+	opts := &muteOptions{
+		TargetIDs: targetIDs,
+		UserID:    mutedBy,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, opts, &resp)
 	return &resp, err
 }
 
-// UnmuteUser removes a mute.
-// targetID: the user is getting un-muted.
-// userID: the user is muting the target.
-func (c *Client) UnmuteUser(ctx context.Context, targetID, userID string) (*Response, error) {
+// UnmuteUser unmute targetID.
+func (c *Client) UnmuteUser(ctx context.Context, targetID, unmutedBy string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target IDs is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
+		return nil, errors.New("targetID should not be empty")
+	case unmutedBy == "":
+		return nil, errors.New("unmutedBy should not be empty")
 	}
 
-	data := map[string]interface{}{
-		"target_id": targetID,
-		"user_id":   userID,
+	opts := &muteOptions{
+		TargetID: targetID,
+		UserID:   unmutedBy,
 	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, opts, &resp)
 	return &resp, err
 }
 
-// UnmuteUsers removes a mute.
-// targetID: the users are getting un-muted.
-// userID: the user is muting the target.
-func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, userID string) (*Response, error) {
+// UnmuteUsers unmute all users in targetIDs.
+func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, unmutedBy string) (*Response, error) {
 	switch {
 	case len(targetIDs) == 0:
 		return nil, errors.New("target IDs is empty")
-	case userID == "":
+	case unmutedBy == "":
 		return nil, errors.New("user ID is empty")
 	}
 
-	data := map[string]interface{}{
-		"target_ids": targetIDs,
-		"user_id":    userID,
+	opts := &muteOptions{
+		TargetIDs: targetIDs,
+		UserID:    unmutedBy,
 	}
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/unmute", nil, opts, &resp)
 	return &resp, err
 }
 
-func (c *Client) FlagUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+func (c *Client) FlagUser(ctx context.Context, targetID, flaggedBy string) (*Response, error) {
 	switch {
 	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case len(options) == 0:
-		return nil, errors.New("flag user: options must be not empty")
+		return nil, errors.New("targetID should not be empty")
+	case flaggedBy == "":
+		return nil, errors.New("flaggedBy should not be empty")
 	}
 
-	options["target_user_id"] = targetID
+	options := map[string]string{
+		"target_user_id": targetID,
+		"user_id":        flaggedBy,
+	}
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPost, "moderation/flag", nil, options, &resp)
 	return &resp, err
-}
-
-func (c *Client) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case userID == "":
-		return nil, errors.New("user ID is empty")
-	case options == nil:
-		options = map[string]interface{}{}
-	}
-
-	options["target_user_id"] = targetID
-	options["user_id"] = userID
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, "moderation/ban", nil, options, &resp)
-	return &resp, err
-}
-
-func (c *Client) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
-	switch {
-	case targetID == "":
-		return nil, errors.New("target ID is empty")
-	case options == nil:
-		options = map[string]string{}
-	}
-
-	params := url.Values{}
-
-	for k, v := range options {
-		params.Add(k, v)
-	}
-	params.Set("target_user_id", targetID)
-
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
-	return &resp, err
-}
-
-// ShadowBan shadow bans userID
-// bannedByID: user who shadow bans userID.
-// options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
-func (c *Client) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
-	if options == nil {
-		options = map[string]interface{}{}
-	}
-	options["shadow"] = true
-	return c.BanUser(ctx, userID, bannedByID, options)
-}
-
-// RemoveShadowBan removes the ban for userID.
-func (c *Client) RemoveShadowBan(ctx context.Context, userID string, options map[string]string) (*Response, error) {
-	if options == nil {
-		options = map[string]string{}
-	}
-	options["shadow"] = "true"
-	return c.UnBanUser(ctx, userID, options)
 }
 
 type ExportUserResponse struct {
@@ -234,7 +195,7 @@ type ExportUserResponse struct {
 	Response
 }
 
-func (c *Client) ExportUser(ctx context.Context, targetID string, options map[string][]string) (*ExportUserResponse, error) {
+func (c *Client) ExportUser(ctx context.Context, targetID string) (*ExportUserResponse, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
 	}
@@ -242,43 +203,136 @@ func (c *Client) ExportUser(ctx context.Context, targetID string, options map[st
 	p := path.Join("users", url.PathEscape(targetID), "export")
 
 	var resp ExportUserResponse
-	err := c.makeRequest(ctx, http.MethodGet, p, options, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
 	return &resp, err
 }
 
-func (c *Client) DeactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+type deactivateUserOptions struct {
+	MarkMessagesDeleted bool   `json:"mark_messages_deleted"`
+	CreatedByID         string `json:"created_by_id"`
+}
+
+type DeactivateUserOptions func(*deactivateUserOptions)
+
+func DeactivateUserWithMarkMessagesDeleted() func(*deactivateUserOptions) {
+	return func(opt *deactivateUserOptions) {
+		opt.MarkMessagesDeleted = true
+	}
+}
+
+func DeactivateUserWithCreatedBy(userID string) func(*deactivateUserOptions) {
+	return func(opt *deactivateUserOptions) {
+		opt.CreatedByID = userID
+	}
+}
+
+func (c *Client) DeactivateUser(ctx context.Context, targetID string, options ...DeactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
+	}
+
+	opts := &deactivateUserOptions{}
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "deactivate")
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 
-func (c *Client) ReactivateUser(ctx context.Context, targetID string, options map[string]interface{}) (*Response, error) {
+type reactivateUserOptions struct {
+	RestoreMessages bool   `json:"restore_messages"`
+	Name            string `json:"name"`
+	CreatedByID     string `json:"created_by_id"`
+}
+
+type ReactivateUserOptions func(*reactivateUserOptions)
+
+func ReactivateUserWithRestoreMessages() func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.RestoreMessages = true
+	}
+}
+
+func ReactivateUserWithCreatedBy(userID string) func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.CreatedByID = userID
+	}
+}
+
+func ReactivateUserWithName(name string) func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.Name = name
+	}
+}
+
+func (c *Client) ReactivateUser(ctx context.Context, targetID string, options ...ReactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
+	}
+
+	opts := &reactivateUserOptions{}
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "reactivate")
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
 
-func (c *Client) DeleteUser(ctx context.Context, targetID string, options map[string][]string) (*Response, error) {
-	if targetID == "" {
-		return nil, errors.New("target ID is empty")
+type deleteUserOptions struct {
+	MarkMessagesDeleted string
+	HardDelete          string
+	DeleteConversations string
+}
+
+type DeleteUserOption func(*deleteUserOptions)
+
+const _true = "true"
+
+func DeleteUserWithHardDelete() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.HardDelete = _true
 	}
+}
+
+func DeleteUserWithMarkMessagesDeleted() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.MarkMessagesDeleted = _true
+	}
+}
+
+func DeleteUserWithDeleteConversations() func(*deleteUserOptions) {
+	return func(opt *deleteUserOptions) {
+		opt.DeleteConversations = _true
+	}
+}
+
+func (c *Client) DeleteUser(ctx context.Context, targetID string, options ...DeleteUserOption) (*Response, error) {
+	if targetID == "" {
+		return nil, errors.New("targetID should not be empty")
+	}
+
+	option := &deleteUserOptions{}
+	for _, fn := range options {
+		fn(option)
+	}
+
+	params := url.Values{}
+	params.Set("mark_messages_deleted", option.MarkMessagesDeleted)
+	params.Set("hard_delete", option.HardDelete)
+	params.Set("delete_conversation_channels", option.DeleteConversations)
 
 	p := path.Join("users", url.PathEscape(targetID))
 
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, p, options, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodDelete, p, params, nil, &resp)
 	return &resp, err
 }
 
