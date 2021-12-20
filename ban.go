@@ -54,7 +54,7 @@ func (c *Client) ShadowBan(ctx context.Context, targetID, bannedByID string, opt
 
 // BanUser bans targetID on the channel ch.
 func (ch *Channel) BanUser(ctx context.Context, targetID, bannedBy string, options ...BanOption) (*Response, error) {
-	options = append(options, banFromChannel(ch.ID, ch.Type))
+	options = append(options, banFromChannel(ch.Type, ch.ID))
 	return ch.client.BanUser(ctx, targetID, bannedBy, options...)
 }
 
@@ -76,7 +76,7 @@ func (ch *Channel) UnBanUser(ctx context.Context, targetID string) (*Response, e
 
 // ShadowBan shadow bans targetID on the channel ch.
 func (ch *Channel) ShadowBan(ctx context.Context, targetID, bannedByID string, options ...BanOption) (*Response, error) {
-	options = append(options, banWithShadow(), banFromChannel(ch.ID, ch.Type))
+	options = append(options, banWithShadow(), banFromChannel(ch.Type, ch.ID))
 	return ch.client.ShadowBan(ctx, targetID, bannedByID, options...)
 }
 
@@ -155,9 +155,9 @@ func banWithShadow() func(*banOptions) {
 	}
 }
 
-func banFromChannel(id, _type string) func(*banOptions) {
+func banFromChannel(_type, id string) func(*banOptions) {
 	return func(opt *banOptions) {
-		opt.ID = id
 		opt.Type = _type
+		opt.ID = id
 	}
 }
