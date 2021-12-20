@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -75,7 +74,6 @@ func TestShadowBanUser(t *testing.T) {
 	require.Equal(t, false, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-	fmt.Printf("%+v\n\n", messageResp.Message)
 	require.NoError(t, err)
 	require.Equal(t, false, messageResp.Message.Shadowed)
 }
