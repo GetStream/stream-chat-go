@@ -239,8 +239,9 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Re
 type addMembersOptions struct {
 	MemberIDs []string `json:"add_members"`
 
-	HideHistory bool     `json:"hide_history"`
-	Message     *Message `json:"message,omitempty"`
+	RolesAssignement []*RoleAssignment `json:"assign_roles"`
+	HideHistory      bool              `json:"hide_history"`
+	Message          *Message          `json:"message,omitempty"`
 }
 
 type AddMembersOptions func(*addMembersOptions)
@@ -254,6 +255,12 @@ func AddMembersWithMessage(message *Message) func(*addMembersOptions) {
 func AddMembersWithHideHistory() func(*addMembersOptions) {
 	return func(opt *addMembersOptions) {
 		opt.HideHistory = true
+	}
+}
+
+func AddMembersWithRolesAssignment(assignements []*RoleAssignment) func(*addMembersOptions) {
+	return func(opt *addMembersOptions) {
+		opt.RolesAssignement = assignements
 	}
 }
 
