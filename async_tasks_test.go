@@ -90,11 +90,14 @@ func TestClient_ExportChannels(t *testing.T) {
 	chMembers = append(chMembers, ch2.Members...)
 
 	defer func() {
+		options := map[string][]string{
+			"delete_conversation_channels": {"true"},
+			"mark_messages_deleted":        {"true"},
+			"hard_delete":                  {"true"},
+		}
+
 		for _, u := range chMembers {
-			_, _ = c.DeleteUser(context.Background(), u.UserID,
-				DeleteUserWithDeleteConversations(),
-				DeleteUserWithHardDelete(),
-				DeleteUserWithMarkMessagesDeleted())
+			_, _ = c.DeleteUser(context.Background(), u.UserID, options)
 		}
 	}()
 

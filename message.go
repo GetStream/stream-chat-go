@@ -264,25 +264,30 @@ func (c *Client) UpdateMessage(ctx context.Context, msg *Message, msgID string) 
 	return &resp, err
 }
 
-type MessagePartialUpdateRequest struct {
-	PartialUpdate
-	UserID        string `json:"user_id"`
-	SkipEnrichURL bool   `json:"skip_enrich_url"`
-}
-
 // PartialUpdateMessage partially updates message with given msgID.
-func (c *Client) PartialUpdateMessage(ctx context.Context, messageID string, updates *MessagePartialUpdateRequest) (*MessageResponse, error) {
+// options["skip_enrich_url"] do not try to enrich the URLs within message.
+func (c *Client) PartialUpdateMessage(ctx context.Context, messageID string, updates PartialUpdate, options map[string]interface{}) (*MessageResponse, error) {
 	switch {
 	case len(updates.Set) == 0 && len(updates.Unset) == 0:
-		return nil, errors.New("set or unset should not be empty")
+		return nil, errors.New("updates should not be empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	case messageID == "":
 		return nil, errors.New("messageID should not be empty")
 	}
 
 	p := path.Join("messages", url.PathEscape(messageID))
 
+	data := map[string]interface{}{
+		"Set":   updates.Set,
+		"Unset": updates.Unset,
+	}
+	for k, v := range options {
+		data[k] = v
+	}
+
 	var resp MessageResponse
-	err := c.makeRequest(ctx, http.MethodPut, p, nil, updates, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, p, nil, data, &resp)
 	return &resp, err
 }
 
@@ -297,12 +302,11 @@ func (c *Client) PinMessage(ctx context.Context, msgID, pinnedByID string, expir
 		updates.Set["pin_expires"] = expiration
 	}
 
-	request := MessagePartialUpdateRequest{
-		PartialUpdate: updates,
-		UserID:        pinnedByID,
+	options := map[string]interface{}{
+		"user_id": pinnedByID,
 	}
 
-	return c.PartialUpdateMessage(ctx, msgID, &request)
+	return c.PartialUpdateMessage(ctx, msgID, updates, options)
 }
 
 // UnPinMessage unpins the message with given msgID.
@@ -313,12 +317,11 @@ func (c *Client) UnPinMessage(ctx context.Context, msgID, userID string) (*Messa
 		},
 	}
 
-	request := MessagePartialUpdateRequest{
-		PartialUpdate: updates,
-		UserID:        userID,
+	options := map[string]interface{}{
+		"user_id": userID,
 	}
 
-	return c.PartialUpdateMessage(ctx, msgID, &request)
+	return c.PartialUpdateMessage(ctx, msgID, updates, options)
 }
 
 func (c *Client) DeleteMessage(ctx context.Context, msgID string) (*Response, error) {

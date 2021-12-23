@@ -195,15 +195,15 @@ type truncateOptions struct {
 
 type TruncateOption func(*truncateOptions)
 
-func TruncateWithHardDelete() func(*truncateOptions) {
+func TruncateWithHardDelete(hardDelete bool) func(*truncateOptions) {
 	return func(o *truncateOptions) {
-		o.HardDelete = true
+		o.HardDelete = hardDelete
 	}
 }
 
-func TruncateWithSkipPush() func(*truncateOptions) {
+func TruncateWithSkipPush(skipPush bool) func(*truncateOptions) {
 	return func(o *truncateOptions) {
-		o.SkipPush = true
+		o.SkipPush = skipPush
 	}
 }
 
@@ -236,52 +236,28 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Re
 	return &resp, err
 }
 
-type addMembersOptions struct {
-	MemberIDs []string `json:"add_members"`
-
-	RolesAssignement []*RoleAssignment `json:"assign_roles"`
-	HideHistory      bool              `json:"hide_history"`
-	Message          *Message          `json:"message,omitempty"`
-}
-
-type AddMembersOptions func(*addMembersOptions)
-
-func AddMembersWithMessage(message *Message) func(*addMembersOptions) {
-	return func(opt *addMembersOptions) {
-		opt.Message = message
-	}
-}
-
-func AddMembersWithHideHistory() func(*addMembersOptions) {
-	return func(opt *addMembersOptions) {
-		opt.HideHistory = true
-	}
-}
-
-func AddMembersWithRolesAssignment(assignements []*RoleAssignment) func(*addMembersOptions) {
-	return func(opt *addMembersOptions) {
-		opt.RolesAssignement = assignements
-	}
-}
-
 // AddMembers adds members with given user IDs to the channel.
-func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...AddMembersOptions) (*Response, error) {
+// You can set a message for channel object notifications.
+// If you want to hide history of the channel for new members, you can pass "hide_history": true to options parameter.
+func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, message *Message, options map[string]interface{}) (*Response, error) {
 	if len(userIDs) == 0 {
 		return nil, errors.New("user IDs are empty")
 	}
 
-	opts := &addMembersOptions{
-		MemberIDs: userIDs,
+	if options == nil {
+		options = map[string]interface{}{}
 	}
 
-	for _, fn := range options {
-		fn(opts)
+	options["add_members"] = userIDs
+
+	if message != nil {
+		options["message"] = message
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
 	return &resp, err
 }
 
@@ -476,40 +452,82 @@ func (ch *Channel) demoteModerators(ctx context.Context, userIDs []string, msg *
 	return &resp, err
 }
 
-type markReadOption struct {
-	MessageID string `json:"message_id"`
-
-	UserID string `json:"user_id"`
-}
-
-type MarkReadOption func(*markReadOption)
-
-func MarkReadUntilMessage(id string) func(*markReadOption) {
-	return func(opt *markReadOption) {
-		opt.MessageID = id
-	}
-}
-
-// MarkRead sends the mark read event for user with given ID,
+// MarkRead send the mark read event for user with given ID,
 // only works if the `read_events` setting is enabled.
-func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkReadOption) (*Response, error) {
-	if userID == "" {
+// options: additional data, ie {"messageID": last_messageID}
+func (ch *Channel) MarkRead(ctx context.Context, userID string, options map[string]interface{}) (*Response, error) {
+	switch {
+	case userID == "":
 		return nil, errors.New("user ID must be not empty")
+	case options == nil:
+		options = map[string]interface{}{}
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
-	opts := &markReadOption{
-		UserID: userID,
-	}
-
-	for _, fn := range options {
-		fn(opts)
-	}
+	options["user"] = map[string]interface{}{"id": userID}
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
 	return &resp, err
+}
+
+// BanUser bans target user ID from this channel
+// userID: user who bans target.
+// options: additional ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
+func (ch *Channel) BanUser(ctx context.Context, targetID, userID string, options map[string]interface{}) (*Response, error) {
+	switch {
+	case targetID == "":
+		return nil, errors.New("target ID is empty")
+	case userID == "":
+		return nil, errors.New("user ID is empty")
+	case options == nil:
+		options = map[string]interface{}{}
+	}
+
+	options["type"] = ch.Type
+	options["id"] = ch.ID
+
+	return ch.client.BanUser(ctx, targetID, userID, options)
+}
+
+// UnBanUser removes the ban for target user ID on this channel.
+func (ch *Channel) UnBanUser(ctx context.Context, targetID string, options map[string]string) (*Response, error) {
+	switch {
+	case targetID == "":
+		return nil, errors.New("target ID must be not empty")
+	case options == nil:
+		options = map[string]string{}
+	}
+
+	options["type"] = ch.Type
+	options["id"] = ch.ID
+
+	return ch.client.UnBanUser(ctx, targetID, options)
+}
+
+// ShadowBan shadow bans userID from this channel
+// bannedByID: user who shadow bans userID.
+// options: additional shadow ban options, ie {"timeout": 3600, "reason": "offensive language is not allowed here"}.
+func (ch *Channel) ShadowBan(ctx context.Context, userID, bannedByID string, options map[string]interface{}) (*Response, error) {
+	if options == nil {
+		options = map[string]interface{}{}
+	}
+
+	options["type"] = ch.Type
+	options["id"] = ch.ID
+
+	return ch.client.ShadowBan(ctx, userID, bannedByID, options)
+}
+
+// RemoveShadowBan removes the shadow ban for target user ID on this channel.
+func (ch *Channel) RemoveShadowBan(ctx context.Context, userID string) (*Response, error) {
+	options := map[string]string{
+		"type": ch.Type,
+		"id":   ch.ID,
+	}
+
+	return ch.client.RemoveShadowBan(ctx, userID, options)
 }
 
 // Query fills channel info with state (messages, members, reads).
