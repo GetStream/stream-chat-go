@@ -36,12 +36,12 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 	if resp.Body == nil {
 		return errors.New("http body is nil")
 	}
+	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read HTTP response: %w", err)
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode >= 399 {
 		var apiErr Error
