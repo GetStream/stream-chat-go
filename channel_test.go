@@ -93,12 +93,13 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
-
-	msg := &Message{Text: "some members", User: &User{ID: user.ID}}
+	options := map[string]interface{}{
+		"hide_history": true,
+	}
 	_, err = ch.AddMembers(context.Background(),
 		[]string{user.ID},
-		AddMembersWithMessage(msg),
-		AddMembersWithHideHistory(),
+		&Message{Text: "some members", User: &User{ID: user.ID}},
+		options,
 	)
 	require.NoError(t, err, "add members")
 
@@ -150,7 +151,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 		id := prefix + name
 		_, err := c.UpsertUser(context.Background(), &User{ID: id, Name: id})
 		require.NoError(t, err)
-		_, err = ch.AddMembers(context.Background(), []string{id})
+		_, err = ch.AddMembers(context.Background(), []string{id}, nil, nil)
 		require.NoError(t, err)
 	}
 
@@ -246,6 +247,29 @@ func TestChannel_Moderation(t *testing.T) {
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
 	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
+}
+
+func TestChannel_BanUser(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	defer func() {
+		_, _ = ch.Delete(context.Background())
+	}()
+
+	user := randomUser(t, c)
+	target := randomUser(t, c)
+
+	_, err := ch.BanUser(context.Background(), target.ID, user.ID, nil)
+	require.NoError(t, err, "ban user")
+
+	_, err = ch.BanUser(context.Background(), target.ID, user.ID, map[string]interface{}{
+		"timeout": 3600,
+		"reason":  "offensive language is not allowed here",
+	})
+	require.NoError(t, err, "ban user")
+
+	_, err = ch.UnBanUser(context.Background(), target.ID, nil)
+	require.NoError(t, err, "unban user")
 }
 
 func TestChannel_Delete(t *testing.T) {
@@ -389,7 +413,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 
 	// Now truncate it
 	_, err = ch.Truncate(context.Background(),
-		TruncateWithSkipPush(),
+		TruncateWithSkipPush(true),
 		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
 	)
 	require.NoError(t, err, "truncate channel")

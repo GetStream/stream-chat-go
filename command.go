@@ -84,17 +84,17 @@ func (c *Client) ListCommands(ctx context.Context) (*CommandsResponse, error) {
 }
 
 // UpdateCommand updates a custom command referenced by cmdName.
-func (c *Client) UpdateCommand(ctx context.Context, cmdName string, update *Command) (*CommandResponse, error) {
+func (c *Client) UpdateCommand(ctx context.Context, cmdName string, options map[string]interface{}) (*CommandResponse, error) {
 	switch {
 	case cmdName == "":
 		return nil, errors.New("command name is empty")
-	case update == nil:
-		return nil, errors.New("update should not be nil")
+	case len(options) == 0:
+		return nil, errors.New("options are empty")
 	}
 
 	p := path.Join("commands", url.PathEscape(cmdName))
 
 	var resp CommandResponse
-	err := c.makeRequest(ctx, http.MethodPut, p, nil, update, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, p, nil, options, &resp)
 	return &resp, err
 }
