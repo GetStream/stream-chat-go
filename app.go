@@ -7,13 +7,16 @@ import (
 )
 
 type AppSettings struct {
-	DisableAuth           *bool           `json:"disable_auth_checks,omitempty"`
-	DisablePermissions    *bool           `json:"disable_permissions_checks,omitempty"`
-	APNConfig             *APNConfig      `json:"apn_config,omitempty"`
-	FirebaseConfig        *FirebaseConfig `json:"firebase_config,omitempty"`
-	WebhookURL            *string         `json:"webhook_url,omitempty"`
-	MultiTenantEnabled    *bool           `json:"multi_tenant_enabled,omitempty"`
-	AsyncURLEnrichEnabled *bool           `json:"async_url_enrich_enabled,omitempty"`
+	DisableAuth            *bool               `json:"disable_auth_checks,omitempty"`
+	DisablePermissions     *bool               `json:"disable_permissions_checks,omitempty"`
+	APNConfig              *APNConfig          `json:"apn_config,omitempty"`
+	FirebaseConfig         *FirebaseConfig     `json:"firebase_config,omitempty"`
+	WebhookURL             *string             `json:"webhook_url,omitempty"`
+	MultiTenantEnabled     *bool               `json:"multi_tenant_enabled,omitempty"`
+	AsyncURLEnrichEnabled  *bool               `json:"async_url_enrich_enabled,omitempty"`
+	Grants                 map[string][]string `json:"grants,omitempty"`
+	MigratePermissionsToV2 *bool               `json:"migrate_permissions_to_v2,omitempty"`
+	PermissionVersion      string              `json:"permission_version,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -43,6 +46,11 @@ func (a *AppSettings) SetWebhookURL(s string) *AppSettings {
 
 func (a *AppSettings) SetMultiTenant(b bool) *AppSettings {
 	a.MultiTenantEnabled = &b
+	return a
+}
+
+func (a *AppSettings) SetGrants(g map[string][]string) *AppSettings {
+	a.Grants = g
 	return a
 }
 
@@ -99,6 +107,8 @@ type AppConfig struct {
 	MultiTenantEnabled       bool                      `json:"multi_tenant_enabled"`
 	RevokeTokensIssuedBefore *time.Time                `json:"revoke_tokens_issued_before"`
 	AsyncURLEnrichEnabled    bool                      `json:"async_url_enrich_enabled"`
+	Grants                   map[string][]string       `json:"grants"`
+	PermissionVersion        string                    `json:"permission_version"`
 }
 
 type AppResponse struct {

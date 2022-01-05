@@ -53,6 +53,7 @@ type ChannelType struct {
 	// that can be found in permission_client.go.
 	// See https://getstream.io/chat/docs/go-golang/migrating_from_legacy/?language=go
 	Permissions []*ChannelTypePermission `json:"permissions"`
+	Grants      map[string][]string      `json:"grants"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
