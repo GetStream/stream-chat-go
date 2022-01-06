@@ -34,6 +34,7 @@ func TestClient_GetChannelType(t *testing.T) {
 	assert.Equal(t, ct.Name, resp.ChannelType.Name)
 	assert.Equal(t, len(ct.Commands), len(resp.ChannelType.Commands))
 	assert.Equal(t, ct.Permissions, resp.ChannelType.Permissions)
+	assert.NotEmpty(t, resp.Grants)
 }
 
 func TestClient_ListChannelTypes(t *testing.T) {

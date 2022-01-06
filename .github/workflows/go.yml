@@ -32,6 +32,3 @@ jobs:
           STREAM_CHAT_API_KEY: ${{ secrets.STREAM_CHAT_API_KEY }}
           STREAM_CHAT_API_SECRET: ${{ secrets.STREAM_CHAT_API_SECRET }}
         run: go test -v -race ./...
-
-      - name: Build on ${{ matrix.goVer }}
-        run: go build ./...
