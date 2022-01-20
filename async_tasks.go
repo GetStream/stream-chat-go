@@ -114,9 +114,16 @@ type ExportableChannel struct {
 	MessagesUntil *time.Time `json:"messages_until,omitempty"`
 }
 
+type ExportChannelOptions struct {
+	ClearDeletedMessageText  *bool  `json:"clear_deleted_message_text,omitempty"`
+	IncludeTruncatedMessages *bool  `json:"include_truncated_messages,omitempty"`
+	ExportUsers              *bool  `json:"export_users,omitempty"`
+	Version                  string `json:"version,omitempty"`
+}
+
 // ExportChannels requests an asynchronous export of the provided channels.
 // It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
-func (c *Client) ExportChannels(ctx context.Context, channels []*ExportableChannel, clearDeletedMessageText, includeTruncatedMessages *bool) (*AsyncTaskResponse, error) {
+func (c *Client) ExportChannels(ctx context.Context, channels []*ExportableChannel, options *ExportChannelOptions) (*AsyncTaskResponse, error) {
 	if len(channels) == 0 {
 		return nil, errors.New("number of channels must be at least one")
 	}
@@ -130,10 +137,17 @@ func (c *Client) ExportChannels(ctx context.Context, channels []*ExportableChann
 		Channels                 []*ExportableChannel `json:"channels"`
 		ClearDeletedMessageText  *bool                `json:"clear_deleted_message_text,omitempty"`
 		IncludeTruncatedMessages *bool                `json:"include_truncated_messages,omitempty"`
+		ExportUsers              *bool                `json:"export_users,omitempty"`
+		Version                  string               `json:"version,omitempty"`
 	}{
-		Channels:                 channels,
-		ClearDeletedMessageText:  clearDeletedMessageText,
-		IncludeTruncatedMessages: includeTruncatedMessages,
+		Channels: channels,
+	}
+
+	if options != nil {
+		req.ClearDeletedMessageText = options.ClearDeletedMessageText
+		req.IncludeTruncatedMessages = options.IncludeTruncatedMessages
+		req.ExportUsers = options.ExportUsers
+		req.Version = options.Version
 	}
 
 	var resp AsyncTaskResponse

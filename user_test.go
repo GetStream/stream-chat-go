@@ -102,6 +102,20 @@ func TestClient_UnmuteUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestClient_CreateGuestUser(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	u := &User{ID: randomString(10)}
+	resp, err := c.CreateGuestUser(ctx, u)
+	if err != nil {
+		// Sometimes the guest user access is disabled on app level
+		// so let's ignore errors here
+		return
+	}
+	require.NotNil(t, resp.AccessToken)
+	require.NotNil(t, resp.User)
+}
+
 func TestClient_UnmuteUsers(t *testing.T) {
 	c := initClient(t)
 

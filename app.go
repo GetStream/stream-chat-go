@@ -134,6 +134,58 @@ func (c *Client) UpdateAppSettings(ctx context.Context, settings *AppSettings) (
 	return &resp, err
 }
 
+type CheckSQSRequest struct {
+	SqsURL    string `json:"sqs_url"`
+	SqsKey    string `json:"sqs_key"`
+	SqsSecret string `json:"sqs_secret"`
+}
+
+type CheckSQSResponse struct {
+	Status string                 `json:"status"`
+	Error  string                 `json:"error"`
+	Data   map[string]interface{} `json:"data"`
+	Response
+}
+
+// CheckSqs checks whether the AWS credentials are valid for the SQS queue access.
+func (c *Client) CheckSqs(ctx context.Context, req *CheckSQSRequest) (*CheckSQSResponse, error) {
+	var resp CheckSQSResponse
+	err := c.makeRequest(ctx, http.MethodPost, "check_sqs", nil, req, &resp)
+	return &resp, err
+}
+
+type CheckPushRequest struct {
+	MessageID            string `json:"message_id,omitempty"`
+	ApnTemplate          string `json:"apn_template,omitempty"`
+	FirebaseTemplate     string `json:"firebase_template,omitempty"`
+	FirebaseDataTemplate string `json:"firebase_data_template,omitempty"`
+	SkipDevices          *bool  `json:"skip_devices,omitempty"`
+	UserID               string `json:"user_id,omitempty"`
+	User                 *User  `json:"user,omitempty"`
+}
+
+type DeviceError struct {
+	Provider     string `json:"provider"`
+	ErrorMessage string `json:"error_message"`
+}
+
+type CheckPushResponse struct {
+	DeviceErrors             map[string]DeviceError `json:"device_errors"`
+	GeneralErrors            []string               `json:"general_errors"`
+	SkipDevices              *bool                  `json:"skip_devices"`
+	RenderedApnTemplate      string                 `json:"rendered_apn_template"`
+	RenderedFirebaseTemplate string                 `json:"rendered_firebase_template"`
+	RenderedMessage          map[string]string      `json:"rendered_message"`
+	Response
+}
+
+// CheckPush initiates a push test.
+func (c *Client) CheckPush(ctx context.Context, req *CheckPushRequest) (*CheckPushResponse, error) {
+	var resp CheckPushResponse
+	err := c.makeRequest(ctx, http.MethodPost, "check_push", nil, req, &resp)
+	return &resp, err
+}
+
 // RevokeTokens revokes all tokens for an application issued before given time.
 func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) (*Response, error) {
 	setting := make(map[string]interface{})

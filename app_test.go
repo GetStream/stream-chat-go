@@ -25,6 +25,34 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestClient_CheckSqs(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	req := &CheckSQSRequest{SqsURL: "https://foo.com/bar", SqsKey: "key", SqsSecret: "secret"}
+	resp, err := c.CheckSqs(ctx, req)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, resp.Error)
+	require.Equal(t, "error", resp.Status)
+	require.NotNil(t, resp.Data)
+}
+
+func TestClient_CheckPush(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+	user := randomUser(t, c)
+	msgResp, _ := ch.SendMessage(ctx, &Message{Text: "text"}, user.ID)
+	skipDevices := true
+
+	req := &CheckPushRequest{MessageID: msgResp.Message.ID, SkipDevices: &skipDevices, UserID: user.ID}
+	resp, err := c.CheckPush(ctx, req)
+
+	require.NoError(t, err)
+	require.Equal(t, msgResp.Message.ID, resp.RenderedMessage["message_id"])
+}
+
 // See https://getstream.io/chat/docs/app_settings_auth/ for
 // more details.
 func ExampleClient_UpdateAppSettings_disable_auth() {

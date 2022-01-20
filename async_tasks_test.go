@@ -99,7 +99,7 @@ func TestClient_ExportChannels(t *testing.T) {
 	}()
 
 	t.Run("Return error if there are 0 channels", func(t *testing.T) {
-		_, err := c.ExportChannels(context.Background(), nil, nil, nil)
+		_, err := c.ExportChannels(context.Background(), nil, nil)
 		require.Error(t, err)
 	})
 
@@ -107,7 +107,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		expChannels := []*ExportableChannel{
 			{Type: "", ID: ch1.ID},
 		}
-		_, err := c.ExportChannels(context.Background(), expChannels, nil, nil)
+		_, err := c.ExportChannels(context.Background(), expChannels, nil)
 		require.Error(t, err)
 	})
 
@@ -117,7 +117,7 @@ func TestClient_ExportChannels(t *testing.T) {
 			{Type: ch2.Type, ID: ch2.ID},
 		}
 
-		resp1, err := c.ExportChannels(context.Background(), expChannels, nil, nil)
+		resp1, err := c.ExportChannels(context.Background(), expChannels, nil)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp1.TaskID)
 

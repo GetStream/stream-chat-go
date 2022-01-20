@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -233,6 +234,22 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Re
 
 	var resp Response
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, option, &resp)
+	return &resp, err
+}
+
+type GetMessagesResponse struct {
+	Messages []*Message `json:"messages"`
+	Response
+}
+
+// GetMessages returns messages for multiple message ids.
+func (ch *Channel) GetMessages(ctx context.Context, messageIds []string) (*GetMessagesResponse, error) {
+	params := url.Values{}
+	params.Set("ids", strings.Join(messageIds, ","))
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "messages")
+
+	var resp GetMessagesResponse
+	err := ch.client.makeRequest(ctx, http.MethodGet, p, params, nil, &resp)
 	return &resp, err
 }
 
