@@ -57,9 +57,8 @@ func TestClient_UpdateCommand(t *testing.T) {
 		_, _ = c.DeleteCommand(context.Background(), cmd.Name)
 	}()
 
-	resp, err := c.UpdateCommand(context.Background(), cmd.Name, map[string]interface{}{
-		"description": "new description",
-	})
+	update := Command{Description: "new description"}
+	resp, err := c.UpdateCommand(context.Background(), cmd.Name, &update)
 	require.NoError(t, err, "update command")
 
 	assert.Equal(t, cmd.Name, resp.Command.Name)
@@ -93,9 +92,8 @@ func ExampleClient_GetCommand() {
 func ExampleClient_UpdateCommand() {
 	client := &Client{}
 
-	_, _ = client.UpdateCommand(context.Background(), "my-command", map[string]interface{}{
-		"description": "updated description",
-	})
+	update := Command{Description: "updated description"}
+	_, _ = client.UpdateCommand(context.Background(), "my-command", &update)
 }
 
 func ExampleClient_DeleteCommand() {

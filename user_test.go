@@ -9,80 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClient_ShadowBanUser(t *testing.T) {
-	c := initClient(t)
-	userA := randomUser(t, c)
-	userB := randomUser(t, c)
-	userC := randomUser(t, c)
-
-	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
-	resp, err := c.CreateChannel(context.Background(), ch.Type, ch.ID, userA.ID, nil)
-	require.NoError(t, err)
-
-	ch = resp.Channel
-
-	// shadow ban userB globally
-	_, err = c.ShadowBan(context.Background(), userB.ID, userA.ID, nil)
-	require.NoError(t, err)
-
-	// shadow ban userC on channel
-	_, err = ch.ShadowBan(context.Background(), userC.ID, userA.ID, nil)
-	require.NoError(t, err)
-
-	msg := &Message{Text: "test message"}
-	messageResp, err := ch.SendMessage(context.Background(), msg, userB.ID)
-	require.NoError(t, err)
-
-	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
-
-	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-	require.NoError(t, err)
-	require.Equal(t, true, messageResp.Message.Shadowed)
-
-	msg = &Message{Text: "test message"}
-	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
-	require.NoError(t, err)
-
-	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
-
-	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-	require.NoError(t, err)
-	require.Equal(t, true, messageResp.Message.Shadowed)
-
-	_, err = c.RemoveShadowBan(context.Background(), userB.ID, nil)
-	require.NoError(t, err)
-
-	msg = &Message{Text: "test message"}
-	messageResp, err = ch.SendMessage(context.Background(), msg, userB.ID)
-	require.NoError(t, err)
-
-	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
-
-	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-	require.NoError(t, err)
-	require.Equal(t, false, messageResp.Message.Shadowed)
-
-	_, err = ch.RemoveShadowBan(context.Background(), userC.ID)
-	require.NoError(t, err)
-
-	msg = &Message{Text: "test message"}
-	messageResp, err = ch.SendMessage(context.Background(), msg, userC.ID)
-	require.NoError(t, err)
-
-	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
-
-	messageResp, err = c.GetMessage(context.Background(), msg.ID)
-	require.NoError(t, err)
-	require.Equal(t, false, messageResp.Message.Shadowed)
-}
-
-func TestClient_BanUser(t *testing.T) {
-}
-
 func TestClient_DeactivateUser(t *testing.T) {
 }
 
@@ -98,7 +24,7 @@ func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
 
 	user := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, nil)
+	_, err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	resp, err := c.QueryUsers(context.Background(), &QueryOption{
@@ -119,7 +45,7 @@ func TestClient_MuteUser(t *testing.T) {
 
 	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
-	_, err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, map[string]interface{}{"timeout": 60})
+	_, err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	resp, err = c.QueryUsers(context.Background(), &QueryOption{
@@ -145,7 +71,7 @@ func TestClient_MuteUsers(t *testing.T) {
 	user := randomUser(t, c)
 	targetIDs := randomUsersID(t, c, 2)
 
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, map[string]interface{}{"timeout": 60})
+	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	resp, err := c.QueryUsers(context.Background(), &QueryOption{
@@ -164,15 +90,12 @@ func TestClient_MuteUsers(t *testing.T) {
 	}
 }
 
-func TestClient_UnBanUser(t *testing.T) {
-}
-
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
 
 	user := randomUser(t, c)
 	mutedUser := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), mutedUser.ID, user.ID, nil)
+	_, err := c.MuteUser(context.Background(), mutedUser.ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	_, err = c.UnmuteUser(context.Background(), mutedUser.ID, user.ID)
@@ -184,7 +107,7 @@ func TestClient_UnmuteUsers(t *testing.T) {
 
 	user := randomUser(t, c)
 	targetIDs := []string{randomUser(t, c).ID, randomUser(t, c).ID}
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, nil)
+	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID)
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	_, err = c.UnmuteUsers(context.Background(), targetIDs, user.ID)
@@ -259,55 +182,33 @@ func ExampleClient_UpsertUser() {
 func ExampleClient_ExportUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	user, _ := client.ExportUser(context.Background(), "userID", nil)
+	user, _ := client.ExportUser(context.Background(), "userID")
 	log.Printf("%#v", user)
 }
 
 func ExampleClient_DeactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.DeactivateUser(context.Background(), "userID", nil)
+	_, _ = client.DeactivateUser(context.Background(), "userID")
 }
 
 func ExampleClient_ReactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.ReactivateUser(context.Background(), "userID", nil)
+	_, _ = client.ReactivateUser(context.Background(), "userID")
 }
 
 func ExampleClient_DeleteUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	_, _ = client.DeleteUser(context.Background(), "userID", nil)
+	_, _ = client.DeleteUser(context.Background(), "userID")
 }
 
 func ExampleClient_DeleteUser_hard() {
 	client, _ := NewClient("XXXX", "XXXX")
 
-	options := map[string][]string{
-		"mark_messages_deleted": {"true"},
-		"hard_delete":           {"true"},
-	}
-
-	_, _ = client.DeleteUser(context.Background(), "userID", options)
-}
-
-func ExampleClient_BanUser() {
-	client, _ := NewClient("XXXX", "XXXX")
-
-	// ban a user for 60 minutes from all channel
-	_, _ = client.BanUser(context.Background(), "eviluser", "modUser",
-		map[string]interface{}{"timeout": 60, "reason": "Banned for one hour"})
-
-	// ban a user from the livestream:fortnite channel
-	channel := client.Channel("livestream", "fortnite")
-	_, _ = channel.BanUser(context.Background(), "eviluser", "modUser",
-		map[string]interface{}{"reason": "Profanity is not allowed here"})
-
-	// remove ban from channel
-	channel = client.Channel("livestream", "fortnite")
-	_, _ = channel.UnBanUser(context.Background(), "eviluser", nil)
-
-	// remove global ban
-	_, _ = client.UnBanUser(context.Background(), "eviluser", nil)
+	_, _ = client.DeleteUser(context.Background(), "userID",
+		DeleteUserWithHardDelete(),
+		DeleteUserWithMarkMessagesDeleted(),
+	)
 }
