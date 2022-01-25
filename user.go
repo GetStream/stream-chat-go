@@ -190,6 +190,19 @@ func (c *Client) FlagUser(ctx context.Context, targetID, flaggedBy string) (*Res
 	return &resp, err
 }
 
+type GuestUserResponse struct {
+	User        *User  `json:"user"`
+	AccessToken string `json:"access_token"`
+	Response
+}
+
+// CreateGuestUser creates a new guest user.
+func (c *Client) CreateGuestUser(ctx context.Context, user *User) (*GuestUserResponse, error) {
+	var resp GuestUserResponse
+	err := c.makeRequest(ctx, http.MethodPost, "guest", nil, map[string]*User{"user": user}, &resp)
+	return &resp, err
+}
+
 type ExportUserResponse struct {
 	*User
 	Response

@@ -78,6 +78,27 @@ func TestClient_CreateChannel(t *testing.T) {
 	}
 }
 
+func TestChannel_GetManyMessages(t *testing.T) {
+	ctx := context.Background()
+	c := initClient(t)
+	userA := randomUser(t, c)
+	userB := randomUser(t, c)
+
+	ch := initChannel(t, c, userA.ID, userB.ID)
+	defer func() {
+		_, _ = ch.Delete(ctx)
+	}()
+
+	msg := &Message{Text: "test message"}
+	messageResp, err := ch.SendMessage(ctx, msg, userB.ID)
+	require.NoError(t, err)
+
+	getMsgResp, err := ch.GetMessages(ctx, []string{messageResp.Message.ID})
+	require.NoError(t, err)
+	require.Len(t, getMsgResp.Messages, 1)
+	require.Equal(t, messageResp.Message.ID, getMsgResp.Messages[0].ID)
+}
+
 func TestChannel_AddMembers(t *testing.T) {
 	c := initClient(t)
 
