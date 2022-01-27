@@ -17,6 +17,8 @@ type AppSettings struct {
 	Grants                 map[string][]string `json:"grants,omitempty"`
 	MigratePermissionsToV2 *bool               `json:"migrate_permissions_to_v2,omitempty"`
 	PermissionVersion      string              `json:"permission_version,omitempty"`
+	FileUploadConfig       *FileUploadConfig   `json:"file_upload_config,omitempty"`
+	ImageUploadConfig      *FileUploadConfig   `json:"image_upload_config,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -56,6 +58,13 @@ func (a *AppSettings) SetGrants(g map[string][]string) *AppSettings {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{}
+}
+
+type FileUploadConfig struct {
+	AllowedFileExtensions []string `json:"allowed_file_extensions,omitempty"`
+	BlockedFileExtensions []string `json:"blocked_file_extensions,omitempty"`
+	AllowedMimeTypes      []string `json:"allowed_mime_types,omitempty"`
+	BlockedMimeTypes      []string `json:"blocked_mime_types,omitempty"`
 }
 
 type APNConfig struct {
