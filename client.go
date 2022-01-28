@@ -50,12 +50,18 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 		return nil, errors.New("API secret is empty")
 	}
 
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.MaxIdleConnsPerHost = 5
+	tr.IdleConnTimeout = 59 * time.Second // load balancer's idle timeout is 60 sec
+	tr.ExpectContinueTimeout = 2 * time.Second
+
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: []byte(apiSecret),
 		BaseURL:   defaultBaseURL,
 		HTTP: &http.Client{
-			Timeout: defaultTimeout,
+			Timeout:   defaultTimeout,
+			Transport: tr,
 		},
 	}
 
