@@ -66,7 +66,7 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 		timeout = time.Duration(i) * time.Second
 	}
 
-	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr := http.DefaultTransport.(*http.Transport).Clone() //nolint:forcetypeassert
 	tr.MaxIdleConnsPerHost = 5
 	tr.IdleConnTimeout = 59 * time.Second // load balancer's idle timeout is 60 sec
 	tr.ExpectContinueTimeout = 2 * time.Second

@@ -18,7 +18,7 @@ func randomExtraData(in interface{}) {
 	f.Set(reflect.ValueOf(map[string]interface{}{
 		"extra_data": map[string]interface{}{
 			"mystring": randomString(10),
-			"mybool":   rand.Float64() < 0.5, //nolint
+			"mybool":   rand.Float64() < 0.5,
 		},
 		"data":        "custom",
 		"custom_data": "really_custom",
@@ -26,7 +26,7 @@ func randomExtraData(in interface{}) {
 			randomString(10): randomString(10),
 		},
 		"stream":   randomString(10),
-		"my_score": float64(rand.Intn(100)), //nolint
+		"my_score": float64(rand.Intn(100)),
 	}))
 }
 
