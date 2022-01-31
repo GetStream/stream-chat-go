@@ -20,7 +20,11 @@ We enforce code formatting with [`gufumpt`](https://github.com/mvdan/gofumpt) (a
 "editor.formatOnSave": true,
 "gopls": {
     "formatting.gofumpt": true
-}
+},
+"go.lintTool": "golangci-lint",
+"go.lintFlags": [
+    "--fast"
+]
 ```
 
 Gofumpt will mostly take care of your linting issues as well.

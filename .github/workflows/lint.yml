@@ -26,6 +26,3 @@ jobs:
 
       - name: Tidy
         run: go mod tidy -v && git diff --no-patch --exit-code || { git status;  echo 'Unchecked diff, did you forget go mod tidy again?' ; false ; };
-
-      - name: Run Lint
-        run: ./run-lint.sh
