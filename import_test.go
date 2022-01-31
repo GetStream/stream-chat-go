@@ -11,7 +11,7 @@ import (
 
 func TestImportsEndToEnd(t *testing.T) {
 	t.Skip("The backend isn't deployed yet.")
-	filename := randomString(10)
+	filename := randomString(10) + ".json"
 	c := initClient(t)
 	ctx := context.Background()
 
@@ -22,8 +22,11 @@ func TestImportsEndToEnd(t *testing.T) {
 	require.NotEmpty(t, createResp.UploadURL)
 
 	data := strings.NewReader("[]")
-	err = c.makeRequest(ctx, http.MethodPut, createResp.UploadURL, nil, data, nil)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPut, createResp.UploadURL, data)
 	require.NoError(t, err)
+	uploadResp, err := c.HTTP.Do(r)
+	require.NoError(t, err)
+	uploadResp.Body.Close()
 
 	getResp, err := c.GetImport(ctx, createResp.ImportTask.ID)
 	require.NoError(t, err)
