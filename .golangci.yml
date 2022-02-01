@@ -36,37 +36,38 @@ run:
   tests: true
 
 linters:
-  disable-all: true
-  enable:
-    - asciicheck
-    - bodyclose
-    - deadcode
-    - dogsled
-    - dupl
-    - errcheck
-    - gci
-    - goconst
-    - gocritic
-    - gocyclo
-    - godot
-    - gofmt
-    - gofumpt
-    - goimports
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - misspell
-    - prealloc
-    - revive
-    - staticcheck
-    - structcheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
+  enable-all: true
+  disable:
+   - wrapcheck
+   - varnamelen
+   - thelper
+   - tagliatelle
+   - paralleltest
+   - nlreturn
+   - exhaustivestruct
+   - wsl
+   - goerr113
+   - golint
+   - gochecknoglobals
+   - scopelint
+   - funlen
+   - lll
+   - maligned
+   - gomnd
+   - godox
+   - interfacer
 issues:
-  exclude:
-    - 'G404:' # math/rand usage
-    - "don't use an underscore in package name"
+  exclude-rules:
+    - linters:
+        - stylecheck
+      text: "ST1003:" # should not use underscores in package names
+    - linters:
+        - revive
+      text: "don't use an underscore in package name"
+    - linters:
+      - gocritic
+      text: "commentFormatting"
+    - path: _test\.go
+      linters:
+       - gosec
+       - testpackage # makes you use a separate _test package

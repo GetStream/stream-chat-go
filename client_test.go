@@ -1,22 +1,16 @@
-package stream_chat // nolint: golint
+package stream_chat
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func initClient(t *testing.T) *Client {
-	c, err := NewClient(APIKey, APISecret)
+	c, err := NewClientFromEnvVars()
 	require.NoError(t, err, "new client")
-
-	// set hostname to client from env if present
-	if StreamHost != "" {
-		c.BaseURL = StreamHost
-	}
 
 	return c
 }
@@ -29,15 +23,6 @@ func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 
 	require.NoError(t, err, "create channel")
 	return resp.Channel
-}
-
-func TestNewClient(t *testing.T) {
-	c := initClient(t)
-
-	assert.Equal(t, c.apiKey, APIKey)
-	assert.Equal(t, string(c.apiSecret), APISecret)
-	assert.NotEmpty(t, c.authToken)
-	assert.Equal(t, defaultTimeout, c.HTTP.Timeout)
 }
 
 //nolint: lll

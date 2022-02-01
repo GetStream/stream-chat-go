@@ -2,6 +2,7 @@ package stream_chat
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
 	"time"
@@ -25,7 +26,8 @@ func TestRateLimit(t *testing.T) {
 			Messages: HardDelete,
 		})
 		if err != nil {
-			apiErr, ok := err.(Error)
+			var apiErr Error
+			ok := errors.As(err, &apiErr)
 			require.True(t, ok)
 			require.Equal(t, http.StatusTooManyRequests, apiErr.StatusCode)
 			require.NotZero(t, apiErr.RateLimit.Limit)

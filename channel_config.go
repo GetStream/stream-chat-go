@@ -1,4 +1,4 @@
-package stream_chat //nolint: golint
+package stream_chat
 
 // ChannelConfig is the configuration for a channel.
 type ChannelConfig struct {

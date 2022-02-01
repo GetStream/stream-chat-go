@@ -1,20 +1,12 @@
-package stream_chat //nolint: golint
+package stream_chat
 
 import (
 	"context"
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-)
-
-//nolint: gochecknoglobals
-var (
-	APIKey     = os.Getenv("STREAM_CHAT_API_KEY")
-	APISecret  = os.Getenv("STREAM_CHAT_API_SECRET")
-	StreamHost = os.Getenv("STREAM_CHAT_API_HOST")
 )
 
 //nolint: gochecknoinits
@@ -27,7 +19,7 @@ func init() {
 }
 
 func clearOldChannelTypes() error {
-	c, err := NewClient(APIKey, APISecret)
+	c, err := NewClientFromEnvVars()
 	if err != nil {
 		return err
 	}

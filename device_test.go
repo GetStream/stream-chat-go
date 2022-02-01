@@ -1,4 +1,4 @@
-package stream_chat // nolint: golint
+package stream_chat
 
 import (
 	"context"
@@ -21,15 +21,13 @@ func TestClient_Devices(t *testing.T) {
 	for _, dev := range devices {
 		_, err := c.AddDevice(context.Background(), dev)
 		require.NoError(t, err, "add device")
-		defer func(dev *Device) {
-			_, err := c.DeleteDevice(context.Background(), user.ID, dev.ID)
-			require.NoError(t, err, "delete device")
-		}(dev)
 
 		resp, err := c.GetDevices(context.Background(), user.ID)
 		require.NoError(t, err, "get devices")
 
 		assert.True(t, deviceIDExists(resp.Devices, dev.ID), "device with ID %s was created", dev.ID)
+		_, err = c.DeleteDevice(context.Background(), user.ID, dev.ID)
+		require.NoError(t, err, "delete device")
 	}
 }
 

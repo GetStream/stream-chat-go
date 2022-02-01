@@ -1,4 +1,4 @@
-package stream_chat // nolint: golint
+package stream_chat
 
 import (
 	"bytes"
@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -50,7 +52,21 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 		return nil, errors.New("API secret is empty")
 	}
 
-	tr := http.DefaultTransport.(*http.Transport).Clone()
+	baseURL := defaultBaseURL
+	if baseURLEnv := os.Getenv("STREAM_CHAT_URL"); strings.HasPrefix(baseURLEnv, "http") {
+		baseURL = baseURLEnv
+	}
+
+	timeout := defaultTimeout
+	if timeoutEnv := os.Getenv("STREAM_CHAT_TIMEOUT"); timeoutEnv != "" {
+		i, err := strconv.Atoi(timeoutEnv)
+		if err != nil {
+			return nil, err
+		}
+		timeout = time.Duration(i) * time.Second
+	}
+
+	tr := http.DefaultTransport.(*http.Transport).Clone() //nolint:forcetypeassert
 	tr.MaxIdleConnsPerHost = 5
 	tr.IdleConnTimeout = 59 * time.Second // load balancer's idle timeout is 60 sec
 	tr.ExpectContinueTimeout = 2 * time.Second
@@ -58,9 +74,9 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 	client := &Client{
 		apiKey:    apiKey,
 		apiSecret: []byte(apiSecret),
-		BaseURL:   defaultBaseURL,
+		BaseURL:   baseURL,
 		HTTP: &http.Client{
-			Timeout:   defaultTimeout,
+			Timeout:   timeout,
 			Transport: tr,
 		},
 	}

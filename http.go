@@ -59,8 +59,7 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}) error {
 		return apiErr
 	}
 
-	_, ok := result.(*Response)
-	if !ok {
+	if _, ok := result.(*Response); !ok {
 		// Unmarshal the body only when it is expected.
 		err = json.Unmarshal(b, result)
 		if err != nil {
