@@ -91,6 +91,11 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 	return client, nil
 }
 
+// SetClient sets a new underlying HTTP client.
+func (c *Client) SetClient(client *http.Client) {
+	c.HTTP = client
+}
+
 // Channel returns a Channel object for future API calls.
 func (c *Client) Channel(channelType, channelID string) *Channel {
 	return &Channel{

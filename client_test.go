@@ -2,6 +2,8 @@ package stream_chat
 
 import (
 	"context"
+	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -23,6 +25,24 @@ func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 
 	require.NoError(t, err, "create channel")
 	return resp.Channel
+}
+
+func TestClient_SwapHttpClient(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	tr := http.DefaultTransport.(*http.Transport).Clone() //nolint:forcetypeassert
+	proxyURL, _ := url.Parse("http://getstream.io")
+	tr.Proxy = http.ProxyURL(proxyURL)
+	cl := &http.Client{Transport: tr}
+	c.SetClient(cl)
+	_, err := c.GetAppConfig(ctx)
+	require.Error(t, err)
+
+	cl = &http.Client{}
+	c.SetClient(cl)
+	_, err = c.GetAppConfig(ctx)
+	require.NoError(t, err)
 }
 
 //nolint: lll
