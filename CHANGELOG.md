@@ -1,9 +1,39 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [5.0.0](https://github.com/GetStream/stream-chat-go/compare/v4.0.1...v5.0.0) (2022-02-03)
+
+
+### ⚠ BREAKING CHANGES
+
+- `PartialUpdateMessage` method has a new signature
+- `Truncatechannel` method has a new signature
+- `AddMembers` method has a new signature
+- `MarkRead` method has a new signature
+- `UpdateCommand` method has a new signature
+- `PartialUpdateMessage` method has a new signature
+- `MuteUser` method has a new signature
+- `MuteUsers` method has a new signature
+- `FlagUser` method has a new signature
+- `ExportUser` method has a new signature
+- `DeactivateUser` method has a new signature
+- `ReactivateUser` method has a new signature
+- `DeleteUser` method has a new signature
+- `BanUser` methods have a new signature
+- `UnbanUser` methods have a new signature
+- `ShadowBan` methods have a new signature
+
+### Features
+
+* add grants to channeltype ([#166](https://github.com/GetStream/stream-chat-go/issues/166)) ([0a1a824](https://github.com/GetStream/stream-chat-go/commit/0a1a8242d61e4a96084d11bebb0f8e92b79b66ea))
+* add import endpoint ([#172](https://github.com/GetStream/stream-chat-go/issues/172)) ([1dd3eba](https://github.com/GetStream/stream-chat-go/commit/1dd3eba5beb5a0b6559cda5a90b48bd9e4c0e2db))
+* add offset and limit to listimports ([#174](https://github.com/GetStream/stream-chat-go/issues/174)) ([8c5702b](https://github.com/GetStream/stream-chat-go/commit/8c5702b170b7e5322f761a2b5b8f2feed95613ac))
+* enhance connection pooling ([#171](https://github.com/GetStream/stream-chat-go/issues/171)) ([a78a42a](https://github.com/GetStream/stream-chat-go/commit/a78a42afed6e928b255364d64a713351d585b50f))
+* extend app config with upload configs ([#170](https://github.com/GetStream/stream-chat-go/issues/170)) ([f4466ca](https://github.com/GetStream/stream-chat-go/commit/f4466ca4e506fec9e2e162757000b0a42e438a43))
+* full feature parity ([#168](https://github.com/GetStream/stream-chat-go/issues/168)) ([6cac452](https://github.com/GetStream/stream-chat-go/commit/6cac452969917b7cbd2c8cfe34ca149b90046377))
+* improved some apis ([#169](https://github.com/GetStream/stream-chat-go/issues/169)) ([ac44302](https://github.com/GetStream/stream-chat-go/commit/ac443025f2e27ddaa7a849e78b12d6e95da56991))
+* swappable http client ([#173](https://github.com/GetStream/stream-chat-go/issues/173)) ([328e767](https://github.com/GetStream/stream-chat-go/commit/328e7677ac5c32496c7cedaf7ca51e8fcf2dbed3))
 
 ## [4.0.1] 2021-12-23
 
