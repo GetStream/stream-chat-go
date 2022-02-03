@@ -3,6 +3,8 @@ package stream_chat
 import (
 	"context"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +23,11 @@ type ImportTask struct {
 	UpdatedAt time.Time            `json:"updated_at"`
 	Result    interface{}          `json:"result"`
 	Size      *int                 `json:"size"`
+}
+
+type ListImportsOptions struct {
+	Limit  int
+	Offset int
 }
 
 type CreateImportResponse struct {
@@ -65,9 +72,15 @@ func (c *Client) GetImport(ctx context.Context, id string) (*GetImportResponse, 
 // Note: Do not use this.
 // It is present for internal usage only.
 // This function can, and will, break and/or be removed at any point in time.
-func (c *Client) ListImports(ctx context.Context) (*ListImportsResponse, error) {
+func (c *Client) ListImports(ctx context.Context, opts *ListImportsOptions) (*ListImportsResponse, error) {
+	params := url.Values{}
+	if opts != nil {
+		params.Set("limit", strconv.Itoa(opts.Limit))
+		params.Set("offset", strconv.Itoa(opts.Offset))
+	}
+
 	var resp ListImportsResponse
-	err := c.makeRequest(ctx, http.MethodGet, "imports", nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "imports", params, nil, &resp)
 
 	return &resp, err
 }
