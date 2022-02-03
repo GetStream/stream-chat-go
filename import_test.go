@@ -32,7 +32,7 @@ func TestImportsEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, createResp.ImportTask.ID, getResp.ImportTask.ID)
 
-	listResp, err := c.ListImports(ctx)
+	listResp, err := c.ListImports(ctx, &ListImportsOptions{Limit: 1, Offset: 0})
 	require.NoError(t, err)
 	require.NotEmpty(t, listResp.ImportTasks)
 }

@@ -61,7 +61,7 @@ func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*Sor
 		return nil, err
 	}
 
-	values := make(url.Values)
+	values := url.Values{}
 	values.Set("payload", string(data))
 
 	var resp QueryUsersResponse
@@ -210,7 +210,7 @@ func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) (*QueryM
 		return nil, err
 	}
 
-	values := make(url.Values)
+	values := url.Values{}
 	values.Set("payload", string(data))
 
 	var resp QueryMessageFlagsResponse

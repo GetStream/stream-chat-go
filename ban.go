@@ -112,7 +112,7 @@ func (c *Client) QueryBannedUsers(ctx context.Context, q *QueryBannedUsersOption
 		return nil, err
 	}
 
-	values := make(url.Values)
+	values := url.Values{}
 	values.Set("payload", string(data))
 
 	var resp QueryBannedUsersResponse
