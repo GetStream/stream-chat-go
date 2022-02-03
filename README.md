@@ -40,7 +40,7 @@ package main
 import (
 	"os"
 
-	stream "github.com/GetStream/stream-chat-go/v4"
+	stream "github.com/GetStream/stream-chat-go/v5"
 )
 
 var APIKey = os.Getenv("STREAM_KEY")
