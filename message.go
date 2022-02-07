@@ -38,11 +38,12 @@ type Message struct {
 	ParentID      string `json:"parent_id"`       // id of parent message if it's reply
 	ShowInChannel bool   `json:"show_in_channel"` // show reply message also in channel
 
-	ReplyCount int `json:"reply_count,omitempty"`
-
-	MentionedUsers []*User `json:"mentioned_users"`
+	ReplyCount      int     `json:"reply_count,omitempty"`
+	QuotedMessageID string  `json:"quoted_message_id"`
+	MentionedUsers  []*User `json:"mentioned_users"`
 
 	Shadowed bool       `json:"shadowed,omitempty"`
+	Pinned   bool       `json:"pinned,omitempty"`
 	PinnedAt *time.Time `json:"pinned_at,omitempty"`
 	PinnedBy *User      `json:"pinned_by,omitempty"`
 
@@ -79,13 +80,15 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
-		Text:          m.Text,
-		Attachments:   m.Attachments,
-		User:          messageRequestUser{ID: m.User.ID},
-		ExtraData:     m.ExtraData,
-		ParentID:      m.ParentID,
-		ShowInChannel: m.ShowInChannel,
-		Silent:        m.Silent,
+		Text:            m.Text,
+		Attachments:     m.Attachments,
+		User:            messageRequestUser{ID: m.User.ID},
+		ExtraData:       m.ExtraData,
+		Pinned:          m.Pinned,
+		ParentID:        m.ParentID,
+		ShowInChannel:   m.ShowInChannel,
+		Silent:          m.Silent,
+		QuotedMessageID: m.QuotedMessageID,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -104,13 +107,15 @@ type messageRequest struct {
 }
 
 type messageRequestMessage struct {
-	Text           string             `json:"text"`
-	Attachments    []*Attachment      `json:"attachments"`
-	User           messageRequestUser `json:"user"`
-	MentionedUsers []string           `json:"mentioned_users"`
-	ParentID       string             `json:"parent_id"`
-	ShowInChannel  bool               `json:"show_in_channel"`
-	Silent         bool               `json:"silent"`
+	Text            string             `json:"text"`
+	Attachments     []*Attachment      `json:"attachments"`
+	User            messageRequestUser `json:"user"`
+	MentionedUsers  []string           `json:"mentioned_users"`
+	ParentID        string             `json:"parent_id"`
+	ShowInChannel   bool               `json:"show_in_channel"`
+	Silent          bool               `json:"silent"`
+	QuotedMessageID string             `json:"quoted_message_id"`
+	Pinned          bool               `json:"pinned"`
 
 	ExtraData map[string]interface{} `json:"-"`
 }
