@@ -46,6 +46,8 @@ type Message struct {
 	PinnedAt *time.Time `json:"pinned_at,omitempty"`
 	PinnedBy *User      `json:"pinned_by,omitempty"`
 
+	I18n map[string]string `json:"i18n,omitempty"`
+
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -446,5 +448,18 @@ func (ch *Channel) SendAction(ctx context.Context, msgID string, formData map[st
 
 	var resp MessageResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
+	return &resp, err
+}
+
+type TranslationResponse struct {
+	Message *Message `json:"message"`
+	Response
+}
+
+func (c *Client) TranslateMessage(ctx context.Context, msgID, language string) (*TranslationResponse, error) {
+	p := "messages/" + url.PathEscape(msgID) + "/translate"
+	var resp TranslationResponse
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, map[string]string{"language": language}, &resp)
+
 	return &resp, err
 }
