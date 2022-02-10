@@ -8,6 +8,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestClient_TranslateMessage(t *testing.T) {
+	c := initClient(t)
+	u := randomUser(t, c)
+	ch := initChannel(t, c, u.ID)
+	ctx := context.Background()
+	defer func() {
+		_, _ = ch.Delete(ctx)
+		_, _ = c.DeleteUser(ctx, u.ID, DeleteUserWithHardDelete())
+	}()
+
+	msg := &Message{Text: "test message"}
+	messageResp, err := ch.SendMessage(ctx, msg, u.ID)
+	require.NoError(t, err)
+
+	translated, err := c.TranslateMessage(ctx, messageResp.Message.ID, "es")
+	require.NoError(t, err)
+	require.Equal(t, "mensaje de prueba", translated.Message.I18n["es_text"])
+}
+
 func TestClient_PinMessage(t *testing.T) {
 	c := initClient(t)
 	userA := randomUser(t, c)

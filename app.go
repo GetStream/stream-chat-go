@@ -14,6 +14,7 @@ type AppSettings struct {
 	WebhookURL             *string             `json:"webhook_url,omitempty"`
 	MultiTenantEnabled     *bool               `json:"multi_tenant_enabled,omitempty"`
 	AsyncURLEnrichEnabled  *bool               `json:"async_url_enrich_enabled,omitempty"`
+	AutoTranslationEnabled *bool               `json:"auto_translation_enabled,omitempty"`
 	Grants                 map[string][]string `json:"grants,omitempty"`
 	MigratePermissionsToV2 *bool               `json:"migrate_permissions_to_v2,omitempty"`
 	PermissionVersion      string              `json:"permission_version,omitempty"`
