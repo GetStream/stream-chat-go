@@ -40,6 +40,13 @@ func TestClient_PinMessage(t *testing.T) {
 	messageResp, err := resp1.Channel.SendMessage(context.Background(), msg, userB.ID)
 	require.NoError(t, err)
 
+	msgWithOptions := &Message{Text: "test message"}
+	quotedMsgResp, err := resp1.Channel.SendMessage(context.Background(), msgWithOptions, userB.ID, func(msg *messageRequest) {
+		msg.Message.QuotedMessageID = messageResp.Message.ID
+	})
+	require.NoError(t, err)
+	require.Equal(t, messageResp.Message.ID, quotedMsgResp.Message.QuotedMessageID)
+
 	messageResp, err = c.PinMessage(context.Background(), messageResp.Message.ID, userA.ID, nil)
 	require.NoError(t, err)
 

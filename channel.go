@@ -46,8 +46,9 @@ type Channel struct {
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
 
-	Messages []*Message     `json:"messages"`
-	Read     []*ChannelRead `json:"read"`
+	Messages       []*Message     `json:"messages"`
+	PinnedMessages []*Message     `json:"pinned_messages"`
+	Read           []*ChannelRead `json:"read"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -94,10 +95,11 @@ func (ch Channel) MarshalJSON() ([]byte, error) {
 }
 
 type queryResponse struct {
-	Channel  *Channel         `json:"channel,omitempty"`
-	Messages []*Message       `json:"messages,omitempty"`
-	Members  []*ChannelMember `json:"members,omitempty"`
-	Read     []*ChannelRead   `json:"read,omitempty"`
+	Channel        *Channel         `json:"channel,omitempty"`
+	Messages       []*Message       `json:"messages,omitempty"`
+	PinnedMessages []*Message       `json:"pinned_messages,omitempty"`
+	Members        []*ChannelMember `json:"members,omitempty"`
+	Read           []*ChannelRead   `json:"read,omitempty"`
 
 	Response
 }
@@ -118,6 +120,9 @@ func (q queryResponse) updateChannel(ch *Channel) {
 	}
 	if q.Read != nil {
 		ch.Read = q.Read
+	}
+	if q.PinnedMessages != nil {
+		ch.PinnedMessages = q.PinnedMessages
 	}
 }
 

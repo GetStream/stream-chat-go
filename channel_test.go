@@ -21,6 +21,23 @@ func (ch *Channel) refresh(ctx context.Context) error {
 	return err
 }
 
+func TestClient_TestQuery(t *testing.T) {
+	c := initClient(t)
+	membersID := randomUsersID(t, c, 1)
+	ch := initChannel(t, c, membersID...)
+	ctx := context.Background()
+	_, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
+	require.NoError(t, err)
+	defer func() {
+		_, _ = ch.Delete(ctx)
+		_, _ = c.DeleteUser(ctx, membersID[0], DeleteUserWithHardDelete())
+	}()
+
+	_, err = ch.Query(ctx, map[string]interface{}{"watch": false, "state": true})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(ch.PinnedMessages))
+}
+
 func TestClient_CreateChannel(t *testing.T) {
 	c := initClient(t)
 
