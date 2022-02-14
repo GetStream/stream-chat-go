@@ -7,19 +7,30 @@ import (
 )
 
 type AppSettings struct {
-	DisableAuth            *bool               `json:"disable_auth_checks,omitempty"`
-	DisablePermissions     *bool               `json:"disable_permissions_checks,omitempty"`
-	APNConfig              *APNConfig          `json:"apn_config,omitempty"`
-	FirebaseConfig         *FirebaseConfig     `json:"firebase_config,omitempty"`
-	WebhookURL             *string             `json:"webhook_url,omitempty"`
-	MultiTenantEnabled     *bool               `json:"multi_tenant_enabled,omitempty"`
-	AsyncURLEnrichEnabled  *bool               `json:"async_url_enrich_enabled,omitempty"`
-	AutoTranslationEnabled *bool               `json:"auto_translation_enabled,omitempty"`
-	Grants                 map[string][]string `json:"grants,omitempty"`
-	MigratePermissionsToV2 *bool               `json:"migrate_permissions_to_v2,omitempty"`
-	PermissionVersion      string              `json:"permission_version,omitempty"`
-	FileUploadConfig       *FileUploadConfig   `json:"file_upload_config,omitempty"`
-	ImageUploadConfig      *FileUploadConfig   `json:"image_upload_config,omitempty"`
+	DisableAuth               *bool               `json:"disable_auth_checks,omitempty"`
+	DisablePermissions        *bool               `json:"disable_permissions_checks,omitempty"`
+	APNConfig                 *APNConfig          `json:"apn_config,omitempty"`
+	FirebaseConfig            *FirebaseConfig     `json:"firebase_config,omitempty"`
+	WebhookURL                string              `json:"webhook_url,omitempty"`
+	MultiTenantEnabled        *bool               `json:"multi_tenant_enabled,omitempty"`
+	AsyncURLEnrichEnabled     *bool               `json:"async_url_enrich_enabled,omitempty"`
+	AutoTranslationEnabled    *bool               `json:"auto_translation_enabled,omitempty"`
+	Grants                    map[string][]string `json:"grants,omitempty"`
+	MigratePermissionsToV2    *bool               `json:"migrate_permissions_to_v2,omitempty"`
+	PermissionVersion         string              `json:"permission_version,omitempty"`
+	FileUploadConfig          *FileUploadConfig   `json:"file_upload_config,omitempty"`
+	ImageUploadConfig         *FileUploadConfig   `json:"image_upload_config,omitempty"`
+	ImageModerationLabels     []string            `json:"image_moderation_labels,omitempty"`
+	ImageModerationEnabled    *bool               `json:"image_moderation_enabled,omitempty"`
+	BeforeMessageSendHookURL  string              `json:"before_message_send_hook_url,omitempty"`
+	CustomActionHandlerURL    string              `json:"custom_action_handler_url,omitempty"`
+	UserSearchDisallowedRoles []string            `json:"user_search_disallowed_roles,omitempty"`
+	EnforceUniqueUsernames    string              `json:"enforce_unique_usernames,omitempty"`
+	SqsURL                    string              `json:"sqs_url,omitempty"`
+	SqsKey                    string              `json:"sqs_key,omitempty"`
+	SqsSecret                 string              `json:"sqs_secret,omitempty"`
+	WebhookEvents             []string            `json:"webhook_events,omitempty"`
+	ChannelHideMembersOnly    *bool               `json:"channel_hide_members_only,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -43,7 +54,7 @@ func (a *AppSettings) SetFirebaseConfig(c FirebaseConfig) *AppSettings {
 }
 
 func (a *AppSettings) SetWebhookURL(s string) *AppSettings {
-	a.WebhookURL = &s
+	a.WebhookURL = s
 	return a
 }
 
@@ -104,21 +115,31 @@ type Policy struct {
 }
 
 type AppConfig struct {
-	Name                     string                    `json:"name"`
-	OrganizationName         string                    `json:"organization"`
-	WebhookURL               string                    `json:"webhook_url"`
-	SuspendedExplanation     string                    `json:"suspended_explanation"`
-	PushNotifications        PushNotificationFields    `json:"push_notifications"`
-	ConfigNameMap            map[string]*ChannelConfig `json:"channel_configs"`
-	Policies                 map[string][]Policy       `json:"policies"`
-	Suspended                bool                      `json:"suspended"`
-	DisableAuth              bool                      `json:"disable_auth_checks"`
-	DisablePermissions       bool                      `json:"disable_permissions_checks"`
-	MultiTenantEnabled       bool                      `json:"multi_tenant_enabled"`
-	RevokeTokensIssuedBefore *time.Time                `json:"revoke_tokens_issued_before"`
-	AsyncURLEnrichEnabled    bool                      `json:"async_url_enrich_enabled"`
-	Grants                   map[string][]string       `json:"grants"`
-	PermissionVersion        string                    `json:"permission_version"`
+	Name                      string                    `json:"name"`
+	OrganizationName          string                    `json:"organization"`
+	WebhookURL                string                    `json:"webhook_url"`
+	SuspendedExplanation      string                    `json:"suspended_explanation"`
+	PushNotifications         PushNotificationFields    `json:"push_notifications"`
+	ConfigNameMap             map[string]*ChannelConfig `json:"channel_configs"`
+	Policies                  map[string][]Policy       `json:"policies"`
+	Suspended                 bool                      `json:"suspended"`
+	DisableAuth               bool                      `json:"disable_auth_checks"`
+	DisablePermissions        bool                      `json:"disable_permissions_checks"`
+	MultiTenantEnabled        bool                      `json:"multi_tenant_enabled"`
+	RevokeTokensIssuedBefore  *time.Time                `json:"revoke_tokens_issued_before"`
+	AsyncURLEnrichEnabled     bool                      `json:"async_url_enrich_enabled"`
+	Grants                    map[string][]string       `json:"grants"`
+	PermissionVersion         string                    `json:"permission_version"`
+	ImageModerationLabels     []string                  `json:"image_moderation_labels"`
+	ImageModerationEnabled    *bool                     `json:"image_moderation_enabled"`
+	BeforeMessageSendHookURL  string                    `json:"before_message_send_hook_url"`
+	CustomActionHandlerURL    string                    `json:"custom_action_handler_url"`
+	UserSearchDisallowedRoles []string                  `json:"user_search_disallowed_roles"`
+	EnforceUniqueUsernames    string                    `json:"enforce_unique_usernames"`
+	SqsURL                    string                    `json:"sqs_url"`
+	SqsKey                    string                    `json:"sqs_key"`
+	SqsSecret                 string                    `json:"sqs_secret"`
+	WebhookEvents             []string                  `json:"webhook_events"`
 }
 
 type AppResponse struct {
