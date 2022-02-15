@@ -12,20 +12,21 @@ import (
 
 func TestClient_QueryUsers(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	const n = 4
 	ids := make([]string, n)
-	defer func() {
+	t.Cleanup(func() {
 		for _, id := range ids {
 			if id != "" {
-				_, _ = c.DeleteUser(context.Background(), id)
+				_, _ = c.DeleteUser(ctx, id)
 			}
 		}
-	}()
+	})
 
 	for i := n - 1; i > -1; i-- {
 		u := &User{ID: randomString(30), ExtraData: map[string]interface{}{"order": n - i - 1}}
-		_, err := c.UpsertUser(context.Background(), u)
+		_, err := c.UpsertUser(ctx, u)
 		require.NoError(t, err)
 		ids[i] = u.ID
 		time.Sleep(200 * time.Millisecond)
@@ -33,7 +34,7 @@ func TestClient_QueryUsers(t *testing.T) {
 
 	t.Parallel()
 	t.Run("Query all", func(tt *testing.T) {
-		results, err := c.QueryUsers(context.Background(), &QueryOption{
+		results, err := c.QueryUsers(ctx, &QueryOption{
 			Filter: map[string]interface{}{
 				"id": map[string]interface{}{
 					"$in": ids,
@@ -48,7 +49,7 @@ func TestClient_QueryUsers(t *testing.T) {
 	t.Run("Query with offset/limit", func(tt *testing.T) {
 		offset := 1
 
-		results, err := c.QueryUsers(context.Background(),
+		results, err := c.QueryUsers(ctx,
 			&QueryOption{
 				Filter: map[string]interface{}{
 					"id": map[string]interface{}{
@@ -71,14 +72,15 @@ func TestClient_QueryUsers(t *testing.T) {
 func TestClient_QueryChannels(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
+	ctx := context.Background()
 
-	_, err := ch.SendMessage(context.Background(), &Message{Text: "abc"}, "some")
+	_, err := ch.SendMessage(ctx, &Message{Text: "abc"}, "some")
 	require.NoError(t, err)
-	_, err = ch.SendMessage(context.Background(), &Message{Text: "abc"}, "some")
+	_, err = ch.SendMessage(ctx, &Message{Text: "abc"}, "some")
 	require.NoError(t, err)
 
 	messageLimit := 1
-	resp, err := c.QueryChannels(context.Background(), &QueryOption{
+	resp, err := c.QueryChannels(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]interface{}{
 				"$eq": ch.ID,
@@ -94,6 +96,7 @@ func TestClient_QueryChannels(t *testing.T) {
 
 func TestClient_Search(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	user1, user2 := randomUser(t, c), randomUser(t, c)
 
@@ -101,14 +104,14 @@ func TestClient_Search(t *testing.T) {
 
 	text := randomString(10)
 
-	_, err := ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user1.ID)
+	_, err := ch.SendMessage(ctx, &Message{Text: text + " " + randomString(25)}, user1.ID)
 	require.NoError(t, err)
 
-	_, err = ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user2.ID)
+	_, err = ch.SendMessage(ctx, &Message{Text: text + " " + randomString(25)}, user2.ID)
 	require.NoError(t, err)
 
 	t.Run("Query", func(tt *testing.T) {
-		resp, err := c.Search(context.Background(), SearchRequest{Query: text, Filters: map[string]interface{}{
+		resp, err := c.Search(ctx, SearchRequest{Query: text, Filters: map[string]interface{}{
 			"members": map[string][]string{
 				"$in": {user1.ID, user2.ID},
 			},
@@ -119,7 +122,7 @@ func TestClient_Search(t *testing.T) {
 		assert.Len(tt, resp.Messages, 2)
 	})
 	t.Run("Message filters", func(tt *testing.T) {
-		resp, err := c.Search(context.Background(), SearchRequest{
+		resp, err := c.Search(ctx, SearchRequest{
 			Filters: map[string]interface{}{
 				"members": map[string][]string{
 					"$in": {user1.ID, user2.ID},
@@ -136,7 +139,7 @@ func TestClient_Search(t *testing.T) {
 		assert.Len(tt, resp.Messages, 2)
 	})
 	t.Run("Query and message filters error", func(tt *testing.T) {
-		_, err := c.Search(context.Background(), SearchRequest{
+		_, err := c.Search(ctx, SearchRequest{
 			Filters: map[string]interface{}{
 				"members": map[string][]string{
 					"$in": {user1.ID, user2.ID},
@@ -152,7 +155,7 @@ func TestClient_Search(t *testing.T) {
 		require.Error(tt, err)
 	})
 	t.Run("Offset and sort error", func(tt *testing.T) {
-		_, err := c.Search(context.Background(), SearchRequest{
+		_, err := c.Search(ctx, SearchRequest{
 			Filters: map[string]interface{}{
 				"members": map[string][]string{
 					"$in": {user1.ID, user2.ID},
@@ -168,7 +171,7 @@ func TestClient_Search(t *testing.T) {
 		require.Error(tt, err)
 	})
 	t.Run("Offset and next error", func(tt *testing.T) {
-		_, err := c.Search(context.Background(), SearchRequest{
+		_, err := c.Search(ctx, SearchRequest{
 			Filters: map[string]interface{}{
 				"members": map[string][]string{
 					"$in": {user1.ID, user2.ID},
@@ -186,6 +189,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 	t.Skip()
 	c := initClient(t)
 	ch := initChannel(t, c)
+	ctx := context.Background()
 
 	user1, user2 := randomUser(t, c), randomUser(t, c)
 
@@ -198,7 +202,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 			userID = user2.ID
 		}
 		messageID := fmt.Sprintf("%d-%s", i, text)
-		_, err := ch.SendMessage(context.Background(), &Message{
+		_, err := ch.SendMessage(ctx, &Message{
 			ID:   messageID,
 			Text: text + " " + randomString(25),
 		}, userID)
@@ -207,7 +211,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 		messageIDs[6-i] = messageID
 	}
 
-	got, err := c.SearchWithFullResponse(context.Background(), SearchRequest{
+	got, err := c.SearchWithFullResponse(ctx, SearchRequest{
 		Query: text,
 		Filters: map[string]interface{}{
 			"members": map[string][]string{
@@ -227,7 +231,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 	for _, result := range got.Results {
 		gotMessageIDs = append(gotMessageIDs, result.Message.ID)
 	}
-	got, err = c.SearchWithFullResponse(context.Background(), SearchRequest{
+	got, err = c.SearchWithFullResponse(ctx, SearchRequest{
 		Query: text,
 		Filters: map[string]interface{}{
 			"members": map[string][]string{
@@ -250,6 +254,7 @@ func TestClient_SearchWithFullResponse(t *testing.T) {
 func TestClient_QueryMessageFlags(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
+	ctx := context.Background()
 
 	user1, user2 := randomUser(t, c), randomUser(t, c)
 	for user1.ID == user2.ID {
@@ -258,23 +263,23 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 
 	// send 2 messages
 	text := randomString(10)
-	resp, err := ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user1.ID)
+	resp, err := ch.SendMessage(ctx, &Message{Text: text + " " + randomString(25)}, user1.ID)
 	require.NoError(t, err)
 	msg1 := resp.Message
 
-	resp, err = ch.SendMessage(context.Background(), &Message{Text: text + " " + randomString(25)}, user2.ID)
+	resp, err = ch.SendMessage(ctx, &Message{Text: text + " " + randomString(25)}, user2.ID)
 	require.NoError(t, err)
 	msg2 := resp.Message
 
 	// flag 2 messages
-	_, err = c.FlagMessage(context.Background(), msg2.ID, user1.ID)
+	_, err = c.FlagMessage(ctx, msg2.ID, user1.ID)
 	require.NoError(t, err)
 
-	_, err = c.FlagMessage(context.Background(), msg1.ID, user2.ID)
+	_, err = c.FlagMessage(ctx, msg1.ID, user2.ID)
 	require.NoError(t, err)
 
 	// both flags show up in this query by channel_cid
-	got, err := c.QueryMessageFlags(context.Background(), &QueryOption{
+	got, err := c.QueryMessageFlags(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"channel_cid": map[string][]string{
 				"$in": {ch.cid()},
@@ -285,7 +290,7 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	assert.Len(t, got.Flags, 2)
 
 	// one flag shows up in this query by user_id
-	got, err = c.QueryMessageFlags(context.Background(), &QueryOption{
+	got, err = c.QueryMessageFlags(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"user_id": user1.ID,
 		},
