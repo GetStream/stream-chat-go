@@ -11,23 +11,23 @@ import (
 func TestClient_DeleteChannels(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-
+	ctx := context.Background()
 	user := randomUser(t, c)
 	msg := &Message{Text: "test message"}
 
-	_, err := ch.SendMessage(context.Background(), msg, user.ID, MessageSkipPush)
+	_, err := ch.SendMessage(ctx, msg, user.ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	// should fail without CIDs in parameter
-	_, err = c.DeleteChannels(context.Background(), []string{}, true)
+	_, err = c.DeleteChannels(ctx, []string{}, true)
 	require.Error(t, err)
 
-	resp1, err := c.DeleteChannels(context.Background(), []string{ch.CID}, true)
+	resp1, err := c.DeleteChannels(ctx, []string{ch.CID}, true)
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
 	for i := 0; i < 10; i++ {
-		resp2, err := c.GetTask(context.Background(), resp1.TaskID)
+		resp2, err := c.GetTask(ctx, resp1.TaskID)
 		require.NoError(t, err)
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
@@ -43,22 +43,22 @@ func TestClient_DeleteChannels(t *testing.T) {
 func TestClient_DeleteUsers(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
-
+	ctx := context.Background()
 	user := randomUser(t, c)
 
 	msg := &Message{Text: "test message"}
 
-	_, err := ch.SendMessage(context.Background(), msg, user.ID, MessageSkipPush)
+	_, err := ch.SendMessage(ctx, msg, user.ID, MessageSkipPush)
 	require.NoError(t, err, "send message")
 
 	// should fail without userIDs in parameter
-	_, err = c.DeleteUsers(context.Background(), []string{}, DeleteUserOptions{
+	_, err = c.DeleteUsers(ctx, []string{}, DeleteUserOptions{
 		User:     SoftDelete,
 		Messages: HardDelete,
 	})
 	require.Error(t, err)
 
-	resp1, err := c.DeleteUsers(context.Background(), []string{user.ID}, DeleteUserOptions{
+	resp1, err := c.DeleteUsers(ctx, []string{user.ID}, DeleteUserOptions{
 		User:     SoftDelete,
 		Messages: HardDelete,
 	})
@@ -66,7 +66,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 	require.NotEmpty(t, resp1.TaskID)
 
 	for i := 0; i < 10; i++ {
-		resp2, err := c.GetTask(context.Background(), resp1.TaskID)
+		resp2, err := c.GetTask(ctx, resp1.TaskID)
 		require.NoError(t, err)
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
@@ -85,21 +85,10 @@ func TestClient_ExportChannels(t *testing.T) {
 	c := initClient(t)
 	ch1 := initChannel(t, c)
 	ch2 := initChannel(t, c)
-
-	chMembers := ch1.Members
-	chMembers = append(chMembers, ch2.Members...)
-
-	defer func() {
-		for _, u := range chMembers {
-			_, _ = c.DeleteUser(context.Background(), u.UserID,
-				DeleteUserWithDeleteConversations(),
-				DeleteUserWithHardDelete(),
-				DeleteUserWithMarkMessagesDeleted())
-		}
-	}()
+	ctx := context.Background()
 
 	t.Run("Return error if there are 0 channels", func(t *testing.T) {
-		_, err := c.ExportChannels(context.Background(), nil, nil)
+		_, err := c.ExportChannels(ctx, nil, nil)
 		require.Error(t, err)
 	})
 
@@ -107,7 +96,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		expChannels := []*ExportableChannel{
 			{Type: "", ID: ch1.ID},
 		}
-		_, err := c.ExportChannels(context.Background(), expChannels, nil)
+		_, err := c.ExportChannels(ctx, expChannels, nil)
 		require.Error(t, err)
 	})
 
@@ -117,12 +106,12 @@ func TestClient_ExportChannels(t *testing.T) {
 			{Type: ch2.Type, ID: ch2.ID},
 		}
 
-		resp1, err := c.ExportChannels(context.Background(), expChannels, nil)
+		resp1, err := c.ExportChannels(ctx, expChannels, nil)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp1.TaskID)
 
 		for i := 0; i < 10; i++ {
-			task, err := c.GetExportChannelsTask(context.Background(), resp1.TaskID)
+			task, err := c.GetExportChannelsTask(ctx, resp1.TaskID)
 			require.NoError(t, err)
 			require.Equal(t, resp1.TaskID, task.TaskID)
 			require.NotEmpty(t, task.Status)

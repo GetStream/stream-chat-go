@@ -14,6 +14,7 @@ import (
 // We use DeleteUsers endpoint, it requires a very low number of requests (6/min).
 func TestRateLimit(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	users := make([]*User, 0, 8)
 	for i := 0; i < 8; i++ {
@@ -21,7 +22,7 @@ func TestRateLimit(t *testing.T) {
 	}
 
 	for _, u := range users {
-		_, err := c.DeleteUsers(context.Background(), []string{u.ID}, DeleteUserOptions{
+		_, err := c.DeleteUsers(ctx, []string{u.ID}, DeleteUserOptions{
 			User:     SoftDelete,
 			Messages: HardDelete,
 		})
@@ -42,8 +43,9 @@ func TestRateLimit(t *testing.T) {
 func TestContextExceeded(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
+	ctx := context.Background()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond)
 	defer cancel()
 
 	_, err := c.DeleteUsers(ctx, []string{user.ID}, DeleteUserOptions{

@@ -22,12 +22,13 @@ func TestClient_FlagUser(t *testing.T) {
 
 func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	user := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID)
+	_, err := c.MuteUser(ctx, randomUser(t, c).ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	resp, err := c.QueryUsers(context.Background(), &QueryOption{
+	resp, err := c.QueryUsers(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
@@ -45,10 +46,10 @@ func TestClient_MuteUser(t *testing.T) {
 
 	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
-	_, err = c.MuteUser(context.Background(), randomUser(t, c).ID, user.ID, MuteWithExpiration(60))
+	_, err = c.MuteUser(ctx, randomUser(t, c).ID, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	resp, err = c.QueryUsers(context.Background(), &QueryOption{
+	resp, err = c.QueryUsers(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
@@ -67,14 +68,15 @@ func TestClient_MuteUser(t *testing.T) {
 
 func TestClient_MuteUsers(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	user := randomUser(t, c)
 	targetIDs := randomUsersID(t, c, 2)
 
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID, MuteWithExpiration(60))
+	_, err := c.MuteUsers(ctx, targetIDs, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUsers should not return an error")
 
-	resp, err := c.QueryUsers(context.Background(), &QueryOption{
+	resp, err := c.QueryUsers(ctx, &QueryOption{
 		Filter: map[string]interface{}{
 			"id": map[string]string{"$eq": user.ID},
 		},
@@ -92,13 +94,14 @@ func TestClient_MuteUsers(t *testing.T) {
 
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
-
+	ctx := context.Background()
 	user := randomUser(t, c)
 	mutedUser := randomUser(t, c)
-	_, err := c.MuteUser(context.Background(), mutedUser.ID, user.ID)
+
+	_, err := c.MuteUser(ctx, mutedUser.ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	_, err = c.UnmuteUser(context.Background(), mutedUser.ID, user.ID)
+	_, err = c.UnmuteUser(ctx, mutedUser.ID, user.ID)
 	assert.NoError(t, err)
 }
 
@@ -118,22 +121,24 @@ func TestClient_CreateGuestUser(t *testing.T) {
 
 func TestClient_UnmuteUsers(t *testing.T) {
 	c := initClient(t)
-
+	ctx := context.Background()
 	user := randomUser(t, c)
+
 	targetIDs := []string{randomUser(t, c).ID, randomUser(t, c).ID}
-	_, err := c.MuteUsers(context.Background(), targetIDs, user.ID)
+	_, err := c.MuteUsers(ctx, targetIDs, user.ID)
 	require.NoError(t, err, "MuteUsers should not return an error")
 
-	_, err = c.UnmuteUsers(context.Background(), targetIDs, user.ID)
+	_, err = c.UnmuteUsers(ctx, targetIDs, user.ID)
 	assert.NoError(t, err, "unmute users")
 }
 
 func TestClient_UpsertUsers(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	user := &User{ID: randomString(10)}
 
-	resp, err := c.UpsertUsers(context.Background(), user)
+	resp, err := c.UpsertUsers(ctx, user)
 	require.NoError(t, err, "update users")
 
 	assert.Contains(t, resp.Users, user.ID)
@@ -143,7 +148,7 @@ func TestClient_UpsertUsers(t *testing.T) {
 
 func TestClient_PartialUpdateUsers(t *testing.T) {
 	c := initClient(t)
-
+	ctx := context.Background()
 	user := randomUser(t, c)
 
 	update := PartialUserUpdate{
@@ -155,7 +160,7 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 		},
 	}
 
-	resp, err := c.PartialUpdateUsers(context.Background(), []PartialUserUpdate{update})
+	resp, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	require.NoError(t, err, "partial update user")
 
 	got := resp.Users
@@ -171,7 +176,7 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 		Unset: []string{"test.passed"},
 	}
 
-	resp, err = c.PartialUpdateUsers(context.Background(), []PartialUserUpdate{update})
+	resp, err = c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	require.NoError(t, err, "partial update user")
 
 	got = resp.Users
@@ -182,8 +187,9 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 
 func ExampleClient_UpsertUser() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	_, err := client.UpsertUser(context.Background(), &User{
+	_, err := client.UpsertUser(ctx, &User{
 		ID:   "tommaso",
 		Name: "Tommaso",
 		Role: "Admin",
@@ -195,33 +201,38 @@ func ExampleClient_UpsertUser() {
 
 func ExampleClient_ExportUser() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	user, _ := client.ExportUser(context.Background(), "userID")
+	user, _ := client.ExportUser(ctx, "userID")
 	log.Printf("%#v", user)
 }
 
 func ExampleClient_DeactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	_, _ = client.DeactivateUser(context.Background(), "userID")
+	_, _ = client.DeactivateUser(ctx, "userID")
 }
 
 func ExampleClient_ReactivateUser() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	_, _ = client.ReactivateUser(context.Background(), "userID")
+	_, _ = client.ReactivateUser(ctx, "userID")
 }
 
 func ExampleClient_DeleteUser() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	_, _ = client.DeleteUser(context.Background(), "userID")
+	_, _ = client.DeleteUser(ctx, "userID")
 }
 
 func ExampleClient_DeleteUser_hard() {
 	client, _ := NewClient("XXXX", "XXXX")
+	ctx := context.Background()
 
-	_, _ = client.DeleteUser(context.Background(), "userID",
+	_, _ = client.DeleteUser(ctx, "userID",
 		DeleteUserWithHardDelete(),
 		DeleteUserWithMarkMessagesDeleted(),
 	)

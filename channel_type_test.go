@@ -11,24 +11,25 @@ import (
 
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	ct := NewChannelType(randomString(10))
+	ctx := context.Background()
 
-	resp, err := c.CreateChannelType(context.Background(), ct)
+	resp, err := c.CreateChannelType(ctx, ct)
 	require.NoError(t, err, "create channel type")
-
 	time.Sleep(6 * time.Second)
+
+	t.Cleanup(func() {
+		_, _ = c.DeleteChannelType(ctx, ct.Name)
+	})
 
 	return resp.ChannelType
 }
 
 func TestClient_GetChannelType(t *testing.T) {
 	c := initClient(t)
-
 	ct := prepareChannelType(t, c)
-	defer func() {
-		_, _ = c.DeleteChannelType(context.Background(), ct.Name)
-	}()
+	ctx := context.Background()
 
-	resp, err := c.GetChannelType(context.Background(), ct.Name)
+	resp, err := c.GetChannelType(ctx, ct.Name)
 	require.NoError(t, err, "get channel type")
 
 	assert.Equal(t, ct.Name, resp.ChannelType.Name)
@@ -39,13 +40,10 @@ func TestClient_GetChannelType(t *testing.T) {
 
 func TestClient_ListChannelTypes(t *testing.T) {
 	c := initClient(t)
-
 	ct := prepareChannelType(t, c)
-	defer func() {
-		_, _ = c.DeleteChannelType(context.Background(), ct.Name)
-	}()
+	ctx := context.Background()
 
-	resp, err := c.ListChannelTypes(context.Background())
+	resp, err := c.ListChannelTypes(ctx)
 	require.NoError(t, err, "list channel types")
 
 	assert.Contains(t, resp.ChannelTypes, ct.Name)
@@ -53,19 +51,16 @@ func TestClient_ListChannelTypes(t *testing.T) {
 
 func TestClient_UpdateChannelTypePushNotifications(t *testing.T) {
 	c := initClient(t)
-
 	ct := prepareChannelType(t, c)
-	defer func() {
-		_, _ = c.DeleteChannelType(context.Background(), ct.Name)
-	}()
+	ctx := context.Background()
 
 	// default is on
 	require.True(t, ct.PushNotifications)
 
-	_, err := c.UpdateChannelType(context.Background(), ct.Name, map[string]interface{}{"push_notifications": false})
+	_, err := c.UpdateChannelType(ctx, ct.Name, map[string]interface{}{"push_notifications": false})
 	require.NoError(t, err)
 
-	resp, err := c.GetChannelType(context.Background(), ct.Name)
+	resp, err := c.GetChannelType(ctx, ct.Name)
 	require.NoError(t, err)
 	require.False(t, resp.ChannelType.PushNotifications)
 }
@@ -73,6 +68,7 @@ func TestClient_UpdateChannelTypePushNotifications(t *testing.T) {
 // See https://getstream.io/chat/docs/channel_features/ for more details.
 func ExampleClient_CreateChannelType() {
 	client := &Client{}
+	ctx := context.Background()
 
 	newChannelType := &ChannelType{
 		// Copy the default settings.
@@ -97,23 +93,26 @@ func ExampleClient_CreateChannelType() {
 		},
 	)
 
-	_, _ = client.CreateChannelType(context.Background(), newChannelType)
+	_, _ = client.CreateChannelType(ctx, newChannelType)
 }
 
 func ExampleClient_ListChannelTypes() {
 	client := &Client{}
-	_, _ = client.ListChannelTypes(context.Background())
+	ctx := context.Background()
+	_, _ = client.ListChannelTypes(ctx)
 }
 
 func ExampleClient_GetChannelType() {
 	client := &Client{}
-	_, _ = client.GetChannelType(context.Background(), "public")
+	ctx := context.Background()
+	_, _ = client.GetChannelType(ctx, "public")
 }
 
 func ExampleClient_UpdateChannelType() {
 	client := &Client{}
+	ctx := context.Background()
 
-	_, _ = client.UpdateChannelType(context.Background(), "public", map[string]interface{}{
+	_, _ = client.UpdateChannelType(ctx, "public", map[string]interface{}{
 		"permissions": []map[string]interface{}{
 			{
 				"name":      "Allow reads for all",
@@ -137,8 +136,9 @@ func ExampleClient_UpdateChannelType() {
 
 func ExampleClient_UpdateChannelType_bool() {
 	client := &Client{}
+	ctx := context.Background()
 
-	_, _ = client.UpdateChannelType(context.Background(), "public", map[string]interface{}{
+	_, _ = client.UpdateChannelType(ctx, "public", map[string]interface{}{
 		"typing_events":  false,
 		"read_events":    true,
 		"connect_events": true,
@@ -151,8 +151,9 @@ func ExampleClient_UpdateChannelType_bool() {
 
 func ExampleClient_UpdateChannelType_other() {
 	client := &Client{}
+	ctx := context.Background()
 
-	_, _ = client.UpdateChannelType(context.Background(),
+	_, _ = client.UpdateChannelType(ctx,
 		"public",
 		map[string]interface{}{
 			"automod":            "disabled",
@@ -165,8 +166,9 @@ func ExampleClient_UpdateChannelType_other() {
 
 func ExampleClient_UpdateChannelType_permissions() {
 	client := &Client{}
+	ctx := context.Background()
 
-	_, _ = client.UpdateChannelType(context.Background(),
+	_, _ = client.UpdateChannelType(ctx,
 		"public",
 		map[string]interface{}{
 			"permissions": []map[string]interface{}{
@@ -190,6 +192,7 @@ func ExampleClient_UpdateChannelType_permissions() {
 
 func ExampleClient_DeleteChannelType() {
 	client := &Client{}
+	ctx := context.Background()
 
-	_, _ = client.DeleteChannelType(context.Background(), "public")
+	_, _ = client.DeleteChannelType(ctx, "public")
 }

@@ -24,8 +24,9 @@ func clearOldChannelTypes() error {
 		return err
 	}
 	c.BaseURL = defaultBaseURL
+	ctx := context.Background()
 
-	resp, err := c.ListChannelTypes(context.Background())
+	resp, err := c.ListChannelTypes(ctx)
 	if err != nil {
 		return err
 	}
@@ -35,26 +36,36 @@ func clearOldChannelTypes() error {
 			continue
 		}
 		filter := map[string]interface{}{"type": ct.Name}
-		resp, _ := c.QueryChannels(context.Background(), &QueryOption{Filter: filter})
+		resp, _ := c.QueryChannels(ctx, &QueryOption{Filter: filter})
 
 		hasChannel := false
 		for _, ch := range resp.Channels {
-			if _, err := ch.Delete(context.Background()); err != nil {
+			if _, err := ch.Delete(ctx); err != nil {
 				hasChannel = true
 				break
 			}
 		}
 
 		if !hasChannel {
-			_, _ = c.DeleteChannelType(context.Background(), ct.Name)
+			_, _ = c.DeleteChannelType(ctx, ct.Name)
 		}
 	}
 	return nil
 }
 
 func randomUser(t *testing.T, c *Client) *User {
-	resp, err := c.UpsertUser(context.Background(), &User{ID: randomString(10)})
+	ctx := context.Background()
+	resp, err := c.UpsertUser(ctx, &User{ID: randomString(10)})
 	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_, _ = c.DeleteUsers(ctx, []string{resp.User.ID}, DeleteUserOptions{
+			User:          HardDelete,
+			Messages:      HardDelete,
+			Conversations: HardDelete,
+		})
+	})
+
 	return resp.User
 }
 

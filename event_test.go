@@ -46,6 +46,7 @@ func TestEventSupportsAllFields(t *testing.T) {
 
 func TestSendUserCustomEvent(t *testing.T) {
 	c := initClient(t)
+	ctx := context.Background()
 
 	tests := []struct {
 		name         string
@@ -77,11 +78,11 @@ func TestSendUserCustomEvent(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if test.expectedErr == "" {
-				_, err := c.UpsertUser(context.Background(), &User{ID: test.targetUserID})
+				_, err := c.UpsertUser(ctx, &User{ID: test.targetUserID})
 				require.NoError(t, err)
 			}
 
-			_, err := c.SendUserCustomEvent(context.Background(), test.targetUserID, test.event)
+			_, err := c.SendUserCustomEvent(ctx, test.targetUserID, test.event)
 
 			if test.expectedErr == "" {
 				require.NoError(t, err)
