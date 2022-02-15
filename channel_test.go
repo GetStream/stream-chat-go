@@ -341,6 +341,19 @@ func TestChannel_RemoveMembers(t *testing.T) {
 }
 
 func TestChannel_SendEvent(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	u := randomUser(t, c)
+	ctx := context.Background()
+	t.Cleanup(func() {
+		_, _ = ch.Delete(ctx)
+		_, _ = c.DeleteUser(ctx, u.ID)
+	})
+
+	_, err := ch.SendEvent(ctx, &Event{
+		Type: "typing.start",
+	}, u.ID)
+	require.NoError(t, err)
 }
 
 func TestChannel_SendMessage(t *testing.T) {
