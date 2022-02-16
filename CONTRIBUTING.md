@@ -1,7 +1,6 @@
 # :recycle: Contributing
 
-Contributions to this project are very much welcome, please make sure that your code changes are tested and that they follow
-Go best-practices.
+Contributions to this project are very much welcome, please make sure that your code changes are tested and that they follow Go best-practices.
 
 ## Getting started
 
@@ -17,14 +16,16 @@ The tests require at least two environment variables: `STREAM_KEY` and `STREAM_S
 We enforce code formatting with [`gofumpt`](https://github.com/mvdan/gofumpt) (a stricter `gofmt`). If you use VS Code, it's recommended to set this setting there for auto-formatting:
 
 ```json
-"editor.formatOnSave": true,
-"gopls": {
-    "formatting.gofumpt": true
-},
-"go.lintTool": "golangci-lint",
-"go.lintFlags": [
-    "--fast"
-]
+{
+    "editor.formatOnSave": true,
+    "gopls": {
+        "formatting.gofumpt": true
+    },
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ]
+}
 ```
 
 Gofumpt will mostly take care of your linting issues as well.
