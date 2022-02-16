@@ -1,38 +1,37 @@
-# stream-chat-go
+# Official Go SDK for [Stream Chat](https://getstream.io/chat/)
 
 [![build](https://github.com/GetStream/stream-chat-go/workflows/build/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
 [![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v5?tab=doc)
 
-the official Golang API client for [Stream chat](https://getstream.io/chat/) a service for building chat applications.
+<p align="center">
+    <img src="./assets/logo.svg" width="50%" height="50%">
+</p>
+<p align="center">
+    Official Go API client for Stream Chat, a service for building chat applications.
+    <br />
+    <a href="https://getstream.io/chat/docs/"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/GetStream/stream-chat-go/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/GetStream/stream-chat-go/issues">Request Feature</a>
+</p>
 
-You can sign up for a Stream account at https://getstream.io/chat/get_started/.
+## 📝 About Stream
 
-You can use this library to access chat API endpoints server-side, for the client-side integrations (web and mobile) have a look at the Javascript, iOS and Android SDK libraries (https://getstream.io/chat/).
+You can sign up for a Stream account at our [Get Started](https://getstream.io/chat/get_started/) page.
 
-### Installation
+You can use this library to access chat API endpoints server-side.
 
-```bash
+For the client-side integrations (web and mobile) have a look at the JavaScript, iOS and Android SDK libraries ([docs](https://getstream.io/chat/)).
+
+## ⚙️ Installation
+
+```shell
 go get github.com/GetStream/stream-chat-go/v5
 ```
 
-### Documentation
-
-[Official API docs](https://getstream.io/chat/docs/)
-
-### Supported features
-
-- [x] Chat channels
-- [x] Messages
-- [x] Chat channel types
-- [x] User management
-- [x] Moderation API
-- [x] Push configuration
-- [x] User devices
-- [x] User search
-- [x] Channel search
-- [x] Message search
-
-### Quickstart
+## ✨ Getting started
 
 ```go
 package main
@@ -64,12 +63,13 @@ func main() {
 }
 ```
 
-### Contributing
+## ✍️ Contributing
 
-Contributions to this project are very much welcome, please make sure that your code changes are tested and that they follow
-Go best-practices. You can find some tips in [CONTRIBUTING.md](./CONTRIBUTING.md).
+We welcome code changes that improve this library or fix a problem, please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github. We are very happy to merge your code in the official repository. Make sure to sign our [Contributor License Agreement (CLA)](https://docs.google.com/forms/d/e/1FAIpQLScFKsKkAJI7mhCr7K9rEIOpqIDThrWxuvxnwUq2XkHyG154vQ/viewform) first. See our [license file](./LICENSE) for more details.
 
-## We are hiring!
+Head over to [CONTRIBUTING.md](./CONTRIBUTING.md) for some development tips.
+
+## 🧑‍💻 We are hiring!
 
 We've recently closed a [$38 million Series B funding round](https://techcrunch.com/2021/03/04/stream-raises-38m-as-its-chat-and-activity-feed-apis-power-communications-for-1b-users/) and we keep actively growing.
 Our APIs are used by more than a billion end-users, and you'll have a chance to make a huge impact on the product within a team of the strongest engineers all over the world.
