@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/GetStream/stream-chat-go/compare/v5.0.0...v5.1.0) (2022-02-25)
+
+
+### Features
+
+* add all app settings ([#180](https://github.com/GetStream/stream-chat-go/issues/180)) ([69aea7f](https://github.com/GetStream/stream-chat-go/commit/69aea7f809eb5421d96139dcc12b1d6f51b3e8a5))
+* add query with options ([#184](https://github.com/GetStream/stream-chat-go/issues/184)) ([1f56456](https://github.com/GetStream/stream-chat-go/commit/1f56456705dbddf43d589ff6f4419dfa76d4c5f4))
+* add quoted message id top options ([#178](https://github.com/GetStream/stream-chat-go/issues/178)) ([6c5a96c](https://github.com/GetStream/stream-chat-go/commit/6c5a96c9ebddc841a297af4936d7c5395a7527be))
+* add translate message endpoint ([#179](https://github.com/GetStream/stream-chat-go/issues/179)) ([d463b3a](https://github.com/GetStream/stream-chat-go/commit/d463b3a08e94a8d870a5730733aef766e76dfe1d))
+
 ## [5.0.0](https://github.com/GetStream/stream-chat-go/compare/v4.0.1...v5.0.0) (2022-02-03)
 
 
