@@ -104,6 +104,70 @@ type QueryResponse struct {
 	Response
 }
 
+type ChannelRequest struct {
+	CreatedBy               *User                  `json:"created_by,omitempty"`
+	Team                    string                 `json:"team,omitempty"`
+	AutoTranslationEnabled  bool                   `json:"auto_translation_enabled,omitempty"`
+	AutoTranslationLanguage string                 `json:"auto_translation_language,omitempty"`
+	Frozen                  *bool                  `json:"frozen,omitempty"`
+	Disabled                *bool                  `json:"disabled,omitempty"`
+	Members                 []string               `json:"members,omitempty"`
+	Invites                 []string               `json:"invites,omitempty"`
+	ExtraData               map[string]interface{} `json:"-"`
+}
+
+type channelRequestForJSON ChannelRequest
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (c *ChannelRequest) UnmarshalJSON(data []byte) error {
+	var ch2 channelRequestForJSON
+	if err := json.Unmarshal(data, &ch2); err != nil {
+		return err
+	}
+	*c = ChannelRequest(ch2)
+
+	if err := json.Unmarshal(data, &c.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(c.ExtraData, *c)
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (c ChannelRequest) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(c.ExtraData, channelRequestForJSON(c))
+}
+
+type PaginationParamsRequest struct {
+	Limit  int    `json:"limit,omitempty"`
+	Offset int    `json:"offset,omitempty"`
+	IDGTE  string `json:"id_gte,omitempty"`
+	IDGT   string `json:"id_gt,omitempty"`
+	IDLTE  string `json:"id_lte,omitempty"`
+	IDLT   string `json:"id_lt,omitempty"`
+}
+
+type MessagePaginationParamsRequest struct {
+	PaginationParamsRequest
+	CreatedAtAfterEq  *time.Time `json:"created_at_after_or_equal,omitempty"`
+	CreatedAtAfter    *time.Time `json:"created_at_after,omitempty"`
+	CreatedAtBeforeEq *time.Time `json:"created_at_before_or_equal,omitempty"`
+	CreatedAtBefore   *time.Time `json:"created_at_before,omitempty"`
+	IDAround          string     `json:"id_around,omitempty"`
+	CreatedAtAround   *time.Time `json:"created_at_around,omitempty"`
+}
+
+type QueryRequest struct {
+	Data     *ChannelRequest                 `json:"data,omitempty"`
+	Watch    bool                            `json:"watch,omitempty"`
+	State    bool                            `json:"state,omitempty"`
+	Presence bool                            `json:"presence,omitempty"`
+	Messages *MessagePaginationParamsRequest `json:"messages,omitempty"`
+	Members  *PaginationParamsRequest        `json:"members,omitempty"`
+	Watchers *PaginationParamsRequest        `json:"watchers,omitempty"`
+}
+
 func (q QueryResponse) updateChannel(ch *Channel) {
 	if q.Channel != nil {
 		// save client pointer but update channel information
@@ -126,27 +190,13 @@ func (q QueryResponse) updateChannel(ch *Channel) {
 	}
 }
 
-// query makes request to channel api and updates channel internal state.
-func (ch *Channel) query(ctx context.Context, options, data map[string]interface{}) (*QueryResponse, error) {
-	payload := map[string]interface{}{
-		"state": true,
-	}
-
-	for k, v := range options {
-		payload[k] = v
-	}
-
-	if data == nil {
-		data = map[string]interface{}{}
-	}
-
-	payload["data"] = data
-
+// Query makes request to channel api and updates channel internal state.
+func (ch *Channel) Query(ctx context.Context, q *QueryRequest) (*QueryResponse, error) {
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
 	var resp QueryResponse
 
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, payload, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, &q, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -534,18 +584,18 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkR
 	return &resp, err
 }
 
-// Query fills channel info with state (messages, members, reads).
-func (ch *Channel) Query(ctx context.Context, data map[string]interface{}) (*QueryResponse, error) {
-	options := map[string]interface{}{
-		"state": true,
+// RefreshState makes request to channel api and updates channel internal state.
+func (ch *Channel) RefreshState(ctx context.Context) (*QueryResponse, error) {
+	q := &QueryRequest{State: true}
+
+	resp, err := ch.Query(ctx, q)
+	if err != nil {
+		return nil, err
 	}
 
-	return ch.query(ctx, options, data)
-}
+	resp.updateChannel(ch)
 
-// QueryWithOptions gives you the ability to specify options for the query, such as messages, members, watchers.
-func (ch *Channel) QueryWithOptions(ctx context.Context, data, opts map[string]interface{}) (*QueryResponse, error) {
-	return ch.query(ctx, opts, data)
+	return resp, nil
 }
 
 // Show makes channel visible for userID.
@@ -590,13 +640,11 @@ type CreateChannelResponse struct {
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*CreateChannelResponse, error) {
-	_, membersPresent := data["members"]
-
+func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *ChannelRequest) (*CreateChannelResponse, error) {
 	switch {
 	case chanType == "":
 		return nil, errors.New("channel type is empty")
-	case chanID == "" && !membersPresent:
+	case chanID == "" && (data == nil || len(data.Members) == 0):
 		return nil, errors.New("either channel ID or members must be provided")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
@@ -609,23 +657,29 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 		CreatedBy: &User{ID: userID},
 	}
 
-	options := map[string]interface{}{
-		"watch":    false,
-		"state":    true,
-		"presence": false,
-	}
-
 	if data == nil {
-		data = make(map[string]interface{}, 1)
+		data = &ChannelRequest{CreatedBy: &User{ID: userID}}
+	} else {
+		data.CreatedBy = &User{ID: userID}
 	}
 
-	data["created_by"] = map[string]string{"id": userID}
+	q := &QueryRequest{
+		Watch:    false,
+		State:    true,
+		Presence: false,
+		Data:     data,
+	}
 
-	resp, err := ch.query(ctx, options, data)
+	resp, err := ch.Query(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	return &CreateChannelResponse{Channel: ch, Response: &resp.Response}, nil
+}
+
+// CreateChannelWithMembers creates new channel of given type and id or returns already created one.
+func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...string) (*CreateChannelResponse, error) {
+	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
 }
 
 type SendFileRequest struct {
