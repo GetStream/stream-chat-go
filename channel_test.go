@@ -34,6 +34,24 @@ func TestClient_TestQuery(t *testing.T) {
 	require.Equal(t, 1, len(ch.PinnedMessages))
 }
 
+func TestClient_TestQueryWithOptions(t *testing.T) {
+	c := initClient(t)
+	membersID := randomUsersID(t, c, 1)
+	ch := initChannel(t, c, membersID...)
+	ctx := context.Background()
+	msg, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
+	require.NoError(t, err)
+
+	options := map[string]interface{}{
+		"messages": map[string]interface{}{"limit": 1, "id_lt": msg.Message.ID},
+		"members":  map[string]interface{}{"limit": 1, "offset": 0},
+		"watchers": map[string]interface{}{"limit": 1, "offset": 0},
+	}
+	resp, err := ch.QueryWithOptions(ctx, nil, options)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Members))
+}
+
 func TestClient_CreateChannel(t *testing.T) {
 	c := initClient(t)
 	userID := randomUser(t, c).ID
@@ -627,7 +645,6 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 }
 
 func ExampleChannel_Update() {
-	// https://getstream.io/chat/docs/channel_permissions/?language=python
 	client := &Client{}
 	ctx := context.Background()
 
@@ -652,4 +669,17 @@ func (c *Client) ExampleClient_CreateChannel() {
 		User: &User{ID: "tomosso"},
 		Text: "hi there!",
 	}, "tomosso")
+}
+
+func ExampleChannel_QueryWithOptions() {
+	ctx := context.Background()
+	channel := &Channel{}
+	msg, _ := channel.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, channel.CreatedBy.ID)
+
+	options := map[string]interface{}{
+		"messages": map[string]interface{}{"limit": 1, "id_lt": msg.Message.ID},
+		"members":  map[string]interface{}{"limit": 1, "offset": 0},
+		"watchers": map[string]interface{}{"limit": 1, "offset": 0},
+	}
+	_, _ = channel.QueryWithOptions(ctx, nil, options)
 }

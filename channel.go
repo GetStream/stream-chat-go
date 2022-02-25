@@ -94,7 +94,7 @@ func (ch Channel) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(ch.ExtraData, channelForJSON(ch))
 }
 
-type queryResponse struct {
+type QueryResponse struct {
 	Channel        *Channel         `json:"channel,omitempty"`
 	Messages       []*Message       `json:"messages,omitempty"`
 	PinnedMessages []*Message       `json:"pinned_messages,omitempty"`
@@ -104,7 +104,7 @@ type queryResponse struct {
 	Response
 }
 
-func (q queryResponse) updateChannel(ch *Channel) {
+func (q QueryResponse) updateChannel(ch *Channel) {
 	if q.Channel != nil {
 		// save client pointer but update channel information
 		client := ch.client
@@ -127,7 +127,7 @@ func (q queryResponse) updateChannel(ch *Channel) {
 }
 
 // query makes request to channel api and updates channel internal state.
-func (ch *Channel) query(ctx context.Context, options, data map[string]interface{}) (*Response, error) {
+func (ch *Channel) query(ctx context.Context, options, data map[string]interface{}) (*QueryResponse, error) {
 	payload := map[string]interface{}{
 		"state": true,
 	}
@@ -144,7 +144,7 @@ func (ch *Channel) query(ctx context.Context, options, data map[string]interface
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
-	var resp queryResponse
+	var resp QueryResponse
 
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, payload, &resp)
 	if err != nil {
@@ -152,7 +152,7 @@ func (ch *Channel) query(ctx context.Context, options, data map[string]interface
 	}
 
 	resp.updateChannel(ch)
-	return &resp.Response, nil
+	return &resp, nil
 }
 
 // Update edits the channel's custom properties.
@@ -322,7 +322,7 @@ func (ch *Channel) RemoveMembers(ctx context.Context, userIDs []string, message 
 	}
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
-	var resp queryResponse
+	var resp QueryResponse
 
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
 	if err != nil {
@@ -535,12 +535,17 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkR
 }
 
 // Query fills channel info with state (messages, members, reads).
-func (ch *Channel) Query(ctx context.Context, data map[string]interface{}) (*Response, error) {
+func (ch *Channel) Query(ctx context.Context, data map[string]interface{}) (*QueryResponse, error) {
 	options := map[string]interface{}{
 		"state": true,
 	}
 
 	return ch.query(ctx, options, data)
+}
+
+// QueryWithOptions gives you the ability to specify options for the query, such as messages, members, watchers.
+func (ch *Channel) QueryWithOptions(ctx context.Context, data, opts map[string]interface{}) (*QueryResponse, error) {
+	return ch.query(ctx, opts, data)
 }
 
 // Show makes channel visible for userID.
@@ -620,7 +625,7 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 	if err != nil {
 		return nil, err
 	}
-	return &CreateChannelResponse{Channel: ch, Response: resp}, nil
+	return &CreateChannelResponse{Channel: ch, Response: &resp.Response}, nil
 }
 
 type SendFileRequest struct {
