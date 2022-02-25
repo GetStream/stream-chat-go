@@ -12,12 +12,7 @@ import (
 )
 
 func (ch *Channel) refresh(ctx context.Context) error {
-	options := map[string]interface{}{
-		"watch":    false,
-		"state":    true,
-		"presence": false,
-	}
-	_, err := ch.query(ctx, options, nil)
+	_, err := ch.RefreshState(ctx)
 	return err
 }
 
@@ -26,28 +21,16 @@ func TestClient_TestQuery(t *testing.T) {
 	membersID := randomUsersID(t, c, 1)
 	ch := initChannel(t, c, membersID...)
 	ctx := context.Background()
-	_, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
-	require.NoError(t, err)
-
-	_, err = ch.Query(ctx, map[string]interface{}{"watch": false, "state": true})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(ch.PinnedMessages))
-}
-
-func TestClient_TestQueryWithOptions(t *testing.T) {
-	c := initClient(t)
-	membersID := randomUsersID(t, c, 1)
-	ch := initChannel(t, c, membersID...)
-	ctx := context.Background()
 	msg, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
 	require.NoError(t, err)
 
-	options := map[string]interface{}{
-		"messages": map[string]interface{}{"limit": 1, "id_lt": msg.Message.ID},
-		"members":  map[string]interface{}{"limit": 1, "offset": 0},
-		"watchers": map[string]interface{}{"limit": 1, "offset": 0},
+	q := &QueryRequest{
+		State:    true,
+		Messages: &MessagePaginationParamsRequest{PaginationParamsRequest: PaginationParamsRequest{Limit: 1, IDLT: msg.Message.ID}},
+		Members:  &PaginationParamsRequest{Limit: 1, Offset: 0},
+		Watchers: &PaginationParamsRequest{Limit: 1, Offset: 0},
 	}
-	resp, err := ch.QueryWithOptions(ctx, nil, options)
+	resp, err := ch.Query(ctx, q)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Members))
 }
@@ -76,14 +59,14 @@ func TestClient_CreateChannel(t *testing.T) {
 		channelType string
 		id          string
 		userID      string
-		data        map[string]interface{}
+		data        *ChannelRequest
 		wantErr     bool
 	}{
 		{"create channel with ID", "messaging", randomString(12), userID, nil, false},
 		{"create channel without ID and members", "messaging", "", userID, nil, true},
 		{
 			"create channel without ID but with members", "messaging", "", userID,
-			map[string]interface{}{"members": randomUsersID(t, c, 2)},
+			&ChannelRequest{Members: randomUsersID(t, c, 2)},
 			false,
 		},
 	}
@@ -449,11 +432,8 @@ func TestChannel_PartialUpdate(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
-		"members": members,
-		"color":   "blue",
-		"age":     30,
-	})
+	req := &ChannelRequest{Members: members, ExtraData: map[string]interface{}{"color": "blue", "age": 30}}
+	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 	require.NoError(t, err)
 
 	ch := resp.Channel
@@ -561,10 +541,8 @@ func TestChannel_AcceptInvite(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
-		"members": members,
-		"invites": []string{members[0]},
-	})
+	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
+	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
 	_, err = resp.Channel.AcceptInvite(ctx, members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
@@ -581,10 +559,8 @@ func TestChannel_RejectInvite(t *testing.T) {
 		members = append(members, users[i].ID)
 	}
 
-	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, map[string]interface{}{
-		"members": members,
-		"invites": []string{members[0]},
-	})
+	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
+	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
 	_, err = resp.Channel.RejectInvite(ctx, members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
@@ -600,13 +576,8 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	for i := range users {
 		members = append(members, users[i].ID)
 	}
+	ch := initChannel(t, c, members...)
 
-	resp, err := c.CreateChannel(ctx, "messaging", randomString(12), randomUser(t, c).ID, map[string]interface{}{
-		"members": members,
-	})
-	require.NoError(t, err, "create channel")
-
-	ch := resp.Channel
 	// mute the channel
 	mute, err := ch.Mute(ctx, members[0], nil)
 	require.NoError(t, err, "mute channel")
@@ -671,15 +642,15 @@ func (c *Client) ExampleClient_CreateChannel() {
 	}, "tomosso")
 }
 
-func ExampleChannel_QueryWithOptions() {
+func ExampleChannel_Query() {
 	ctx := context.Background()
 	channel := &Channel{}
 	msg, _ := channel.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, channel.CreatedBy.ID)
 
-	options := map[string]interface{}{
-		"messages": map[string]interface{}{"limit": 1, "id_lt": msg.Message.ID},
-		"members":  map[string]interface{}{"limit": 1, "offset": 0},
-		"watchers": map[string]interface{}{"limit": 1, "offset": 0},
+	q := &QueryRequest{
+		Messages: &MessagePaginationParamsRequest{PaginationParamsRequest: PaginationParamsRequest{Limit: 1, IDLT: msg.Message.ID}},
+		Members:  &PaginationParamsRequest{Limit: 1, Offset: 0},
+		Watchers: &PaginationParamsRequest{Limit: 1, Offset: 0},
 	}
-	_, _ = channel.QueryWithOptions(ctx, nil, options)
+	_, _ = channel.Query(ctx, q)
 }
