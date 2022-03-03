@@ -23,7 +23,7 @@ func clearOldChannelTypes() error {
 	if err != nil {
 		return err
 	}
-	c.BaseURL = defaultBaseURL
+	c.BaseURL = DefaultBaseURL
 	ctx := context.Background()
 
 	resp, err := c.ListChannelTypes(ctx)

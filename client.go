@@ -23,7 +23,10 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://chat.stream-io-api.com"
+	// DefaultBaseURL is the default base URL for the stream chat api.
+	// It works like CDN style and connects you to the closest production server.
+	// By default, there is no real reason to change it. Use it only if you know what you are doing.
+	DefaultBaseURL = "https://chat.stream-io-api.com"
 	defaultTimeout = 6 * time.Second
 )
 
@@ -52,7 +55,7 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 		return nil, errors.New("API secret is empty")
 	}
 
-	baseURL := defaultBaseURL
+	baseURL := DefaultBaseURL
 	if baseURLEnv := os.Getenv("STREAM_CHAT_URL"); strings.HasPrefix(baseURLEnv, "http") {
 		baseURL = baseURLEnv
 	}
