@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/GetStream/stream-chat-go/compare/v5.1.0...v5.2.0) (2022-03-03)
+
+
+### Features
+
+* export base url ([#188](https://github.com/GetStream/stream-chat-go/issues/188)) ([ceee2fa](https://github.com/GetStream/stream-chat-go/commit/ceee2fa1a55a5f716cf810b0143cbeb0f46a98f3))
+
 ## [5.1.0](https://github.com/GetStream/stream-chat-go/compare/v5.0.0...v5.1.0) (2022-02-25)
 
 
