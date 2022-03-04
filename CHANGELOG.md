@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [5.3.0](https://github.com/GetStream/stream-chat-go/compare/v5.2.0...v5.3.0) (2022-03-04)
 
+### Fixes
+
+* add missing fields to the Message type ([#191](https://github.com/GetStream/stream-chat-go/pull/191)) ([f2d1a4b](https://github.com/GetStream/stream-chat-go/commit/f2d1a4b6c927018a65c778435ceb7402b21b121d))
+
 ## [5.2.0](https://github.com/GetStream/stream-chat-go/compare/v5.1.0...v5.2.0) (2022-03-03)
 
 
