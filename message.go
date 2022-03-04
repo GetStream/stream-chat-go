@@ -35,21 +35,27 @@ type Message struct {
 	LatestReactions []*Reaction    `json:"latest_reactions"` // last reactions
 	OwnReactions    []*Reaction    `json:"own_reactions"`
 	ReactionCounts  map[string]int `json:"reaction_counts"`
+	ReactionScores  map[string]int `json:"reaction_scores"`
 
-	ParentID      string `json:"parent_id"`       // id of parent message if it's reply
-	ShowInChannel bool   `json:"show_in_channel"` // show reply message also in channel
+	ParentID           string  `json:"parent_id,omitempty"`       // id of parent message if it's reply
+	ShowInChannel      bool    `json:"show_in_channel,omitempty"` // show reply message also in channel
+	ThreadParticipants []*User `json:"thread_participants,omitempty"`
 
 	ReplyCount      int     `json:"reply_count,omitempty"`
-	QuotedMessageID string  `json:"quoted_message_id"`
+	QuotedMessageID string  `json:"quoted_message_id,omitempty"`
 	MentionedUsers  []*User `json:"mentioned_users"`
 
-	Command string `json:"command"`
+	Command string `json:"command,omitempty"`
 
-	Shadowed bool       `json:"shadowed,omitempty"`
-	Pinned   bool       `json:"pinned,omitempty"`
-	PinnedAt *time.Time `json:"pinned_at,omitempty"`
-	PinnedBy *User      `json:"pinned_by,omitempty"`
+	Shadowed   bool       `json:"shadowed,omitempty"`
+	Pinned     bool       `json:"pinned,omitempty"`
+	PinnedAt   *time.Time `json:"pinned_at,omitempty"`
+	PinnedBy   *User      `json:"pinned_by,omitempty"`
+	PinExpires *time.Time `json:"pin_expires,omitempty"`
 
+	ImageModerationLabels map[string][]string `json:"image_labels,omitempty"`
+
+	MML  string            `json:"mml,omitempty"`
 	I18n map[string]string `json:"i18n,omitempty"`
 
 	CreatedAt *time.Time `json:"created_at,omitempty"`
