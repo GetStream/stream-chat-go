@@ -21,7 +21,8 @@ const (
 )
 
 type Message struct {
-	ID string `json:"id"`
+	ID  string `json:"id"`
+	CID string `json:"cid"`
 
 	Text string `json:"text"`
 	HTML string `json:"html"`
@@ -41,6 +42,8 @@ type Message struct {
 	ReplyCount      int     `json:"reply_count,omitempty"`
 	QuotedMessageID string  `json:"quoted_message_id"`
 	MentionedUsers  []*User `json:"mentioned_users"`
+
+	Command string `json:"command"`
 
 	Shadowed bool       `json:"shadowed,omitempty"`
 	Pinned   bool       `json:"pinned,omitempty"`
