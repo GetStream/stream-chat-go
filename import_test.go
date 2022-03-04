@@ -12,21 +12,32 @@ import (
 func TestImportsEndToEnd(t *testing.T) {
 	t.Skip("The backend isn't deployed yet.")
 	filename := randomString(10) + ".json"
+	content := "[]"
 	c := initClient(t)
 	ctx := context.Background()
 
-	createResp, err := c.CreateImport(ctx, filename)
+	createURLResp, err := c.CreateImportURL(ctx, filename)
 	require.NoError(t, err)
-	require.NotNil(t, createResp.ImportTask.ID)
-	require.Equal(t, filename, createResp.ImportTask.Filename)
-	require.NotEmpty(t, createResp.UploadURL)
+	require.NotEmpty(t, createURLResp.Path)
+	require.NotEmpty(t, createURLResp.UploadURL)
 
-	data := strings.NewReader("[]")
-	r, err := http.NewRequestWithContext(ctx, http.MethodPut, createResp.UploadURL, data)
+	_, err = c.CreateImport(ctx, createURLResp.Path)
+	require.Error(t, err)
+
+	data := strings.NewReader(content)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPut, createURLResp.UploadURL, data)
 	require.NoError(t, err)
+
+	r.Header.Set("Content-Type", "application/json")
+	r.ContentLength = data.Size()
 	uploadResp, err := c.HTTP.Do(r)
 	require.NoError(t, err)
 	uploadResp.Body.Close()
+
+	createResp, err := c.CreateImport(ctx, createURLResp.Path)
+	require.NoError(t, err)
+	require.NotNil(t, createResp.ImportTask.ID)
+	require.True(t, strings.HasSuffix(createResp.ImportTask.Path, filename))
 
 	getResp, err := c.GetImport(ctx, createResp.ImportTask.ID)
 	require.NoError(t, err)

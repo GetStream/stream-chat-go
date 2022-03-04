@@ -16,7 +16,7 @@ type ImportTaskHistory struct {
 
 type ImportTask struct {
 	CreatedAt time.Time            `json:"created_at"`
-	Filename  string               `json:"filename"`
+	Path      string               `json:"path"`
 	History   []*ImportTaskHistory `json:"history"`
 	ID        string               `json:"id"`
 	State     string               `json:"state"`
@@ -32,7 +32,12 @@ type ListImportsOptions struct {
 
 type CreateImportResponse struct {
 	ImportTask *ImportTask `json:"import_task"`
-	UploadURL  string      `json:"upload_url"`
+	Response
+}
+
+type CreateImportURLResponse struct {
+	Path      string `json:"path"`
+	UploadURL string `json:"upload_url"`
 	Response
 }
 
@@ -46,13 +51,24 @@ type ListImportsResponse struct {
 	Response
 }
 
+// CreateImportURL creates a new import URL.
+// Note: Do not use this.
+// It is present for internal usage only.
+// This function can, and will, break and/or be removed at any point in time.
+func (c *Client) CreateImportURL(ctx context.Context, filename string) (*CreateImportURLResponse, error) {
+	var resp CreateImportURLResponse
+	err := c.makeRequest(ctx, http.MethodPost, "imports_url", nil, map[string]string{"filename": filename}, &resp)
+
+	return &resp, err
+}
+
 // CreateImport creates a new import task.
 // Note: Do not use this.
 // It is present for internal usage only.
 // This function can, and will, break and/or be removed at any point in time.
-func (c *Client) CreateImport(ctx context.Context, filename string) (*CreateImportResponse, error) {
+func (c *Client) CreateImport(ctx context.Context, path string) (*CreateImportResponse, error) {
 	var resp CreateImportResponse
-	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"filename": filename}, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": path}, &resp)
 
 	return &resp, err
 }
