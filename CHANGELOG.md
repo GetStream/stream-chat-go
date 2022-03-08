@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/GetStream/stream-chat-go/compare/v5.3.0...v5.4.0) (2022-03-08)
+
+
+### Features
+
+* add CreateImportURL method ([#193](https://github.com/GetStream/stream-chat-go/issues/193)) ([e96d0a8](https://github.com/GetStream/stream-chat-go/commit/e96d0a8a74cc2976a92cdd93c8fac36241c6fe1a))
+
 ## [5.3.0](https://github.com/GetStream/stream-chat-go/compare/v5.2.0...v5.3.0) (2022-03-04)
 
 ### Fixes
