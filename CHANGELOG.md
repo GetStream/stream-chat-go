@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.4.1](https://github.com/GetStream/stream-chat-go/compare/v5.4.0...v5.4.1) (2022-03-09)
+
+
+### Bug Fixes
+
+* check if iat is zero ([#196](https://github.com/GetStream/stream-chat-go/issues/196)) ([9e52dea](https://github.com/GetStream/stream-chat-go/commit/9e52dea56baae2b93ef1876fd3157c59381a2265))
+
 ## [5.4.0](https://github.com/GetStream/stream-chat-go/compare/v5.3.0...v5.4.0) (2022-03-08)
 
 
