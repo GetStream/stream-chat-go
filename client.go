@@ -127,7 +127,7 @@ func (c *Client) CreateToken(userID string, expire time.Time, issuedAt ...time.T
 	if !expire.IsZero() {
 		claims["exp"] = expire.Unix()
 	}
-	if len(issuedAt) > 0 {
+	if len(issuedAt) > 0 && !issuedAt[0].IsZero() {
 		claims["iat"] = issuedAt[0].Unix()
 	}
 

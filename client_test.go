@@ -54,6 +54,7 @@ func TestClient_CreateToken(t *testing.T) {
 	type args struct {
 		userID string
 		expire time.Time
+		iat    time.Time
 	}
 	tests := []struct {
 		name    string
@@ -62,15 +63,15 @@ func TestClient_CreateToken(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"simple without expiration",
-			args{"tommaso", time.Time{}},
+			"simple without expiration and iat",
+			args{"tommaso", time.Time{}, time.Time{}},
 			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.v-x-jt3ZnBXXbQ0GoWloIZtVnat2IE74U1a4Yuxd63M",
 			false,
 		},
 		{
-			"simple with expiration",
-			args{"tommaso", time.Unix(1566941272, 123121)},
-			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsInVzZXJfaWQiOiJ0b21tYXNvIn0.jF4ZbAIEuzS2jRH0uiu3HW9n0NHwT96QkzGlywcG9HU",
+			"simple with expiration and iat",
+			args{"tommaso", time.Unix(1566941272, 123121), time.Unix(1566941272, 123121)},
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NjY5NDEyNzIsImlhdCI6MTU2Njk0MTI3MiwidXNlcl9pZCI6InRvbW1hc28ifQ.3HY2O_7o5ZjZ-6KCXLzyPpHZOlNEDy6_m3iNb5DKAMY",
 			false,
 		},
 	}
@@ -80,7 +81,7 @@ func TestClient_CreateToken(t *testing.T) {
 			c, err := NewClient("key", "secret")
 			require.NoError(t, err)
 
-			got, err := c.CreateToken(tt.args.userID, tt.args.expire)
+			got, err := c.CreateToken(tt.args.userID, tt.args.expire, tt.args.iat)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
