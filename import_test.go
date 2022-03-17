@@ -21,7 +21,7 @@ func TestImportsEndToEnd(t *testing.T) {
 	require.NotEmpty(t, createURLResp.Path)
 	require.NotEmpty(t, createURLResp.UploadURL)
 
-	_, err = c.CreateImport(ctx, createURLResp.Path)
+	_, err = c.CreateImport(ctx, createURLResp.Path, "upsert")
 	require.Error(t, err)
 
 	data := strings.NewReader(content)
@@ -34,7 +34,7 @@ func TestImportsEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	uploadResp.Body.Close()
 
-	createResp, err := c.CreateImport(ctx, createURLResp.Path)
+	createResp, err := c.CreateImport(ctx, createURLResp.Path, "upsert")
 	require.NoError(t, err)
 	require.NotNil(t, createResp.ImportTask.ID)
 	require.True(t, strings.HasSuffix(createResp.ImportTask.Path, filename))
