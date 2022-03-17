@@ -66,9 +66,9 @@ func (c *Client) CreateImportURL(ctx context.Context, filename string) (*CreateI
 // Note: Do not use this.
 // It is present for internal usage only.
 // This function can, and will, break and/or be removed at any point in time.
-func (c *Client) CreateImport(ctx context.Context, filePath string) (*CreateImportResponse, error) {
+func (c *Client) CreateImport(ctx context.Context, filePath, mode string) (*CreateImportResponse, error) {
 	var resp CreateImportResponse
-	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": filePath}, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": filePath, "mode": mode}, &resp)
 
 	return &resp, err
 }
