@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.5.1](https://github.com/GetStream/stream-chat-go/compare/v5.5.0...v5.5.1) (2022-03-18)
+
+
+### Bug Fixes
+
+* added missing field to ImportTask response ([#200](https://github.com/GetStream/stream-chat-go/issues/200)) ([ce45d30](https://github.com/GetStream/stream-chat-go/commit/ce45d30aa986eb3f57d5a35ca6f6cec6d279df67))
+
 ## [5.5.0](https://github.com/GetStream/stream-chat-go/compare/v5.4.1...v5.5.0) (2022-03-18)
 
 
