@@ -17,6 +17,7 @@ type ImportTaskHistory struct {
 type ImportTask struct {
 	CreatedAt time.Time            `json:"created_at"`
 	Path      string               `json:"path"`
+	Mode      string               `json:"mode"`
 	History   []*ImportTaskHistory `json:"history"`
 	ID        string               `json:"id"`
 	State     string               `json:"state"`
