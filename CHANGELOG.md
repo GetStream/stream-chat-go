@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.5.2](https://github.com/GetStream/stream-chat-go/compare/v5.5.1...v5.5.2) (2022-03-21)
+
+
+### Features
+
+* added ImportMode type ([#202](https://github.com/GetStream/stream-chat-go/issues/202)) ([b941250](https://github.com/GetStream/stream-chat-go/commit/b941250d70f5cf74c061d2a649d4893633ba37b6))
+
 ### [5.5.1](https://github.com/GetStream/stream-chat-go/compare/v5.5.0...v5.5.1) (2022-03-18)
 
 
