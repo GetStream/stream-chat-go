@@ -14,10 +14,17 @@ type ImportTaskHistory struct {
 	PrevState string    `json:"prev_state"`
 }
 
+type ImportMode string
+
+const (
+	InsertMode ImportMode = "insert"
+	UpsertMode ImportMode = "upsert"
+)
+
 type ImportTask struct {
 	CreatedAt time.Time            `json:"created_at"`
 	Path      string               `json:"path"`
-	Mode      string               `json:"mode"`
+	Mode      ImportMode           `json:"mode"`
 	History   []*ImportTaskHistory `json:"history"`
 	ID        string               `json:"id"`
 	State     string               `json:"state"`
@@ -67,9 +74,9 @@ func (c *Client) CreateImportURL(ctx context.Context, filename string) (*CreateI
 // Note: Do not use this.
 // It is present for internal usage only.
 // This function can, and will, break and/or be removed at any point in time.
-func (c *Client) CreateImport(ctx context.Context, filePath, mode string) (*CreateImportResponse, error) {
+func (c *Client) CreateImport(ctx context.Context, filePath string, mode ImportMode) (*CreateImportResponse, error) {
 	var resp CreateImportResponse
-	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": filePath, "mode": mode}, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": filePath, "mode": string(mode)}, &resp)
 
 	return &resp, err
 }
