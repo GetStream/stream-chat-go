@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type QueryOption struct {
@@ -39,6 +40,22 @@ type queryRequest struct {
 
 	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
 	Sort             []*SortOption          `json:"sort,omitempty"`
+}
+
+type QueryFlagReportsRequest struct {
+	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
+	Limit            int                    `json:"limit,omitempty"`
+	Offset           int                    `json:"offset,omitempty"`
+}
+
+type FlagReport struct {
+	ID            string    `json:"id"`
+	Message       *Message  `json:"message"`
+	FlagsCount    int       `json:"flags_count"`
+	MessageUserID string    `json:"message_user_id"`
+	ChannelCid    string    `json:"channel_cid"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type QueryUsersResponse struct {
@@ -216,4 +233,15 @@ func (c *Client) QueryMessageFlags(ctx context.Context, q *QueryOption) (*QueryM
 	var resp QueryMessageFlagsResponse
 	err = c.makeRequest(ctx, http.MethodGet, "moderation/flags/message", values, nil, &resp)
 	return &resp, err
+}
+
+type QueryFlagReportsResponse struct {
+	Response
+	FlagReports []*FlagReport `json:"flag_reports"`
+}
+
+func (c *Client) QueryFlagReports(ctx context.Context, q *QueryFlagReportsRequest) (*QueryFlagReportsResponse, error) {
+	resp := &QueryFlagReportsResponse{}
+	err := c.makeRequest(ctx, http.MethodPost, "moderation/reports", nil, q, &resp)
+	return resp, err
 }

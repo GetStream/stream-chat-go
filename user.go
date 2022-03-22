@@ -191,6 +191,31 @@ func (c *Client) FlagUser(ctx context.Context, targetID, flaggedBy string) (*Res
 	return &resp, err
 }
 
+type ReviewFlagReportRequest struct {
+	ReviewResult  string                 `json:"review_result,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
+	ReviewDetails map[string]interface{} `json:"review_details,omitempty"`
+}
+
+type ExtendedFlagReport struct {
+	FlagReport
+	ReviewResult  string                 `json:"review_result"`
+	ReviewDetails map[string]interface{} `json:"review_details"`
+	ReviewedAt    time.Time              `json:"reviewed_at"`
+	ReviewedBy    User                   `json:"reviewed_by"`
+}
+
+type ReviewFlagReportResponse struct {
+	Response
+	FlagReport *ExtendedFlagReport `json:"flag_report"`
+}
+
+func (c *Client) ReviewFlagReport(ctx context.Context, reportID string, req *ReviewFlagReportRequest) (*ReviewFlagReportResponse, error) {
+	resp := &ReviewFlagReportResponse{}
+	err := c.makeRequest(ctx, http.MethodPatch, "moderation/reports/"+reportID, nil, req, resp)
+	return resp, err
+}
+
 type GuestUserResponse struct {
 	User        *User  `json:"user"`
 	AccessToken string `json:"access_token"`
