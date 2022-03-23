@@ -8,16 +8,18 @@ import (
 )
 
 const (
-	PushProviderAPNS     = pushProvider("apn")
-	PushProviderFirebase = pushProvider("firebase")
+	PushProviderAPNS     = PushProviderType("apn")
+	PushProviderFirebase = PushProviderType("firebase")
+	PushProviderXiaomi   = PushProviderType("xiaomi")
+	PushProviderHuawei   = PushProviderType("huawei")
 )
 
-type pushProvider = string
+type PushProviderType = string
 
 type Device struct {
-	ID           string       `json:"id"`            // The device ID.
-	UserID       string       `json:"user_id"`       // The user ID for this device.
-	PushProvider pushProvider `json:"push_provider"` // The push provider for this device. One of constants PushProvider*
+	ID           string           `json:"id"`            // The device ID.
+	UserID       string           `json:"user_id"`       // The user ID for this device.
+	PushProvider PushProviderType `json:"push_provider"` // The push provider for this device. One of constants PushProvider*
 }
 
 type DevicesResponse struct {
