@@ -298,3 +298,33 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, got.Flags, 1)
 }
+
+func TestClient_QueryFlagReportsAndReview(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+	user1, user2 := randomUser(t, c), randomUser(t, c)
+	msg, err := ch.SendMessage(ctx, &Message{Text: randomString(25)}, user1.ID)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, _ = ch.Delete(ctx)
+		_, _ = c.DeleteUser(ctx, user1.ID, DeleteUserWithHardDelete())
+		_, _ = c.DeleteUser(ctx, user2.ID, DeleteUserWithHardDelete())
+	})
+
+	_, err = c.FlagMessage(ctx, msg.Message.ID, user1.ID)
+	require.NoError(t, err)
+
+	resp, err := c.QueryFlagReports(ctx, &QueryFlagReportsRequest{
+		FilterConditions: map[string]interface{}{"message_id": msg.Message.ID},
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, resp.FlagReports)
+
+	flagResp, err := c.ReviewFlagReport(ctx, resp.FlagReports[0].ID, &ReviewFlagReportRequest{
+		ReviewResult: "reviewed",
+		UserID:       user2.ID,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, flagResp.FlagReport)
+}
