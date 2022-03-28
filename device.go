@@ -17,9 +17,10 @@ const (
 type PushProviderType = string
 
 type Device struct {
-	ID           string           `json:"id"`            // The device ID.
-	UserID       string           `json:"user_id"`       // The user ID for this device.
-	PushProvider PushProviderType `json:"push_provider"` // The push provider for this device. One of constants PushProvider*
+	ID               string           `json:"id"`                 // The device ID.
+	UserID           string           `json:"user_id"`            // The user ID for this device.
+	PushProvider     PushProviderType `json:"push_provider"`      // The push provider for this device. One of constants PushProvider*
+	PushProviderName string           `json:"push_provider_name"` // The push provider name for this device.
 }
 
 type DevicesResponse struct {

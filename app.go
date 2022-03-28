@@ -225,12 +225,15 @@ type CheckPushRequest struct {
 	FirebaseTemplate     string `json:"firebase_template,omitempty"`
 	FirebaseDataTemplate string `json:"firebase_data_template,omitempty"`
 	SkipDevices          *bool  `json:"skip_devices,omitempty"`
+	PushProviderName     string `json:"push_provider_name,omitempty"`
+	PushProviderType     string `json:"push_provider_type,omitempty"`
 	UserID               string `json:"user_id,omitempty"`
 	User                 *User  `json:"user,omitempty"`
 }
 
 type DeviceError struct {
 	Provider     string `json:"provider"`
+	ProviderName string `json:"provider_name"`
 	ErrorMessage string `json:"error_message"`
 }
 
