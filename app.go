@@ -264,3 +264,48 @@ func (c *Client) RevokeTokens(ctx context.Context, before *time.Time) (*Response
 	err := c.makeRequest(ctx, http.MethodPatch, "app", nil, setting, &resp)
 	return &resp, err
 }
+
+type PushProvider struct {
+	Type           PushProviderType `json:"type"`
+	Name           string           `json:"name"`
+	Description    string           `json:"description,omitempty"`
+	DisabledAt     *time.Time       `json:"disabled_at,omitempty"`
+	DisabledReason string           `json:"disabled_reason,omitempty"`
+
+	APNAuthKey string `json:"apn_auth_key,omitempty"`
+	APNKeyID   string `json:"apn_key_id,omitempty"`
+	APNTeamID  string `json:"apn_team_id,omitempty"`
+	APNTopic   string `json:"apn_topic,omitempty"`
+
+	FirebaseCredentials string `json:"firebase_credentials,omitempty"`
+
+	HuaweiAppID     string `json:"huawei_app_id,omitempty"`
+	HuaweiAppSecret string `json:"huawei_app_secret,omitempty"`
+
+	XiaomiPackageName string `json:"xiaomi_package_name,omitempty"`
+	XiaomiAppSecret   string `json:"xiaomi_app_secret,omitempty"`
+}
+
+func (c *Client) UpsertPushProvider(ctx context.Context, provider *PushProvider) (*Response, error) {
+	body := map[string]PushProvider{"push_provider": *provider}
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "push_providers", nil, body, &resp)
+	return &resp, err
+}
+
+func (c *Client) DeletePushProvider(ctx context.Context, providerType, name string) (*Response, error) {
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodDelete, "push_providers/"+providerType+"/"+name, nil, nil, &resp)
+	return &resp, err
+}
+
+type PushProviderListResponse struct {
+	Response
+	PushProviders []PushProvider `json:"push_providers"`
+}
+
+func (c *Client) ListPushProviders(ctx context.Context) (*PushProviderListResponse, error) {
+	var providers PushProviderListResponse
+	err := c.makeRequest(ctx, http.MethodGet, "push_providers", nil, nil, &providers)
+	return &providers, err
+}
