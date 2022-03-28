@@ -25,6 +25,7 @@ type AppSettings struct {
 	ImageUploadConfig         *FileUploadConfig      `json:"image_upload_config,omitempty"`
 	ImageModerationLabels     []string               `json:"image_moderation_labels,omitempty"`
 	ImageModerationEnabled    *bool                  `json:"image_moderation_enabled,omitempty"`
+	RemindersInterval         int                    `json:"reminders_interval,omitempty"`
 	BeforeMessageSendHookURL  string                 `json:"before_message_send_hook_url,omitempty"`
 	CustomActionHandlerURL    string                 `json:"custom_action_handler_url,omitempty"`
 	UserSearchDisallowedRoles []string               `json:"user_search_disallowed_roles,omitempty"`
@@ -161,6 +162,7 @@ type AppConfig struct {
 	DisablePermissions        bool                      `json:"disable_permissions_checks"`
 	MultiTenantEnabled        bool                      `json:"multi_tenant_enabled"`
 	RevokeTokensIssuedBefore  *time.Time                `json:"revoke_tokens_issued_before"`
+	RemindersInterval         int                       `json:"reminders_interval"`
 	AsyncURLEnrichEnabled     bool                      `json:"async_url_enrich_enabled"`
 	Grants                    map[string][]string       `json:"grants"`
 	PermissionVersion         string                    `json:"permission_version"`

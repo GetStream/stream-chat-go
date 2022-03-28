@@ -14,6 +14,7 @@ type ChannelConfig struct {
 	// make messages searchable
 	Search    bool `json:"search"`
 	Reactions bool `json:"reactions"`
+	Reminders bool `json:"reminders"`
 	Replies   bool `json:"replies"`
 	Mutes     bool `json:"mutes"`
 	// enable/disable push notifications
