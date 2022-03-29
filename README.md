@@ -47,7 +47,16 @@ var APISecret = os.Getenv("STREAM_SECRET")
 var userID = "" // your server user id
 
 func main() {
+	// Initialize client
 	client, err := stream.NewClient(APIKey, APISecret)
+	
+	// Or with a specific timeout
+	client, err := stream.NewClient(APIKey, APISecret, WithTimeout(3 * time.Second))
+
+	// Or using only environmental variables: (required) STREAM_KEY, (required) STREAM_SECRET,
+	// (optional) STREAM_CHAT_TIMEOUT
+	client, err := stream.NewClientFromEnvVars()
+
 	// handle error
 
 	// use client methods
