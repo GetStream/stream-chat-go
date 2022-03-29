@@ -39,6 +39,14 @@ type Client struct {
 	authToken string
 }
 
+type ClientOption func(c *Client)
+
+func WithTimeout(t time.Duration) func(c *Client) {
+	return func(c *Client) {
+		c.HTTP.Timeout = t
+	}
+}
+
 // NewClientFromEnvVars creates a new Client where the API key
 // is retrieved from STREAM_KEY and the secret from STREAM_SECRET
 // environmental variables.
@@ -47,7 +55,7 @@ func NewClientFromEnvVars() (*Client, error) {
 }
 
 // NewClient creates new stream chat api client.
-func NewClient(apiKey, apiSecret string) (*Client, error) {
+func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, error) {
 	switch {
 	case apiKey == "":
 		return nil, errors.New("API key is empty")
@@ -82,6 +90,10 @@ func NewClient(apiKey, apiSecret string) (*Client, error) {
 			Timeout:   timeout,
 			Transport: tr,
 		},
+	}
+
+	for _, fn := range options {
+		fn(client)
 	}
 
 	token, err := client.createToken(jwt.MapClaims{"server": true})
