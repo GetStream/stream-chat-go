@@ -688,8 +688,6 @@ type SendFileRequest struct {
 	FileName string
 	// User object; required
 	User *User
-	// file content type, required for SendImage
-	ContentType string
 }
 
 // SendFile sends file to the channel. Returns file url or error.

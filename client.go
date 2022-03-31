@@ -225,7 +225,7 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 		return nil, err
 	}
 
-	err = form.setFile("file", opts.Reader, opts.FileName, opts.ContentType)
+	err = form.setFile("file", opts.Reader, opts.FileName, "application/octet-stream")
 	if err != nil {
 		return nil, err
 	}
