@@ -508,10 +508,9 @@ func TestChannel_SendImage(t *testing.T) {
 		}
 
 		resp, err := ch.SendImage(ctx, SendFileRequest{
-			Reader:      file,
-			FileName:    "HelloWorld.jpg",
-			User:        randomUser(t, c),
-			ContentType: "image/jpeg",
+			Reader:   file,
+			FileName: "HelloWorld.jpg",
+			User:     randomUser(t, c),
 		})
 		if err != nil {
 			t.Fatalf("Send image failed: %s", err.Error())

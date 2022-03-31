@@ -166,17 +166,11 @@ type multipartForm struct {
 
 // CreateFormFile is a convenience wrapper around CreatePart. It creates
 // a new form-data header with the provided field name, file name and content type.
-func (form *multipartForm) CreateFormFile(fieldName, filename, contentType string) (io.Writer, error) {
+func (form *multipartForm) CreateFormFile(fieldName, filename string) (io.Writer, error) {
 	h := make(textproto.MIMEHeader)
 
 	h.Set("Content-Disposition",
 		fmt.Sprintf(`form-data; name=%q; filename=%q`, fieldName, filename))
-
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	h.Set("Content-Type", contentType)
 
 	return form.Writer.CreatePart(h)
 }
@@ -189,8 +183,8 @@ func (form *multipartForm) setData(fieldName string, data interface{}) error {
 	return json.NewEncoder(field).Encode(data)
 }
 
-func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName, contentType string) error {
-	file, err := form.CreateFormFile(fieldName, fileName, contentType)
+func (form *multipartForm) setFile(fieldName string, r io.Reader, fileName string) error {
+	file, err := form.CreateFormFile(fieldName, fileName)
 	if err != nil {
 		return err
 	}
@@ -225,7 +219,7 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 		return nil, err
 	}
 
-	err = form.setFile("file", opts.Reader, opts.FileName, opts.ContentType)
+	err = form.setFile("file", opts.Reader, opts.FileName)
 	if err != nil {
 		return nil, err
 	}
