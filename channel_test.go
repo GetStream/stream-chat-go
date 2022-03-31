@@ -405,6 +405,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	_, err = ch.Truncate(ctx,
 		TruncateWithSkipPush(),
 		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
+		TruncateWithUser(&User{ID: user.ID}),
 	)
 	require.NoError(t, err, "truncate channel")
 	require.NoError(t, ch.refresh(ctx), "refresh channel")

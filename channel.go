@@ -54,6 +54,9 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
+	TruncatedBy   *User  `json:"truncated_by"`
+	TruncatedByID string `json:"truncated_by_id"`
+
 	ExtraData map[string]interface{} `json:"-"`
 
 	client *Client
@@ -247,6 +250,8 @@ type truncateOptions struct {
 	SkipPush    bool       `json:"skip_push,omitempty"`
 	TruncatedAt *time.Time `json:"truncated_at,omitempty"`
 	Message     *Message   `json:"message,omitempty"`
+	UserID      string     `json:"user_id,omitempty"`
+	User        *User      `json:"user,omitempty"`
 }
 
 type TruncateOption func(*truncateOptions)
@@ -266,6 +271,18 @@ func TruncateWithSkipPush() func(*truncateOptions) {
 func TruncateWithMessage(message *Message) func(*truncateOptions) {
 	return func(o *truncateOptions) {
 		o.Message = message
+	}
+}
+
+func TruncateWithUserID(userID string) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.UserID = userID
+	}
+}
+
+func TruncateWithUser(user *User) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.User = user
 	}
 }
 
