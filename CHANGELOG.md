@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.7.0](https://github.com/GetStream/stream-chat-go/compare/v5.6.0...v5.7.0) (2022-04-01)
+
+
+### Features
+
+* add new moderation apis ([#205](https://github.com/GetStream/stream-chat-go/issues/205)) ([be4b9ac](https://github.com/GetStream/stream-chat-go/commit/be4b9acb519173b35a01a055d36cca99914d5b93))
+* add push provider fields ([#207](https://github.com/GetStream/stream-chat-go/issues/207)) ([d35883d](https://github.com/GetStream/stream-chat-go/commit/d35883d8fe8ba84e2179dc009acef309a5cccd08))
+* add push providers ([#206](https://github.com/GetStream/stream-chat-go/issues/206)) ([bfb1b6f](https://github.com/GetStream/stream-chat-go/commit/bfb1b6f0c7be8dd77366894c3aee3ca6ace5c361))
+* add reminder fields ([#208](https://github.com/GetStream/stream-chat-go/issues/208)) ([86a4834](https://github.com/GetStream/stream-chat-go/commit/86a4834eacdf23682b12fd59609658fbe020545f))
+* add timeout constructor ([#210](https://github.com/GetStream/stream-chat-go/issues/210)) ([6383f84](https://github.com/GetStream/stream-chat-go/commit/6383f84f580ec475da329c1138e7a78737076284))
+* **upload:** dont require contenttype for upload ([#213](https://github.com/GetStream/stream-chat-go/issues/213)) ([0fc41d5](https://github.com/GetStream/stream-chat-go/commit/0fc41d54dbc7304fd02252de40d0441510957553))
+
 ## [5.6.0](https://github.com/GetStream/stream-chat-go/compare/v5.5.1...v5.6.0) (2022-03-21)
 
 
