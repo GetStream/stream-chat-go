@@ -54,6 +54,9 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
+	TruncatedBy *User      `json:"truncated_by"`
+	TruncatedAt *time.Time `json:"truncated_at"`
+
 	ExtraData map[string]interface{} `json:"-"`
 
 	client *Client
@@ -247,6 +250,8 @@ type truncateOptions struct {
 	SkipPush    bool       `json:"skip_push,omitempty"`
 	TruncatedAt *time.Time `json:"truncated_at,omitempty"`
 	Message     *Message   `json:"message,omitempty"`
+	UserID      string     `json:"user_id,omitempty"`
+	User        *User      `json:"user,omitempty"`
 }
 
 type TruncateOption func(*truncateOptions)
@@ -269,10 +274,28 @@ func TruncateWithMessage(message *Message) func(*truncateOptions) {
 	}
 }
 
+func TruncateWithUserID(userID string) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.UserID = userID
+	}
+}
+
+func TruncateWithUser(user *User) func(*truncateOptions) {
+	return func(o *truncateOptions) {
+		o.User = user
+	}
+}
+
 func TruncateWithTruncatedAt(truncatedAt *time.Time) func(*truncateOptions) {
 	return func(o *truncateOptions) {
 		o.TruncatedAt = truncatedAt
 	}
+}
+
+type TruncateResponse struct {
+	Response
+	Channel *Channel `json:"channel"`
+	Message *Message `json:"message"`
 }
 
 // Truncate removes all messages from the channel.
@@ -287,9 +310,9 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Re
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "truncate")
 
-	var resp Response
+	var resp TruncateResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, option, &resp)
-	return &resp, err
+	return &resp.Response, err
 }
 
 type GetMessagesResponse struct {
