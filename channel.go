@@ -54,8 +54,8 @@ type Channel struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	LastMessageAt time.Time `json:"last_message_at"`
 
-	TruncatedBy   *User  `json:"truncated_by"`
-	TruncatedByID string `json:"truncated_by_id"`
+	TruncatedBy *User      `json:"truncated_by"`
+	TruncatedAt *time.Time `json:"truncated_at"`
 
 	ExtraData map[string]interface{} `json:"-"`
 
@@ -301,7 +301,7 @@ type TruncateResponse struct {
 // Truncate removes all messages from the channel.
 // You can pass in options such as hard_delete, skip_push
 // or a custom message.
-func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*TruncateResponse, error) {
+func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Response, error) {
 	option := &truncateOptions{}
 
 	for _, fn := range options {
@@ -312,7 +312,7 @@ func (ch *Channel) Truncate(ctx context.Context, options ...TruncateOption) (*Tr
 
 	var resp TruncateResponse
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, option, &resp)
-	return &resp, err
+	return &resp.Response, err
 }
 
 type GetMessagesResponse struct {
