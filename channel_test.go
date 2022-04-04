@@ -402,7 +402,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
-	_, err = ch.Truncate(ctx,
+	truncatResp, err := ch.Truncate(ctx,
 		TruncateWithSkipPush(),
 		TruncateWithMessage(&Message{Text: "truncated channel", User: &User{ID: user.ID}}),
 		TruncateWithUser(&User{ID: user.ID}),
@@ -411,6 +411,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 	require.Len(t, ch.Messages, 1, "channel has one message")
 	require.Equal(t, ch.Messages[0].Text, "truncated channel")
+	require.Equal(t, truncatResp.Message.User.ID, user.ID)
 }
 
 func TestChannel_Update(t *testing.T) {
