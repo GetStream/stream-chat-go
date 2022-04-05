@@ -18,7 +18,13 @@ func prepareChannelType(t *testing.T, c *Client) *ChannelType {
 	time.Sleep(6 * time.Second)
 
 	t.Cleanup(func() {
-		_, _ = c.DeleteChannelType(ctx, ct.Name)
+		for i := 0; i < 5; i++ {
+			_, err = c.DeleteChannelType(ctx, ct.Name)
+			if err == nil {
+				break
+			}
+			time.Sleep(time.Second)
+		}
 	})
 
 	return resp.ChannelType
