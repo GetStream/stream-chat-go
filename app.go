@@ -134,8 +134,15 @@ type HuaweiConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
+type PushVersion string
+
+const (
+	PushVersionV1 PushVersion = "v1"
+	PushVersionV2 PushVersion = "v2"
+)
+
 type PushConfigRequest struct {
-	Version string `json:"version"`
+	Version PushVersion `json:"version,omitempty"`
 }
 
 type Policy struct {
@@ -277,12 +284,15 @@ type PushProvider struct {
 	DisabledAt     *time.Time       `json:"disabled_at,omitempty"`
 	DisabledReason string           `json:"disabled_reason,omitempty"`
 
-	APNAuthKey string `json:"apn_auth_key,omitempty"`
-	APNKeyID   string `json:"apn_key_id,omitempty"`
-	APNTeamID  string `json:"apn_team_id,omitempty"`
-	APNTopic   string `json:"apn_topic,omitempty"`
+	APNAuthKey              string `json:"apn_auth_key,omitempty"`
+	APNKeyID                string `json:"apn_key_id,omitempty"`
+	APNTeamID               string `json:"apn_team_id,omitempty"`
+	APNTopic                string `json:"apn_topic,omitempty"`
+	APNNotificationTemplate string `json:"apn_notification_template,omitempty"`
 
-	FirebaseCredentials string `json:"firebase_credentials,omitempty"`
+	FirebaseCredentials          string `json:"firebase_credentials,omitempty"`
+	FirebaseNotificationTemplate string `json:"firebase_notification_template,omitempty"`
+	FirebaseAPNTemplate          string `json:"firebase_apn_template,omitempty"`
 
 	HuaweiAppID     string `json:"huawei_app_id,omitempty"`
 	HuaweiAppSecret string `json:"huawei_app_secret,omitempty"`
