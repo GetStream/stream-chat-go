@@ -173,6 +173,7 @@ func (c *Client) UnmuteUsers(ctx context.Context, targetIDs []string, unmutedBy 
 	return &resp, err
 }
 
+// FlagUser flags the user with the given targetID.
 func (c *Client) FlagUser(ctx context.Context, targetID, flaggedBy string) (*Response, error) {
 	switch {
 	case targetID == "":
@@ -210,6 +211,7 @@ type ReviewFlagReportResponse struct {
 	FlagReport *ExtendedFlagReport `json:"flag_report"`
 }
 
+// ReviewFlagReports sends a review of the flag report ID.
 func (c *Client) ReviewFlagReport(ctx context.Context, reportID string, req *ReviewFlagReportRequest) (*ReviewFlagReportResponse, error) {
 	resp := &ReviewFlagReportResponse{}
 	err := c.makeRequest(ctx, http.MethodPatch, "moderation/reports/"+reportID, nil, req, resp)
@@ -234,6 +236,7 @@ type ExportUserResponse struct {
 	Response
 }
 
+// ExportUser exports the user with the given target user ID.
 func (c *Client) ExportUser(ctx context.Context, targetID string) (*ExportUserResponse, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
@@ -265,6 +268,7 @@ func DeactivateUserWithCreatedBy(userID string) func(*deactivateUserOptions) {
 	}
 }
 
+// DeactivateUser deactivates the user with the given target user ID.
 func (c *Client) DeactivateUser(ctx context.Context, targetID string, options ...DeactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
@@ -308,6 +312,7 @@ func ReactivateUserWithName(name string) func(*reactivateUserOptions) {
 	}
 }
 
+// ReactivateUser reactivates a deactivated user with the given target user ID.
 func (c *Client) ReactivateUser(ctx context.Context, targetID string, options ...ReactivateUserOptions) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("target ID is empty")
@@ -353,6 +358,7 @@ func DeleteUserWithDeleteConversations() func(*deleteUserOptions) {
 	}
 }
 
+// DeleteUser deletes the user with the given target user ID.
 func (c *Client) DeleteUser(ctx context.Context, targetID string, options ...DeleteUserOption) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("targetID should not be empty")

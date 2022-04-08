@@ -751,6 +751,7 @@ func (ch *Channel) DeleteImage(ctx context.Context, location string) (*Response,
 	return &resp, err
 }
 
+// AcceptInvite accepts an invite to the channel.
 func (ch *Channel) AcceptInvite(ctx context.Context, userID string, message *Message) (*Response, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -772,6 +773,7 @@ func (ch *Channel) AcceptInvite(ctx context.Context, userID string, message *Mes
 	return &resp, err
 }
 
+// RejectInvite rejects an invite to the channel.
 func (ch *Channel) RejectInvite(ctx context.Context, userID string, message *Message) (*Response, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -798,6 +800,7 @@ type ChannelMuteResponse struct {
 	Response
 }
 
+// Mute mutes the channel. The user will stop receiving messages from the channel.
 func (ch *Channel) Mute(ctx context.Context, userID string, expiration *time.Duration) (*ChannelMuteResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -816,6 +819,7 @@ func (ch *Channel) Mute(ctx context.Context, userID string, expiration *time.Dur
 	return mute, err
 }
 
+// Unmute removes a mute from a channel so the user will receive messages again.
 func (ch *Channel) Unmute(ctx context.Context, userID string) (*Response, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")

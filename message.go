@@ -337,10 +337,12 @@ func (c *Client) UnPinMessage(ctx context.Context, msgID, userID string) (*Messa
 	return c.PartialUpdateMessage(ctx, msgID, &request)
 }
 
+// DeleteMessage soft deletes the message with given msgID.
 func (c *Client) DeleteMessage(ctx context.Context, msgID string) (*Response, error) {
 	return c.deleteMessage(ctx, msgID, false)
 }
 
+// HardDeleteMessage deletes the message with given msgID. This is permanent.
 func (c *Client) HardDeleteMessage(ctx context.Context, msgID string) (*Response, error) {
 	return c.deleteMessage(ctx, msgID, true)
 }
@@ -404,6 +406,7 @@ type MessageFlag struct {
 	RejectedAt time.Time `json:"rejected_at"`
 }
 
+// FlagMessage flags the message with given msgID.
 func (c *Client) FlagMessage(ctx context.Context, msgID, userID string) (*Response, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID is empty")
@@ -470,6 +473,7 @@ type TranslationResponse struct {
 	Response
 }
 
+// TranslateMessage translates the message with given msgID to the given language.
 func (c *Client) TranslateMessage(ctx context.Context, msgID, language string) (*TranslationResponse, error) {
 	p := "messages/" + url.PathEscape(msgID) + "/translate"
 	var resp TranslationResponse
