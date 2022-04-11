@@ -9,6 +9,7 @@
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
+# or the one produced by the the built-in coverage tool
 *.out
 
 .vscode/
