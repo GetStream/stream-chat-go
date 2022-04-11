@@ -240,6 +240,7 @@ type QueryFlagReportsResponse struct {
 	FlagReports []*FlagReport `json:"flag_reports"`
 }
 
+// QueryFlagReports returns list of flag reports that match the filter.
 func (c *Client) QueryFlagReports(ctx context.Context, q *QueryFlagReportsRequest) (*QueryFlagReportsResponse, error) {
 	resp := &QueryFlagReportsResponse{}
 	err := c.makeRequest(ctx, http.MethodPost, "moderation/reports", nil, q, &resp)

@@ -154,6 +154,7 @@ func (c *Client) ListChannelTypes(ctx context.Context) (*ChannelTypesResponse, e
 	return &resp, err
 }
 
+// UpdateChannelType updates channel type.
 func (c *Client) UpdateChannelType(ctx context.Context, name string, options map[string]interface{}) (*Response, error) {
 	switch {
 	case name == "":
@@ -168,6 +169,7 @@ func (c *Client) UpdateChannelType(ctx context.Context, name string, options map
 	return &resp, err
 }
 
+// DeleteChannelType deletes channel type.
 func (c *Client) DeleteChannelType(ctx context.Context, name string) (*Response, error) {
 	if name == "" {
 		return nil, errors.New("channel type name is empty")
