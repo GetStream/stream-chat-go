@@ -99,6 +99,12 @@ type Ban struct {
 	CreatedAt time.Time  `json:"created_at"`
 }
 
+// QueryBannedUsers filters and returns a list of banned users.
+// Banned users can be retrieved in different ways:
+// 1) Using the dedicated query bans endpoint
+// 2) User Search: you can add the banned:true condition to your search. Please note that
+// this will only return users that were banned at the app-level and not the ones
+// that were banned only on channels.
 func (c *Client) QueryBannedUsers(ctx context.Context, q *QueryBannedUsersOptions, sorters ...*SortOption) (*QueryBannedUsersResponse, error) {
 	qp := queryRequest{
 		FilterConditions: q.Filter,

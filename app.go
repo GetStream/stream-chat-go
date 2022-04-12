@@ -291,6 +291,7 @@ type PushProvider struct {
 	XiaomiAppSecret   string `json:"xiaomi_app_secret,omitempty"`
 }
 
+// UpsertPushProvider inserts or updates a push provider.
 func (c *Client) UpsertPushProvider(ctx context.Context, provider *PushProvider) (*Response, error) {
 	body := map[string]PushProvider{"push_provider": *provider}
 	var resp Response
@@ -298,6 +299,7 @@ func (c *Client) UpsertPushProvider(ctx context.Context, provider *PushProvider)
 	return &resp, err
 }
 
+// DeletePushProvider deletes a push provider.
 func (c *Client) DeletePushProvider(ctx context.Context, providerType, name string) (*Response, error) {
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodDelete, "push_providers/"+providerType+"/"+name, nil, nil, &resp)
@@ -309,6 +311,7 @@ type PushProviderListResponse struct {
 	PushProviders []PushProvider `json:"push_providers"`
 }
 
+// ListPushProviders returns the list of push providers.
 func (c *Client) ListPushProviders(ctx context.Context) (*PushProviderListResponse, error) {
 	var providers PushProviderListResponse
 	err := c.makeRequest(ctx, http.MethodGet, "push_providers", nil, nil, &providers)
