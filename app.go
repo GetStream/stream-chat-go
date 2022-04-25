@@ -97,6 +97,7 @@ type APNConfig struct {
 
 type PushNotificationFields struct {
 	Version        string         `json:"version"`
+	OfflineOnly    bool           `json:"offline_only"`
 	APNConfig      APNConfig      `json:"apn"`
 	FirebaseConfig FirebaseConfig `json:"firebase"`
 	HuaweiConfig   HuaweiConfig   `json:"huawei"`
@@ -104,10 +105,11 @@ type PushNotificationFields struct {
 }
 
 type FirebaseConfigRequest struct {
-	ServerKey            string `json:"server_key"`
-	NotificationTemplate string `json:"notification_template,omitempty"`
-	DataTemplate         string `json:"data_template,omitempty"`
-	CredentialsJSON      string `json:"credentials_json,omitempty"`
+	ServerKey            string  `json:"server_key"`
+	NotificationTemplate string  `json:"notification_template,omitempty"`
+	DataTemplate         string  `json:"data_template,omitempty"`
+	APNTemplate          *string `json:"apn_template,omitempty"`
+	CredentialsJSON      string  `json:"credentials_json,omitempty"`
 }
 
 type FirebaseConfig struct {
@@ -135,7 +137,8 @@ type HuaweiConfig struct {
 }
 
 type PushConfigRequest struct {
-	Version string `json:"version"`
+	Version     string `json:"version,omitempty"`
+	OfflineOnly bool   `json:"offline_only,omitempty"`
 }
 
 type Policy struct {
@@ -282,7 +285,9 @@ type PushProvider struct {
 	APNTeamID  string `json:"apn_team_id,omitempty"`
 	APNTopic   string `json:"apn_topic,omitempty"`
 
-	FirebaseCredentials string `json:"firebase_credentials,omitempty"`
+	FirebaseCredentials          string  `json:"firebase_credentials,omitempty"`
+	FirebaseNotificationTemplate *string `json:"firebase_notification_template,omitempty"`
+	FirebaseAPNTemplate          *string `json:"firebase_apn_template,omitempty"`
 
 	HuaweiAppID     string `json:"huawei_app_id,omitempty"`
 	HuaweiAppSecret string `json:"huawei_app_secret,omitempty"`
