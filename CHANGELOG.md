@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.8.0](https://github.com/GetStream/stream-chat-go/compare/v5.7.0...v5.8.0) (2022-04-25)
+
+
+### Features
+
+* add new props to pushprovider ([#218](https://github.com/GetStream/stream-chat-go/issues/218)) ([82428f5](https://github.com/GetStream/stream-chat-go/commit/82428f52bf3efc3f03de332c4eb6603384b1912e))
+* **truncate:** add user id if message provided ([#212](https://github.com/GetStream/stream-chat-go/issues/212)) ([d434b11](https://github.com/GetStream/stream-chat-go/commit/d434b11778c93d1edac280b086cfb3cf1eb3c692))
+
 ## [5.7.0](https://github.com/GetStream/stream-chat-go/compare/v5.6.0...v5.7.0) (2022-04-01)
 
 
