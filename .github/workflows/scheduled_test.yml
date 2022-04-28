@@ -1,0 +1,38 @@
+name: Scheduled tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Monday at 9:00 UTC
+    - cron: "0 9 * * 1"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.18"
+
+      - name: Run tests
+        env:
+          STREAM_KEY: ${{ secrets.STREAM_CHAT_API_KEY }}
+          STREAM_SECRET: ${{ secrets.STREAM_CHAT_API_SECRET }}
+        run: |
+          # Retry 3 times because tests can be flaky
+          for _ in 1 2 3;
+          do
+              go test -v -race ./... && break
+          done
+
+      - name: Notify Slack if failed
+        uses: voxmedia/github-action-slack-notify-build@v1
+        if: failure()
+        with:
+          channel_id: C02RPDF7T63
+          color: danger
+          status: FAILED
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
