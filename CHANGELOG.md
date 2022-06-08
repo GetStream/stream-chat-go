@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.8.1](https://github.com/GetStream/stream-chat-go/compare/v5.8.0...v5.8.1) (2022-06-08)
+
+
+### Bug Fixes
+
+* type in apn config ([#225](https://github.com/GetStream/stream-chat-go/issues/225)) ([a763a8e](https://github.com/GetStream/stream-chat-go/commit/a763a8ebb766617dfe6692f0232239b82646afc4))
+
 ## [5.8.0](https://github.com/GetStream/stream-chat-go/compare/v5.7.0...v5.8.0) (2022-04-25)
 
 
