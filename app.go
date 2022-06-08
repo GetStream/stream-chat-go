@@ -87,7 +87,7 @@ type APNConfig struct {
 	Enabled              bool   `json:"enabled"`
 	Development          bool   `json:"development"`
 	AuthType             string `json:"auth_type,omitempty"`
-	AuthKey              []byte `json:"auth_key,omitempty"`
+	AuthKey              string `json:"auth_key,omitempty"`
 	NotificationTemplate string `json:"notification_template"`
 	Host                 string `json:"host,omitempty"`
 	BundleID             string `json:"bundle_id,omitempty"`
