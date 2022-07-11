@@ -40,12 +40,12 @@ func TestClient_SwapHttpClient(t *testing.T) {
 	tr.Proxy = http.ProxyURL(proxyURL)
 	cl := &http.Client{Transport: tr}
 	c.SetClient(cl)
-	_, err := c.GetAppConfig(ctx)
+	_, err := c.GetAppSettings(ctx)
 	require.Error(t, err)
 
 	cl = &http.Client{}
 	c.SetClient(cl)
-	_, err = c.GetAppConfig(ctx)
+	_, err = c.GetAppSettings(ctx)
 	require.NoError(t, err)
 }
 
