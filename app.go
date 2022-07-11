@@ -14,25 +14,25 @@ type AppSettings struct {
 	XiaomiConfig              *XiaomiConfigRequest   `json:"xiaomi_config,omitempty"`
 	HuaweiConfig              *HuaweiConfigRequest   `json:"huawei_config,omitempty"`
 	PushConfig                *PushConfigRequest     `json:"push_config,omitempty"`
-	WebhookURL                string                 `json:"webhook_url,omitempty"`
+	WebhookURL                *string                `json:"webhook_url,omitempty"`
 	MultiTenantEnabled        *bool                  `json:"multi_tenant_enabled,omitempty"`
 	AsyncURLEnrichEnabled     *bool                  `json:"async_url_enrich_enabled,omitempty"`
 	AutoTranslationEnabled    *bool                  `json:"auto_translation_enabled,omitempty"`
 	Grants                    map[string][]string    `json:"grants,omitempty"`
 	MigratePermissionsToV2    *bool                  `json:"migrate_permissions_to_v2,omitempty"`
-	PermissionVersion         string                 `json:"permission_version,omitempty"`
+	PermissionVersion         *string                `json:"permission_version,omitempty"`
 	FileUploadConfig          *FileUploadConfig      `json:"file_upload_config,omitempty"`
 	ImageUploadConfig         *FileUploadConfig      `json:"image_upload_config,omitempty"`
 	ImageModerationLabels     []string               `json:"image_moderation_labels,omitempty"`
 	ImageModerationEnabled    *bool                  `json:"image_moderation_enabled,omitempty"`
 	RemindersInterval         int                    `json:"reminders_interval,omitempty"`
-	BeforeMessageSendHookURL  string                 `json:"before_message_send_hook_url,omitempty"`
-	CustomActionHandlerURL    string                 `json:"custom_action_handler_url,omitempty"`
+	BeforeMessageSendHookURL  *string                `json:"before_message_send_hook_url,omitempty"`
+	CustomActionHandlerURL    *string                `json:"custom_action_handler_url,omitempty"`
 	UserSearchDisallowedRoles []string               `json:"user_search_disallowed_roles,omitempty"`
-	EnforceUniqueUsernames    string                 `json:"enforce_unique_usernames,omitempty"`
-	SqsURL                    string                 `json:"sqs_url,omitempty"`
-	SqsKey                    string                 `json:"sqs_key,omitempty"`
-	SqsSecret                 string                 `json:"sqs_secret,omitempty"`
+	EnforceUniqueUsernames    *string                `json:"enforce_unique_usernames,omitempty"`
+	SqsURL                    *string                `json:"sqs_url,omitempty"`
+	SqsKey                    *string                `json:"sqs_key,omitempty"`
+	SqsSecret                 *string                `json:"sqs_secret,omitempty"`
 	WebhookEvents             []string               `json:"webhook_events,omitempty"`
 	ChannelHideMembersOnly    *bool                  `json:"channel_hide_members_only,omitempty"`
 }
@@ -58,7 +58,7 @@ func (a *AppSettings) SetFirebaseConfig(c FirebaseConfigRequest) *AppSettings {
 }
 
 func (a *AppSettings) SetWebhookURL(s string) *AppSettings {
-	a.WebhookURL = s
+	a.WebhookURL = &s
 	return a
 }
 

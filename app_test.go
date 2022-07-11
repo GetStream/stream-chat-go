@@ -27,6 +27,31 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestClient_UpdateAppSettingsClearing(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	sqsURL := "https://example.com"
+	sqsKey := "some key"
+	sqsSecret := "some secret"
+
+	settings := NewAppSettings()
+	settings.SqsURL = &sqsURL
+	settings.SqsKey = &sqsKey
+	settings.SqsSecret = &sqsSecret
+
+	_, err := c.UpdateAppSettings(ctx, settings)
+	require.NoError(t, err)
+
+	sqsURL = ""
+	settings.SqsURL = &sqsURL
+	_, err = c.UpdateAppSettings(ctx, settings)
+	require.NoError(t, err)
+
+	s, err := c.GetAppConfig(ctx)
+	require.Equal(t, *settings.SqsURL, s.App.SqsURL)
+}
+
 func TestClient_CheckSqs(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
