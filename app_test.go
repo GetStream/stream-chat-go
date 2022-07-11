@@ -11,7 +11,7 @@ import (
 func TestClient_GetApp(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
-	_, err := c.GetAppConfig(ctx)
+	_, err := c.GetAppSettings(ctx)
 	require.NoError(t, err)
 }
 
@@ -48,8 +48,9 @@ func TestClient_UpdateAppSettingsClearing(t *testing.T) {
 	_, err = c.UpdateAppSettings(ctx, settings)
 	require.NoError(t, err)
 
-	s, err := c.GetAppConfig(ctx)
-	require.Equal(t, *settings.SqsURL, s.App.SqsURL)
+	s, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+	require.Equal(t, *settings.SqsURL, *s.App.SqsURL)
 }
 
 func TestClient_CheckSqs(t *testing.T) {
