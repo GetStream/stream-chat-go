@@ -21,7 +21,7 @@ linters-settings:
       - style
     settings:
       hugeParam:
-        sizeThreshold: 377
+        sizeThreshold: 512
       rangeValCopy:
         sizeThreshold: 364
         skipTestFuncs: true
@@ -38,36 +38,39 @@ run:
 linters:
   enable-all: true
   disable:
-   - wrapcheck
-   - varnamelen
-   - thelper
-   - tagliatelle
-   - paralleltest
-   - nlreturn
-   - exhaustivestruct
-   - wsl
-   - goerr113
-   - golint
-   - gochecknoglobals
-   - scopelint
-   - funlen
-   - lll
-   - maligned
-   - gomnd
-   - godox
-   - interfacer
+    - contextcheck
+    - exhaustivestruct
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
+    - godox
+    - goerr113
+    - golint
+    - gomnd
+    - interfacer
+    - lll
+    - maligned
+    - nlreturn
+    - nonamedreturns
+    - paralleltest
+    - scopelint
+    - tagliatelle
+    - thelper
+    - varnamelen
+    - wrapcheck
+    - wsl
 issues:
   exclude-rules:
     - linters:
         - stylecheck
-      text: "ST1003:" # should not use underscores in package names
+      text: 'ST1003:' # should not use underscores in package names
     - linters:
         - revive
       text: "don't use an underscore in package name"
     - linters:
-      - gocritic
-      text: "commentFormatting"
+        - gocritic
+      text: 'commentFormatting'
     - path: _test\.go
       linters:
-       - gosec
-       - testpackage # makes you use a separate _test package
+        - gosec
+        - testpackage # makes you use a separate _test package

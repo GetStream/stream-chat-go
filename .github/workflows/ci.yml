@@ -5,7 +5,7 @@ on:
       - master
   pull_request:
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        goVer: ["1.16", "1.17", "1.18"]
+        goVer: ['1.17', '1.18']
     steps:
       - uses: actions/checkout@v3
 
