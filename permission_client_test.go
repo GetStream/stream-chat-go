@@ -63,7 +63,7 @@ func TestPermissions_PermissionEndpoints(t *testing.T) {
 	perm := resp.Permission
 	assert.Equal(t, "create-channel", perm.ID)
 	assert.False(t, perm.Custom)
-	assert.NotEmpty(t, perm.Condition)
+	assert.Empty(t, perm.Condition)
 
 	t.Cleanup(func() {
 		resp, _ := p.ListPermissions(ctx)
