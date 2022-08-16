@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/GetStream/stream-chat-go/compare/v6.0.0...v6.1.0) (2022-08-16)
+
+
+### Features
+
+* pending messages ([#235](https://github.com/GetStream/stream-chat-go/issues/235)) ([90480e3](https://github.com/GetStream/stream-chat-go/commit/90480e3bb453ff2340b1857a977c5e344f8a82b4))
+
+
+### Bug Fixes
+
+* permission test ([#234](https://github.com/GetStream/stream-chat-go/issues/234)) ([5e8e5d1](https://github.com/GetStream/stream-chat-go/commit/5e8e5d117f7bbe95d25f1579bab0597db81b4112))
+
 ## [6.0.0](https://github.com/GetStream/stream-chat-go/compare/v5.8.1...v6.0.0) (2022-07-11)
 
 
