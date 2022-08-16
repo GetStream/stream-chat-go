@@ -113,8 +113,11 @@ func (m *Message) toRequest() messageRequest {
 }
 
 type messageRequest struct {
-	Message  messageRequestMessage `json:"message"`
-	SkipPush bool                  `json:"skip_push,omitempty"`
+	Message                messageRequestMessage `json:"message"`
+	SkipPush               bool                  `json:"skip_push,omitempty"`
+	SkipEnrichURL          bool                  `json:"skip_enrich_url,omitempty"`
+	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
+	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 }
 
 type messageRequestMessage struct {
@@ -206,9 +209,32 @@ func MessageSkipPush(r *messageRequest) {
 	}
 }
 
-type MessageResponse struct {
-	Message *Message `json:"message"`
+// MessageSkipEnrichURL is a flag that disables enrichment of the URLs in the message
+func MessageSkipEnrichURL(r *messageRequest) {
+	if r != nil {
+		r.SkipEnrichURL = true
+	}
+}
 
+// MessagePending is a flag that makes this a pending message
+func MessagePending(r *messageRequest) {
+	if r != nil {
+		r.IsPendingMessage = true
+	}
+}
+
+// MessagePendingMessageMetadata saves metadata to the pending message
+func MessagePendingMessageMetadata(metadata map[string]string) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.PendingMessageMetadata = metadata
+		}
+	}
+}
+
+type MessageResponse struct {
+	Message                *Message          `json:"message"`
+	PendingMessageMetadata map[string]string `json:"pending_message_metadata,omitempty"`
 	Response
 }
 

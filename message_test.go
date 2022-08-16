@@ -23,6 +23,48 @@ func TestClient_TranslateMessage(t *testing.T) {
 	require.Equal(t, "mensaje de prueba", translated.Message.I18n["es_text"])
 }
 
+func TestClient_SendMessage_Pending(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test pending message"}
+	metadata := map[string]string{"my": "metadata"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, MessagePending, MessagePendingMessageMetadata(metadata))
+	require.NoError(t, err)
+	require.Equal(t, metadata, messageResp.PendingMessageMetadata)
+
+	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
+	require.Equal(t, metadata, gotMsg.PendingMessageMetadata)
+}
+
+func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test message with link to https://getstream.io"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, MessageSkipEnrichURL)
+	require.NoError(t, err)
+	require.Len(t, messageResp.Message.Attachments, 0)
+
+	time.Sleep(3 * time.Second)
+	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
+	require.Len(t, gotMsg.Message.Attachments, 0)
+}
+
 func TestClient_PinMessage(t *testing.T) {
 	c := initClient(t)
 	userA := randomUser(t, c)
