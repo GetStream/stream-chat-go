@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.2.0](https://github.com/GetStream/stream-chat-go/compare/v6.1.0...v6.2.0) (2022-08-31)
+
+
+### Features
+
+* event user unread message reminder ([#239](https://github.com/GetStream/stream-chat-go/issues/239)) ([0bc2668](https://github.com/GetStream/stream-chat-go/commit/0bc266896bdcc9f649028ad3cd3e8a25a3f7e2ab))
+
 ## [6.1.0](https://github.com/GetStream/stream-chat-go/compare/v6.0.0...v6.1.0) (2022-08-16)
 
 
