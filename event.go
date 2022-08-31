@@ -70,6 +70,8 @@ const (
 	EventUserWatchingStart   EventType = "user.watching.start"
 	EventUserWatchingStop    EventType = "user.watching.stop"
 	EventUserUpdated         EventType = "user.updated"
+
+	EventUserUnreadMessageReminder EventType = "user.unread_message_reminder"
 )
 
 // Event is received from a webhook, or sent with the SendEvent function.
