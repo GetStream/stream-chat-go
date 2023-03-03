@@ -251,6 +251,7 @@ func (c *Client) ExportUser(ctx context.Context, targetID string) (*ExportUserRe
 
 type deactivateUserOptions struct {
 	MarkMessagesDeleted bool   `json:"mark_messages_deleted"`
+	MarkChannelsDeleted bool   `json:"mark_channels_deleted"`
 	CreatedByID         string `json:"created_by_id"`
 }
 
@@ -259,6 +260,12 @@ type DeactivateUserOptions func(*deactivateUserOptions)
 func DeactivateUserWithMarkMessagesDeleted() func(*deactivateUserOptions) {
 	return func(opt *deactivateUserOptions) {
 		opt.MarkMessagesDeleted = true
+	}
+}
+
+func DeactivateUserWithMarkChannelsDeleted() func(*deactivateUserOptions) {
+	return func(opt *deactivateUserOptions) {
+		opt.MarkChannelsDeleted = true
 	}
 }
 
@@ -286,8 +293,34 @@ func (c *Client) DeactivateUser(ctx context.Context, targetID string, options ..
 	return &resp, err
 }
 
+type deactivateUsersOptions struct {
+	UserIDs []string `json:"user_ids"`
+	deactivateUserOptions
+}
+
+// DeactivateUsers deactivates the users with the given target user IDs.
+func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, options ...DeactivateUserOptions) (*Response, error) {
+	if len(targetIDs) == 0 {
+		return nil, errors.New("target IDs is empty")
+	}
+
+	opts := &deactivateUsersOptions{
+		UserIDs: targetIDs,
+	}
+	for _, fn := range options {
+		fn(&opts.deactivateUserOptions)
+	}
+
+	p := path.Join("users", "deactivate")
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	return &resp, err
+}
+
 type reactivateUserOptions struct {
 	RestoreMessages bool   `json:"restore_messages"`
+	RestoreChannels bool   `json:"restore_channels"`
 	Name            string `json:"name"`
 	CreatedByID     string `json:"created_by_id"`
 }
@@ -297,6 +330,12 @@ type ReactivateUserOptions func(*reactivateUserOptions)
 func ReactivateUserWithRestoreMessages() func(*reactivateUserOptions) {
 	return func(opt *reactivateUserOptions) {
 		opt.RestoreMessages = true
+	}
+}
+
+func ReactivateUserWithRestoreChannels() func(*reactivateUserOptions) {
+	return func(opt *reactivateUserOptions) {
+		opt.RestoreChannels = true
 	}
 }
 
@@ -324,6 +363,31 @@ func (c *Client) ReactivateUser(ctx context.Context, targetID string, options ..
 	}
 
 	p := path.Join("users", url.PathEscape(targetID), "reactivate")
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	return &resp, err
+}
+
+type reactivateUsersOptions struct {
+	UserIDs []string `json:"user_ids"`
+	reactivateUserOptions
+}
+
+// ReactivateUsers reactivates deactivated users with the given target user IDs.
+func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, options ...ReactivateUserOptions) (*Response, error) {
+	if len(targetIDs) == 0 {
+		return nil, errors.New("target IDs is empty")
+	}
+
+	opts := &reactivateUsersOptions{
+		UserIDs: targetIDs,
+	}
+	for _, fn := range options {
+		fn(&opts.reactivateUserOptions)
+	}
+
+	p := path.Join("users", "reactivate")
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
