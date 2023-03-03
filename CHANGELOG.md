@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.3.0](https://github.com/GetStream/stream-chat-go/compare/v6.2.0...v6.3.0) (2023-03-03)
+
+
+### Features
+
+* add ability to delete/restore channels when deactivate/reactivate users ([#244](https://github.com/GetStream/stream-chat-go/issues/244)) ([e60d9f4](https://github.com/GetStream/stream-chat-go/commit/e60d9f4e6455bf7496a35e9244ea9ad544ebe4f5))
+
 ## [6.2.0](https://github.com/GetStream/stream-chat-go/compare/v6.1.0...v6.2.0) (2022-08-31)
 
 
