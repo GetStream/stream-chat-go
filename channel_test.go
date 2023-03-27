@@ -92,6 +92,22 @@ func TestClient_CreateChannel(t *testing.T) {
 	}
 }
 
+func TestClient_CreateChannelHideForCreator(t *testing.T) {
+	c := initClient(t)
+	userID := randomUser(t, c).ID
+	ctx := context.Background()
+
+	t.Run("Create channel and hide for creator", func(t *testing.T) {
+		resp, err := c.CreateChannel(ctx, "messaging", "", userID, &ChannelRequest{HideForCreator: true})
+		require.NoError(t, err, "create channel", resp)
+
+		channel := resp.Channel
+		assert.Equal(t, "messaging", channel.Type, "channel type")
+		assert.NotEmpty(t, channel.ID)
+		assert.Equal(t, true, channel.HideForCreator, "hide for creator")
+	})
+}
+
 func TestChannel_GetManyMessages(t *testing.T) {
 	ctx := context.Background()
 	c := initClient(t)
