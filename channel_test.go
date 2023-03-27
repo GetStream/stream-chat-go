@@ -98,7 +98,11 @@ func TestClient_CreateChannelHideForCreator(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Create channel and hide for creator", func(t *testing.T) {
-		resp, err := c.CreateChannel(ctx, "messaging", "", userID, &ChannelRequest{HideForCreator: true})
+		channelData := &ChannelRequest{
+			HideForCreator: true,
+			Members:        randomUsersID(t, c, 2),
+		}
+		resp, err := c.CreateChannel(ctx, "messaging", "", userID, channelData)
 		require.NoError(t, err, "create channel", resp)
 
 		channel := resp.Channel
