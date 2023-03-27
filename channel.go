@@ -39,9 +39,10 @@ type Channel struct {
 
 	Config ChannelConfig `json:"config"`
 
-	CreatedBy *User `json:"created_by"`
-	Disabled  bool  `json:"disabled"`
-	Frozen    bool  `json:"frozen"`
+	CreatedBy      *User `json:"created_by"`
+	Disabled       bool  `json:"disabled"`
+	Frozen         bool  `json:"frozen"`
+	HideForCreator bool  `json:"hide_for_creator"`
 
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
@@ -116,6 +117,7 @@ type ChannelRequest struct {
 	Disabled                *bool                  `json:"disabled,omitempty"`
 	Members                 []string               `json:"members,omitempty"`
 	Invites                 []string               `json:"invites,omitempty"`
+	HideForCreator          bool                   `json:"hide_for_creator,omitempty"`
 	ExtraData               map[string]interface{} `json:"-"`
 }
 
