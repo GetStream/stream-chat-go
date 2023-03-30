@@ -377,7 +377,7 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 	// check that message was updated
 	msg = resp.Message
 	assert.NotEmpty(t, msg.ID, "message has ID")
-	assert.Equal(t, "system", msg.Type, "message type is system")
+	assert.Equal(t, MessageTypeSystem, msg.Type, "message type is system")
 }
 
 func TestChannel_Truncate(t *testing.T) {
