@@ -361,6 +361,28 @@ func TestChannel_SendMessage(t *testing.T) {
 	assert.True(t, msg2.Silent, "message silent flag is set")
 }
 
+func TestChannel_SendSystemMessage(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+	user1 := randomUser(t, c)
+	user2 := randomUser(t, c)
+	msg := &Message{
+		Text: "test message",
+		User: user1,
+		Type: "system",
+	}
+
+	resp, err := ch.SendMessage(ctx, msg, user2.ID)
+	require.NoError(t, err, "send message")
+
+	// check that message was updated
+	msg = resp.Message
+	assert.NotEmpty(t, msg.ID, "message has ID")
+	assert.NotEmpty(t, msg.HTML, "message has HTML body")
+	assert.Equal(t, msg.Type, "system", "message type is system")
+}
+
 func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
