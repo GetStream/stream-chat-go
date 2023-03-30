@@ -366,14 +366,12 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 	ch := initChannel(t, c)
 	ctx := context.Background()
 	user1 := randomUser(t, c)
-	user2 := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
-		User: user1,
-		Type: "system",
+		Type: MessageTypeSystem,
 	}
 
-	resp, err := ch.SendMessage(ctx, msg, user2.ID)
+	resp, err := ch.SendMessage(ctx, msg, user1.ID)
 	require.NoError(t, err, "send message")
 
 	// check that message was updated
