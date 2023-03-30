@@ -281,7 +281,7 @@ func TestChannel_GetReplies(t *testing.T) {
 
 	msg = resp.Message
 
-	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
+	reply := &Message{Text: "test reply", ParentID: msg.ID}
 	_, err = ch.SendMessage(ctx, reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
 	require.Equal(t, MessageTypeReply, reply.Type, "message type is reply")

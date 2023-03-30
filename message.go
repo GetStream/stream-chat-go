@@ -92,6 +92,7 @@ func (m *Message) toRequest() messageRequest {
 
 	req.Message = messageRequestMessage{
 		Text:            m.Text,
+		Type:            m.Type,
 		Attachments:     m.Attachments,
 		User:            messageRequestUser{ID: m.User.ID},
 		ExtraData:       m.ExtraData,
