@@ -284,6 +284,7 @@ func TestChannel_GetReplies(t *testing.T) {
 	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
 	_, err = ch.SendMessage(ctx, reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
+	require.Equal(t, MessageTypeReply, reply.Type, "message type is reply")
 
 	repliesResp, err := ch.GetReplies(ctx, msg.ID, nil)
 	require.NoError(t, err, "get replies")
