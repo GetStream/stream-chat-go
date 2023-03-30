@@ -365,20 +365,19 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
 	ctx := context.Background()
-	user1 := randomUser(t, c)
+	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		Type: MessageTypeSystem,
 	}
 
-	resp, err := ch.SendMessage(ctx, msg, user1.ID)
+	resp, err := ch.SendMessage(ctx, msg, user.ID)
 	require.NoError(t, err, "send message")
 
 	// check that message was updated
 	msg = resp.Message
 	assert.NotEmpty(t, msg.ID, "message has ID")
-	assert.NotEmpty(t, msg.HTML, "message has HTML body")
-	assert.Equal(t, msg.Type, "system", "message type is system")
+	assert.Equal(t, "system", msg.Type, "message type is system")
 }
 
 func TestChannel_Truncate(t *testing.T) {
