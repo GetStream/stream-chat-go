@@ -281,9 +281,10 @@ func TestChannel_GetReplies(t *testing.T) {
 
 	msg = resp.Message
 
-	reply := &Message{Text: "test reply", ParentID: msg.ID, Type: MessageTypeReply}
-	_, err = ch.SendMessage(ctx, reply, randomUser(t, c).ID)
+	reply := &Message{Text: "test reply", ParentID: msg.ID}
+	resp, err = ch.SendMessage(ctx, reply, randomUser(t, c).ID)
 	require.NoError(t, err, "send reply")
+	require.Equal(t, MessageTypeReply, resp.Message.Type, "message type is reply")
 
 	repliesResp, err := ch.GetReplies(ctx, msg.ID, nil)
 	require.NoError(t, err, "get replies")
@@ -359,6 +360,25 @@ func TestChannel_SendMessage(t *testing.T) {
 	assert.NotEmpty(t, msg2.ID, "message has ID")
 	assert.NotEmpty(t, msg2.HTML, "message has HTML body")
 	assert.True(t, msg2.Silent, "message silent flag is set")
+}
+
+func TestChannel_SendSystemMessage(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+	user := randomUser(t, c)
+	msg := &Message{
+		Text: "test message",
+		Type: MessageTypeSystem,
+	}
+
+	resp, err := ch.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err, "send message")
+
+	// check that message was updated
+	msg = resp.Message
+	assert.NotEmpty(t, msg.ID, "message has ID")
+	assert.Equal(t, MessageTypeSystem, msg.Type, "message type is system")
 }
 
 func TestChannel_Truncate(t *testing.T) {

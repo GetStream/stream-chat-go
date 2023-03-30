@@ -92,6 +92,7 @@ func (m *Message) toRequest() messageRequest {
 
 	req.Message = messageRequestMessage{
 		Text:            m.Text,
+		Type:            m.Type,
 		Attachments:     m.Attachments,
 		User:            messageRequestUser{ID: m.User.ID},
 		ExtraData:       m.ExtraData,
@@ -121,17 +122,17 @@ type messageRequest struct {
 }
 
 type messageRequestMessage struct {
-	Text            string             `json:"text"`
-	Attachments     []*Attachment      `json:"attachments"`
-	User            messageRequestUser `json:"user"`
-	MentionedUsers  []string           `json:"mentioned_users"`
-	ParentID        string             `json:"parent_id"`
-	ShowInChannel   bool               `json:"show_in_channel"`
-	Silent          bool               `json:"silent"`
-	QuotedMessageID string             `json:"quoted_message_id"`
-	Pinned          bool               `json:"pinned"`
-
-	ExtraData map[string]interface{} `json:"-"`
+	Text            string                 `json:"text"`
+	Type            MessageType            `json:"type" validate:"omitempty,oneof=system"`
+	Attachments     []*Attachment          `json:"attachments"`
+	User            messageRequestUser     `json:"user"`
+	MentionedUsers  []string               `json:"mentioned_users"`
+	ParentID        string                 `json:"parent_id"`
+	ShowInChannel   bool                   `json:"show_in_channel"`
+	Silent          bool                   `json:"silent"`
+	QuotedMessageID string                 `json:"quoted_message_id"`
+	Pinned          bool                   `json:"pinned"`
+	ExtraData       map[string]interface{} `json:"-"`
 }
 
 type messageRequestForJSON messageRequestMessage
