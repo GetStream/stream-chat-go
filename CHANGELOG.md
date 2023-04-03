@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.4.0](https://github.com/GetStream/stream-chat-go/compare/v6.3.0...v6.4.0) (2023-03-30)
+
+
+### Features
+
+* sending system messages ([#248](https://github.com/GetStream/stream-chat-go/issues/248)) ([468c56e](https://github.com/GetStream/stream-chat-go/commit/468c56e13e9e3c4bf9544a7101e575765597f696))
+
 ## [6.3.0](https://github.com/GetStream/stream-chat-go/compare/v6.2.0...v6.3.0) (2023-03-03)
 
 
