@@ -55,6 +55,22 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	assert.Contains(t, resp.ChannelTypes, ct.Name)
 }
 
+func TestClient_UpdateChannelTypeMarkMessagesPending(t *testing.T) {
+	c := initClient(t)
+	ct := prepareChannelType(t, c)
+	ctx := context.Background()
+
+	// default is on
+	require.False(t, ct.MarkMessagesPending)
+
+	_, err := c.UpdateChannelType(ctx, ct.Name, map[string]interface{}{"mark_messages_pending": true})
+	require.NoError(t, err)
+
+	resp, err := c.GetChannelType(ctx, ct.Name)
+	require.NoError(t, err)
+	require.True(t, resp.ChannelType.MarkMessagesPending)
+}
+
 func TestClient_UpdateChannelTypePushNotifications(t *testing.T) {
 	c := initClient(t)
 	ct := prepareChannelType(t, c)

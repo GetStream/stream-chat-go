@@ -24,8 +24,9 @@ type ChannelConfig struct {
 	CustomEvents      bool `json:"custom_events"`
 
 	// number of days to keep messages, must be MessageRetentionForever or numeric string
-	MessageRetention string `json:"message_retention"`
-	MaxMessageLength int    `json:"max_message_length"`
+	MessageRetention    string `json:"message_retention"`
+	MaxMessageLength    int    `json:"max_message_length"`
+	MarkMessagesPending bool   `json:"mark_messages_pending"`
 
 	Automod     modType      `json:"automod"` // disabled, simple or AI
 	ModBehavior modBehaviour `json:"automod_behavior"`
