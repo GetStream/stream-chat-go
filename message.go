@@ -365,6 +365,18 @@ func (c *Client) UnPinMessage(ctx context.Context, msgID, userID string) (*Messa
 	return c.PartialUpdateMessage(ctx, msgID, &request)
 }
 
+func (c *Client) CommitMessage(ctx context.Context, msgID string) (*Response, error) {
+	if msgID == "" {
+		return nil, errors.New("message ID must be not empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(msgID), "commit")
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, nil, &resp)
+	return &resp, err
+
+}
+
 // DeleteMessage soft deletes the message with given msgID.
 func (c *Client) DeleteMessage(ctx context.Context, msgID string) (*Response, error) {
 	return c.deleteMessage(ctx, msgID, false)

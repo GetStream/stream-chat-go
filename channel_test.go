@@ -465,6 +465,9 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	_, err = ch.PartialUpdate(ctx, PartialUpdate{
 		Set: map[string]interface{}{
 			"color": "red",
+			"config_override": map[string]interface{}{
+				"typing_events": false,
+			},
 		},
 		Unset: []string{"age"},
 	})

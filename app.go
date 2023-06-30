@@ -41,13 +41,14 @@ type AppSettings struct {
 	Policies               map[string][]Policy `json:"policies"`
 	Grants                 map[string][]string `json:"grants,omitempty"`
 
-	MultiTenantEnabled        *bool    `json:"multi_tenant_enabled,omitempty"`
-	AsyncURLEnrichEnabled     *bool    `json:"async_url_enrich_enabled,omitempty"`
-	AutoTranslationEnabled    *bool    `json:"auto_translation_enabled,omitempty"`
-	RemindersInterval         int      `json:"reminders_interval,omitempty"`
-	UserSearchDisallowedRoles []string `json:"user_search_disallowed_roles,omitempty"`
-	EnforceUniqueUsernames    *string  `json:"enforce_unique_usernames,omitempty"`
-	ChannelHideMembersOnly    *bool    `json:"channel_hide_members_only,omitempty"`
+	MultiTenantEnabled        *bool                         `json:"multi_tenant_enabled,omitempty"`
+	AsyncURLEnrichEnabled     *bool                         `json:"async_url_enrich_enabled,omitempty"`
+	AutoTranslationEnabled    *bool                         `json:"auto_translation_enabled,omitempty"`
+	RemindersInterval         int                           `json:"reminders_interval,omitempty"`
+	UserSearchDisallowedRoles []string                      `json:"user_search_disallowed_roles,omitempty"`
+	EnforceUniqueUsernames    *string                       `json:"enforce_unique_usernames,omitempty"`
+	ChannelHideMembersOnly    *bool                         `json:"channel_hide_members_only,omitempty"`
+	AsyncModerationConfig     *AsyncModerationConfiguration `json:"async_moderation_config,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -85,8 +86,23 @@ func (a *AppSettings) SetGrants(g map[string][]string) *AppSettings {
 	return a
 }
 
+func (a *AppSettings) SetAsyncModerationConfig(c AsyncModerationConfiguration) *AppSettings {
+	a.AsyncModerationConfig = &c
+	return a
+}
+
 func NewAppSettings() *AppSettings {
 	return &AppSettings{}
+}
+
+type AsyncModerationCallback struct {
+	Mode      string `json:"mode"`
+	ServerUrl string `json:"server_url"`
+}
+
+type AsyncModerationConfiguration struct {
+	Callback *AsyncModerationCallback `json:"callback,omitempty"`
+	Timeout  int                      `json:"timeout_ms,omitempty"`
 }
 
 type FileUploadConfig struct {
@@ -180,8 +196,9 @@ func (c *Client) GetAppSettings(ctx context.Context) (*AppResponse, error) {
 
 // UpdateAppSettings makes request to update app settings
 // Example of usage:
-//  settings := NewAppSettings().SetDisableAuth(true)
-//  err := client.UpdateAppSettings(settings)
+//
+//	settings := NewAppSettings().SetDisableAuth(true)
+//	err := client.UpdateAppSettings(settings)
 func (c *Client) UpdateAppSettings(ctx context.Context, settings *AppSettings) (*Response, error) {
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPatch, "app", nil, settings, &resp)
