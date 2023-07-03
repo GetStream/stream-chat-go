@@ -117,6 +117,7 @@ type messageRequest struct {
 	Message                messageRequestMessage `json:"message"`
 	SkipPush               bool                  `json:"skip_push,omitempty"`
 	SkipEnrichURL          bool                  `json:"skip_enrich_url,omitempty"`
+	Pending                bool                  `json:"pending,omitempty"`
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 }
@@ -220,7 +221,7 @@ func MessageSkipEnrichURL(r *messageRequest) {
 // MessagePending is a flag that makes this a pending message
 func MessagePending(r *messageRequest) {
 	if r != nil {
-		r.IsPendingMessage = true
+		r.Pending = true
 	}
 }
 
@@ -362,6 +363,18 @@ func (c *Client) UnPinMessage(ctx context.Context, msgID, userID string) (*Messa
 	}
 
 	return c.PartialUpdateMessage(ctx, msgID, &request)
+}
+
+func (c *Client) CommitMessage(ctx context.Context, msgID string) (*Response, error) {
+	if msgID == "" {
+		return nil, errors.New("message ID must be not empty")
+	}
+
+	p := path.Join("messages", url.PathEscape(msgID), "commit")
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, nil, &resp)
+	return &resp, err
+
 }
 
 // DeleteMessage soft deletes the message with given msgID.

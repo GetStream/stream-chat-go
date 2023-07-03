@@ -27,6 +27,25 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestClient_CheckAsyncModeConfig(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	settings := NewAppSettings().
+		SetAsyncModerationConfig(
+			AsyncModerationConfiguration{
+				Callback: &AsyncModerationCallback{
+					Mode:      "CALLBACK_MODE_REST",
+					ServerUrl: "https://example.com/gosdk",
+				},
+				Timeout: 10000,
+			},
+		)
+
+	_, err := c.UpdateAppSettings(ctx, settings)
+	require.NoError(t, err)
+}
+
 func TestClient_UpdateAppSettingsClearing(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()

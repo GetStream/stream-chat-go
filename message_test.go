@@ -42,6 +42,9 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
 	require.NoError(t, err)
 	require.Equal(t, metadata, gotMsg.PendingMessageMetadata)
+
+	_, err = c.CommitMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
 }
 
 func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {

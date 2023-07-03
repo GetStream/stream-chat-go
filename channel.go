@@ -46,9 +46,10 @@ type Channel struct {
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
 
-	Messages       []*Message     `json:"messages"`
-	PinnedMessages []*Message     `json:"pinned_messages"`
-	Read           []*ChannelRead `json:"read"`
+	Messages        []*Message     `json:"messages"`
+	PinnedMessages  []*Message     `json:"pinned_messages"`
+	PendingMessages []*Message     `json:"pending_messages"`
+	Read            []*ChannelRead `json:"read"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
