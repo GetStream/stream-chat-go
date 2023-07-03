@@ -60,7 +60,7 @@ func TestClient_UpdateChannelTypeMarkMessagesPending(t *testing.T) {
 	ct := prepareChannelType(t, c)
 	ctx := context.Background()
 
-	// default is on
+	// default is off
 	require.False(t, ct.MarkMessagesPending)
 
 	_, err := c.UpdateChannelType(ctx, ct.Name, map[string]interface{}{"mark_messages_pending": true})
