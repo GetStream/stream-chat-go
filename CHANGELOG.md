@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.5.0](https://github.com/GetStream/stream-chat-go/compare/v6.4.0...v6.5.0) (2023-07-21)
+
+
+### Features
+
+* adding pending property to message ([#251](https://github.com/GetStream/stream-chat-go/issues/251)) ([b70d16c](https://github.com/GetStream/stream-chat-go/commit/b70d16cfbb8a17a746bd3697eb1b46e3d6de579b))
+
 ## [6.4.0](https://github.com/GetStream/stream-chat-go/compare/v6.3.0...v6.4.0) (2023-03-30)
 
 
