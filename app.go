@@ -241,7 +241,6 @@ type CheckSNSResponse struct {
 	Response
 }
 
-// CheckSns checks whether the AWS credentials are valid for SNS topic access.
 func (c *Client) CheckSns(ctx context.Context, req *CheckSNSRequest) (*CheckSNSResponse, error) {
 	var resp CheckSNSResponse
 	err := c.makeRequest(ctx, http.MethodPost, "check_sns", nil, req, &resp)
