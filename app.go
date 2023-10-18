@@ -28,6 +28,9 @@ type AppSettings struct {
 	SqsURL                   *string                `json:"sqs_url,omitempty"`
 	SqsKey                   *string                `json:"sqs_key,omitempty"`
 	SqsSecret                *string                `json:"sqs_secret,omitempty"`
+	SnsTopicArn              *string                `json:"sns_topic_arn,omitempty"`
+	SnsKey                   *string                `json:"sns_key,omitempty"`
+	SnsSecret                *string                `json:"sns_secret,omitempty"`
 	BeforeMessageSendHookURL *string                `json:"before_message_send_hook_url,omitempty"`
 	CustomActionHandlerURL   *string                `json:"custom_action_handler_url,omitempty"`
 
@@ -222,6 +225,25 @@ type CheckSQSResponse struct {
 func (c *Client) CheckSqs(ctx context.Context, req *CheckSQSRequest) (*CheckSQSResponse, error) {
 	var resp CheckSQSResponse
 	err := c.makeRequest(ctx, http.MethodPost, "check_sqs", nil, req, &resp)
+	return &resp, err
+}
+
+type CheckSNSRequest struct {
+	SnsTopicARN string `json:"sns_topic_arn"`
+	SnsKey      string `json:"sns_key"`
+	SnsSecret   string `json:"sns_secret"`
+}
+
+type CheckSNSResponse struct {
+	Status string                 `json:"status"`
+	Error  string                 `json:"error"`
+	Data   map[string]interface{} `json:"data"`
+	Response
+}
+
+func (c *Client) CheckSns(ctx context.Context, req *CheckSNSRequest) (*CheckSNSResponse, error) {
+	var resp CheckSNSResponse
+	err := c.makeRequest(ctx, http.MethodPost, "check_sns", nil, req, &resp)
 	return &resp, err
 }
 

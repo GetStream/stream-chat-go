@@ -85,6 +85,19 @@ func TestClient_CheckSqs(t *testing.T) {
 	require.NotNil(t, resp.Data)
 }
 
+func TestClient_CheckSns(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	req := &CheckSNSRequest{SnsTopicARN: "arn:aws:sns:us-east-1:123456789012:sns-topic", SnsKey: "key", SnsSecret: "secret"}
+	resp, err := c.CheckSns(ctx, req)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, resp.Error)
+	require.Equal(t, "error", resp.Status)
+	require.NotNil(t, resp.Data)
+}
+
 func TestClient_CheckPush(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
