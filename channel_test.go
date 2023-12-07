@@ -72,7 +72,7 @@ func TestClient_CreateChannel(t *testing.T) {
 		},
 		{
 			"create channel with HideForCreator", "messaging", "", userID,
-			&ChannelRequest{Members: []string{userID}},
+			&ChannelRequest{Members: []string{userID, randomUsersID(t, c, 1)[0]}},
 			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
