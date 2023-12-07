@@ -100,7 +100,7 @@ func TestClient_CreateChannel(t *testing.T) {
 				opt(&options)
 			}
 			if options.HideForCreator {
-				assert.True(t, resp.Hidden, "hidden channel")
+				assert.True(t, channel.Hidden, "hidden channel")
 			}
 			assert.Equal(t, tt.userID, channel.CreatedBy.ID, "channel created by")
 		})

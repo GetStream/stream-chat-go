@@ -50,6 +50,7 @@ type Channel struct {
 	PinnedMessages  []*Message     `json:"pinned_messages"`
 	PendingMessages []*Message     `json:"pending_messages"`
 	Read            []*ChannelRead `json:"read"`
+	Hidden          bool           `json:"hidden"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -661,7 +662,6 @@ func (ch *Channel) hide(ctx context.Context, userID string, clearHistory bool) (
 
 type CreateChannelResponse struct {
 	Channel *Channel
-	Hidden  bool `json:"hidden,omitempty"`
 	*Response
 }
 
