@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.7.0](https://github.com/GetStream/stream-chat-go/compare/v6.6.0...v6.7.0) (2023-12-07)
+
 ## [6.6.0](https://github.com/GetStream/stream-chat-go/compare/v6.5.0...v6.6.0) (2023-10-23)
 
 
