@@ -60,13 +60,19 @@ func TestClient_CreateChannel(t *testing.T) {
 		id          string
 		userID      string
 		data        *ChannelRequest
+		options     []CreateChannelOptionFunc
 		wantErr     bool
 	}{
-		{"create channel with ID", "messaging", randomString(12), userID, nil, false},
-		{"create channel without ID and members", "messaging", "", userID, nil, true},
+		{"create channel with ID", "messaging", randomString(12), userID, nil, nil, false},
+		{"create channel without ID and members", "messaging", "", userID, nil, nil, true},
 		{
 			"create channel without ID but with members", "messaging", "", userID,
 			&ChannelRequest{Members: randomUsersID(t, c, 2)},
+			nil, false,
+		},
+		{
+			"create channel with HideForCreator", "messaging", "", userID, nil,
+			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
 	}
@@ -74,7 +80,7 @@ func TestClient_CreateChannel(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := c.CreateChannel(ctx, tt.channelType, tt.id, tt.userID, tt.data)
+			resp, err := c.CreateChannel(ctx, tt.channelType, tt.id, tt.userID, tt.data, tt.options...)
 			if tt.wantErr {
 				require.Error(t, err, "create channel", tt)
 				return
@@ -86,6 +92,14 @@ func TestClient_CreateChannel(t *testing.T) {
 			assert.NotEmpty(t, channel.ID)
 			if tt.id != "" {
 				assert.Equal(t, tt.id, channel.ID, "channel id")
+			}
+
+			options := CreateChannelOptions{}
+			for _, opt := range tt.options {
+				opt(&options)
+			}
+			if options.HideForCreator {
+				assert.True(t, resp.Hidden, "hidden channel")
 			}
 			assert.Equal(t, tt.userID, channel.CreatedBy.ID, "channel created by")
 		})
