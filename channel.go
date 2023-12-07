@@ -163,13 +163,14 @@ type MessagePaginationParamsRequest struct {
 }
 
 type QueryRequest struct {
-	Data     *ChannelRequest                 `json:"data,omitempty"`
-	Watch    bool                            `json:"watch,omitempty"`
-	State    bool                            `json:"state,omitempty"`
-	Presence bool                            `json:"presence,omitempty"`
-	Messages *MessagePaginationParamsRequest `json:"messages,omitempty"`
-	Members  *PaginationParamsRequest        `json:"members,omitempty"`
-	Watchers *PaginationParamsRequest        `json:"watchers,omitempty"`
+	Data           *ChannelRequest                 `json:"data,omitempty"`
+	Watch          bool                            `json:"watch,omitempty"`
+	State          bool                            `json:"state,omitempty"`
+	Presence       bool                            `json:"presence,omitempty"`
+	Messages       *MessagePaginationParamsRequest `json:"messages,omitempty"`
+	Members        *PaginationParamsRequest        `json:"members,omitempty"`
+	Watchers       *PaginationParamsRequest        `json:"watchers,omitempty"`
+	HideForCreator bool                            `json:"hide_for_creator,omitempty"`
 }
 
 func (q QueryResponse) updateChannel(ch *Channel) {
@@ -663,8 +664,20 @@ type CreateChannelResponse struct {
 	*Response
 }
 
+type CreateChannelOptions struct {
+	HideForCreator bool
+}
+
+type CreateChannelOptionFunc func(*CreateChannelOptions)
+
+func HideForCreator(hideForCreator bool) CreateChannelOptionFunc {
+	return func(options *CreateChannelOptions) {
+		options.HideForCreator = hideForCreator
+	}
+}
+
 // CreateChannel creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *ChannelRequest) (*CreateChannelResponse, error) {
+func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *ChannelRequest, opts ...CreateChannelOptionFunc) (*CreateChannelResponse, error) {
 	switch {
 	case chanType == "":
 		return nil, errors.New("channel type is empty")
@@ -672,6 +685,11 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 		return nil, errors.New("either channel ID or members must be provided")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
+	}
+
+	options := CreateChannelOptions{}
+	for _, opt := range opts {
+		opt(&options)
 	}
 
 	ch := &Channel{
@@ -688,10 +706,11 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 	}
 
 	q := &QueryRequest{
-		Watch:    false,
-		State:    true,
-		Presence: false,
-		Data:     data,
+		Watch:          false,
+		State:          true,
+		Presence:       false,
+		Data:           data,
+		HideForCreator: options.HideForCreator,
 	}
 
 	resp, err := ch.Query(ctx, q)
