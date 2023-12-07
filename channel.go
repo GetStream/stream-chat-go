@@ -50,7 +50,6 @@ type Channel struct {
 	PinnedMessages  []*Message     `json:"pinned_messages"`
 	PendingMessages []*Message     `json:"pending_messages"`
 	Read            []*ChannelRead `json:"read"`
-	Hidden          bool           `json:"hidden"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
