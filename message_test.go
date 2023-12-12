@@ -121,3 +121,28 @@ func TestClient_PinMessage(t *testing.T) {
 	require.Zero(t, msg.PinnedAt)
 	require.Zero(t, msg.PinnedBy)
 }
+
+func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	_, err = resp.Channel.Hide(ctx, user.ID)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test message"}
+	_, err = resp.Channel.SendMessage(ctx, msg, user.ID, KeepChannelHidden)
+	require.NoError(t, err)
+
+	result, err := c.QueryChannels(ctx, &QueryOption{
+		Filter: map[string]interface{}{"cid": resp.Channel.CID},
+		UserID: user.ID,
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Channels, 0)
+}
