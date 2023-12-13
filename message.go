@@ -120,6 +120,7 @@ type messageRequest struct {
 	Pending                bool                  `json:"pending,omitempty"`
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
+	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
 }
 
 type messageRequestMessage struct {
@@ -231,6 +232,12 @@ func MessagePendingMessageMetadata(metadata map[string]string) SendMessageOption
 		if r != nil {
 			r.PendingMessageMetadata = metadata
 		}
+	}
+}
+
+func KeepChannelHidden(r *messageRequest) {
+	if r != nil {
+		r.KeepChannelHidden = true
 	}
 }
 
