@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.7.8](https://github.com/GetStream/stream-chat-go/compare/v6.7.0...v6.7.8) (2023-12-13)
+
+
+### Features
+
+* keep channel hidden ([#261](https://github.com/GetStream/stream-chat-go/issues/261)) ([dcbb33c](https://github.com/GetStream/stream-chat-go/commit/dcbb33ca127bc212107d8730796069653b871210))
+
 ## [6.7.0](https://github.com/GetStream/stream-chat-go/compare/v6.6.0...v6.7.0) (2023-12-07)
 
 ## [6.6.0](https://github.com/GetStream/stream-chat-go/compare/v6.5.0...v6.6.0) (2023-10-23)
