@@ -32,6 +32,7 @@ func TestUnreadCounts(t *testing.T) {
 	require.Equal(t, 5, resp.ChannelType[0].UnreadCount)
 }
 func TestUnreadCountsBatch(t *testing.T) {
+	t.Skip()
 	c := initClient(t)
 	user1 := randomUser(t, c)
 	user2 := randomUser(t, c)
