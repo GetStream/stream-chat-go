@@ -51,6 +51,7 @@ func TestUnreadCountsBatch(t *testing.T) {
 	require.Equal(t, 2, len(resp.CountsByUser))
 	require.Contains(t, resp.CountsByUser, user1.ID)
 	require.Contains(t, resp.CountsByUser, user2.ID)
+	require.NotContains(t, resp.CountsByUser, nonexistant)
 
 	// user 1 counts
 	require.Equal(t, 5, resp.CountsByUser[user1.ID].TotalUnreadCount)
