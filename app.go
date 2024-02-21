@@ -134,6 +134,7 @@ type PushNotificationFields struct {
 	FirebaseConfig FirebaseConfig `json:"firebase"`
 	HuaweiConfig   HuaweiConfig   `json:"huawei"`
 	XiaomiConfig   XiaomiConfig   `json:"xiaomi"`
+	Providers      []PushProvider `json:"providers,omitempty"`
 }
 
 type FirebaseConfigRequest struct {
