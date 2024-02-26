@@ -19,10 +19,19 @@ type UnreadCountsChannelType struct {
 	UnreadCount  int    `json:"unread_count"`
 }
 
+type UnreadCountsThread struct {
+	UnreadCount       int       `json:"unread_count"`
+	LastRead          time.Time `json:"last_read"`
+	LastReadMessageID string    `json:"last_read_message_id"`
+	ParentMessageID   string    `json:"parent_message_id"`
+}
+
 type UnreadCountsResponse struct {
-	TotalUnreadCount int                       `json:"total_unread_count"`
-	Channels         []UnreadCountsChannel     `json:"channels"`
-	ChannelType      []UnreadCountsChannelType `json:"channel_type"`
+	TotalUnreadCount        int                       `json:"total_unread_count"`
+	TotalUnreadThreadsCount int                       `json:"total_unread_threads_count"`
+	Channels                []UnreadCountsChannel     `json:"channels"`
+	ChannelType             []UnreadCountsChannelType `json:"channel_type"`
+	Threads                 []UnreadCountsThread      `json:"threads"`
 	Response
 }
 
