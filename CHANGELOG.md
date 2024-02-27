@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.9.0](https://github.com/GetStream/stream-chat-go/compare/v6.8.0...v6.9.0) (2024-02-27)
+
+
+### Features
+
+* add support for unread counts endpoints ([#265](https://github.com/GetStream/stream-chat-go/issues/265)) ([b446205](https://github.com/GetStream/stream-chat-go/commit/b4462051ea584326d54b78d35693dd1589668b06))
+
+
+### Bug Fixes
+
+* include push providers in push notification fields ([#266](https://github.com/GetStream/stream-chat-go/issues/266)) ([4d0ec56](https://github.com/GetStream/stream-chat-go/commit/4d0ec56eee673f2022c936a1509b66446c2daa53))
+
 ## [6.8.0](https://github.com/GetStream/stream-chat-go/compare/v6.7.0...v6.8.0) (2023-12-13)
 
 
