@@ -27,8 +27,8 @@ func TestClient_TestQuery(t *testing.T) {
 	q := &QueryRequest{
 		State:    true,
 		Messages: &MessagePaginationParamsRequest{PaginationParamsRequest: PaginationParamsRequest{Limit: 1, IDLT: msg.Message.ID}},
-		Members:  &PaginationParamsRequest{Limit: 1, Offset: 0},
-		Watchers: &PaginationParamsRequest{Limit: 1, Offset: 0},
+		Members:  &PaginationParamsRequest{Limit: 3, Offset: 0},
+		Watchers: &PaginationParamsRequest{Limit: 3, Offset: 0},
 	}
 	resp, err := ch.Query(ctx, q)
 	require.NoError(t, err)
