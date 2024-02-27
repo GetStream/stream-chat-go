@@ -59,10 +59,14 @@ func main() {
 
 	// handle error
 
+	// Define a context
+	ctx := context.Background()
+
 	// use client methods
 
 	// create channel with users
 	users := []string{"id1", "id2", "id3"}
+	userID := "id1"
 	channel, err := client.CreateChannelWithMembers(ctx, "messaging", "channel-id", userID, users...)
 
 	// use channel methods
