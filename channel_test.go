@@ -18,7 +18,7 @@ func (ch *Channel) refresh(ctx context.Context) error {
 
 func TestClient_TestQuery(t *testing.T) {
 	c := initClient(t)
-	membersID := randomUsersID(t, c, 1)
+	membersID := randomUsersID(t, c, 3)
 	ch := initChannel(t, c, membersID...)
 	ctx := context.Background()
 	msg, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
@@ -27,12 +27,21 @@ func TestClient_TestQuery(t *testing.T) {
 	q := &QueryRequest{
 		State:    true,
 		Messages: &MessagePaginationParamsRequest{PaginationParamsRequest: PaginationParamsRequest{Limit: 1, IDLT: msg.Message.ID}},
-		Members:  &PaginationParamsRequest{Limit: 1, Offset: 0},
-		Watchers: &PaginationParamsRequest{Limit: 1, Offset: 0},
+		Members:  &PaginationParamsRequest{Limit: 3, Offset: 0},
+		Watchers: &PaginationParamsRequest{Limit: 3, Offset: 0},
 	}
 	resp, err := ch.Query(ctx, q)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Members))
+	require.Equal(t, 3, len(resp.Members))
+
+	for _, read := range resp.Read {
+		if ch.CreatedBy.ID == read.User.ID {
+			require.Equal(t, 0, read.UnreadMessages)
+			continue
+		}
+
+		require.Equal(t, 1, read.UnreadMessages)
+	}
 }
 
 func TestClient_CreateChannel(t *testing.T) {
