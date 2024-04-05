@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.10.0](https://github.com/GetStream/stream-chat-go/compare/v6.9.0...v6.10.0) (2024-04-05)
+
+
+### Bug Fixes
+
+* payload for sendmessage to prevent upsert user ([#274](https://github.com/GetStream/stream-chat-go/issues/274)) ([70fd69f](https://github.com/GetStream/stream-chat-go/commit/70fd69f3890f447981b28d3062629fa9efc62333))
+
 ## [6.9.0](https://github.com/GetStream/stream-chat-go/compare/v6.8.0...v6.9.0) (2024-02-27)
 
 
