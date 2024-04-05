@@ -31,6 +31,7 @@ type Message struct {
 	Silent bool        `json:"silent,omitempty"`
 
 	User            *User          `json:"user"`
+	UserID          string         `json:"user_id"`
 	Attachments     []*Attachment  `json:"attachments"`
 	LatestReactions []*Reaction    `json:"latest_reactions"` // last reactions
 	OwnReactions    []*Reaction    `json:"own_reactions"`
@@ -94,7 +95,7 @@ func (m *Message) toRequest() messageRequest {
 		Text:            m.Text,
 		Type:            m.Type,
 		Attachments:     m.Attachments,
-		User:            messageRequestUser{ID: m.User.ID},
+		UserID:          m.UserID,
 		ExtraData:       m.ExtraData,
 		Pinned:          m.Pinned,
 		ParentID:        m.ParentID,
@@ -127,7 +128,7 @@ type messageRequestMessage struct {
 	Text            string                 `json:"text"`
 	Type            MessageType            `json:"type" validate:"omitempty,oneof=system"`
 	Attachments     []*Attachment          `json:"attachments"`
-	User            messageRequestUser     `json:"user"`
+	UserID          string                 `json:"user_id"`
 	MentionedUsers  []string               `json:"mentioned_users"`
 	ParentID        string                 `json:"parent_id"`
 	ShowInChannel   bool                   `json:"show_in_channel"`
@@ -257,6 +258,7 @@ func (ch *Channel) SendMessage(ctx context.Context, message *Message, userID str
 	}
 
 	message.User = &User{ID: userID}
+	message.UserID = userID
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "message")
 
 	req := message.toRequest()
