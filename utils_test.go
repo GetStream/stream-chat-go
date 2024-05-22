@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// nolint: gochecknoinits
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
@@ -54,6 +53,8 @@ func clearOldChannelTypes() error {
 }
 
 func randomUser(t *testing.T, c *Client) *User {
+	t.Helper()
+
 	ctx := context.Background()
 	resp, err := c.UpsertUser(ctx, &User{ID: randomString(10)})
 	require.NoError(t, err)
@@ -70,6 +71,8 @@ func randomUser(t *testing.T, c *Client) *User {
 }
 
 func randomUsers(t *testing.T, c *Client, n int) []*User {
+	t.Helper()
+
 	users := make([]*User, 0, n)
 	for i := 0; i < n; i++ {
 		users = append(users, &User{ID: randomString(10)})
@@ -85,6 +88,8 @@ func randomUsers(t *testing.T, c *Client, n int) []*User {
 }
 
 func randomUsersID(t *testing.T, c *Client, n int) []string {
+	t.Helper()
+
 	users := randomUsers(t, c, n)
 	ids := make([]string, n)
 	for i, u := range users {

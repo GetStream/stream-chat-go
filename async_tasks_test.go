@@ -32,7 +32,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
 		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, resp2.Result[ch.CID], map[string]interface{}{"status": "ok"})
+			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[ch.CID])
 			return
 		}
 
@@ -71,7 +71,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
 
 		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, resp2.Result[user.ID], map[string]interface{}{"status": "ok"})
+			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[user.ID])
 			return
 		}
 

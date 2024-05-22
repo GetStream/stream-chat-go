@@ -36,7 +36,7 @@ func TestClient_CheckAsyncModeConfig(t *testing.T) {
 			AsyncModerationConfiguration{
 				Callback: &AsyncModerationCallback{
 					Mode:      "CALLBACK_MODE_REST",
-					ServerUrl: "https://example.com/gosdk",
+					ServerURL: "https://example.com/gosdk",
 				},
 				Timeout: 10000,
 			},

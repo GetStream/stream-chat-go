@@ -32,7 +32,7 @@ func TestClient_TestQuery(t *testing.T) {
 	}
 	resp, err := ch.Query(ctx, q)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(resp.Members))
+	require.Len(t, resp.Members, 3)
 
 	for _, read := range resp.Read {
 		if ch.CreatedBy.ID == read.User.ID {
@@ -236,7 +236,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
-	assert.Equal(t, true, ch.Members[0].Invited, "member is invited")
+	assert.True(t, ch.Members[0].Invited, "member is invited")
 	assert.Nil(t, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
 	assert.Nil(t, ch.Members[0].InviteRejectedAt, "invite is not rejected")
 }
@@ -306,9 +306,6 @@ func TestChannel_GetReplies(t *testing.T) {
 	repliesResp, err := ch.GetReplies(ctx, msg.ID, nil)
 	require.NoError(t, err, "get replies")
 	assert.Len(t, repliesResp.Messages, 1)
-}
-
-func TestChannel_MarkRead(t *testing.T) {
 }
 
 func TestChannel_RemoveMembers(t *testing.T) {
@@ -448,7 +445,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	require.NoError(t, err, "truncate channel")
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 	require.Len(t, ch.Messages, 1, "channel has one message")
-	require.Equal(t, ch.Messages[0].Text, "truncated channel")
+	require.Equal(t, "truncated channel", ch.Messages[0].Text)
 	require.NotNil(t, ch.TruncatedBy)
 	require.Equal(t, truncaterUser.ID, ch.TruncatedBy.ID)
 	require.NotNil(t, ch.TruncatedAt)
@@ -492,16 +489,7 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	err = ch.refresh(ctx)
 	require.NoError(t, err)
 	require.Equal(t, "red", ch.ExtraData["color"])
-	require.Equal(t, nil, ch.ExtraData["age"])
-}
-
-func TestChannel_AddModerators(t *testing.T) {
-}
-
-func TestChannel_DemoteModerators(t *testing.T) {
-}
-
-func TestChannel_UnBanUser(t *testing.T) {
+	require.Nil(t, ch.ExtraData["age"])
 }
 
 func TestChannel_SendFile(t *testing.T) {

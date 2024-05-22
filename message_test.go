@@ -60,12 +60,12 @@ func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {
 	msg := &Message{Text: "test message with link to https://getstream.io"}
 	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, MessageSkipEnrichURL)
 	require.NoError(t, err)
-	require.Len(t, messageResp.Message.Attachments, 0)
+	require.Empty(t, messageResp.Message.Attachments)
 
 	time.Sleep(3 * time.Second)
 	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
 	require.NoError(t, err)
-	require.Len(t, gotMsg.Message.Attachments, 0)
+	require.Empty(t, gotMsg.Message.Attachments)
 }
 
 func TestClient_PinMessage(t *testing.T) {
@@ -144,5 +144,5 @@ func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
 		UserID: user.ID,
 	})
 	require.NoError(t, err)
-	require.Len(t, result.Channels, 0)
+	require.Empty(t, result.Channels)
 }

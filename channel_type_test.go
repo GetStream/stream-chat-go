@@ -10,6 +10,8 @@ import (
 )
 
 func prepareChannelType(t *testing.T, c *Client) *ChannelType {
+	t.Helper()
+
 	ct := NewChannelType(randomString(10))
 	ctx := context.Background()
 

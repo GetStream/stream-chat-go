@@ -33,7 +33,7 @@ type TaskResponse struct {
 // GetTask returns the status of a task that has been ran asynchronously.
 func (c *Client) GetTask(ctx context.Context, id string) (*TaskResponse, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id should not be empty")
+		return nil, errors.New("id should not be empty")
 	}
 
 	p := path.Join("tasks", url.PathEscape(id))
@@ -53,7 +53,7 @@ type AsyncTaskResponse struct {
 // It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
 func (c *Client) DeleteChannels(ctx context.Context, cids []string, hardDelete bool) (*AsyncTaskResponse, error) {
 	if len(cids) == 0 {
-		return nil, fmt.Errorf("cids parameter should not be empty")
+		return nil, errors.New("cids parameter should not be empty")
 	}
 
 	data := struct {
@@ -91,7 +91,7 @@ type DeleteUserOptions struct {
 // It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
 func (c *Client) DeleteUsers(ctx context.Context, userIDs []string, options DeleteUserOptions) (*AsyncTaskResponse, error) {
 	if len(userIDs) == 0 {
-		return nil, fmt.Errorf("userIDs parameter should not be empty")
+		return nil, errors.New("userIDs parameter should not be empty")
 	}
 
 	data := struct {

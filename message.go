@@ -159,10 +159,6 @@ func (s messageRequestMessage) MarshalJSON() ([]byte, error) {
 	return addToMapAndMarshal(s.ExtraData, messageRequestForJSON(s))
 }
 
-type messageRequestUser struct {
-	ID string `json:"id"`
-}
-
 type Attachment struct {
 	Type string `json:"type,omitempty"` // text, image, audio, video
 
@@ -213,21 +209,21 @@ func MessageSkipPush(r *messageRequest) {
 	}
 }
 
-// MessageSkipEnrichURL is a flag that disables enrichment of the URLs in the message
+// MessageSkipEnrichURL is a flag that disables enrichment of the URLs in the message.
 func MessageSkipEnrichURL(r *messageRequest) {
 	if r != nil {
 		r.SkipEnrichURL = true
 	}
 }
 
-// MessagePending is a flag that makes this a pending message
+// MessagePending is a flag that makes this a pending message.
 func MessagePending(r *messageRequest) {
 	if r != nil {
 		r.Pending = true
 	}
 }
 
-// MessagePendingMessageMetadata saves metadata to the pending message
+// MessagePendingMessageMetadata saves metadata to the pending message.
 func MessagePendingMessageMetadata(metadata map[string]string) SendMessageOption {
 	return func(r *messageRequest) {
 		if r != nil {

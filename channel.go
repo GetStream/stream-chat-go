@@ -324,9 +324,9 @@ type GetMessagesResponse struct {
 }
 
 // GetMessages returns messages for multiple message ids.
-func (ch *Channel) GetMessages(ctx context.Context, messageIds []string) (*GetMessagesResponse, error) {
+func (ch *Channel) GetMessages(ctx context.Context, messageIDs []string) (*GetMessagesResponse, error) {
 	params := url.Values{}
-	params.Set("ids", strings.Join(messageIds, ","))
+	params.Set("ids", strings.Join(messageIDs, ","))
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "messages")
 
 	var resp GetMessagesResponse
