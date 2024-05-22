@@ -49,7 +49,7 @@ func TestClient_SwapHttpClient(t *testing.T) {
 	require.NoError(t, err)
 }
 
-//nolint: lll
+// nolint: lll
 func TestClient_CreateToken(t *testing.T) {
 	type args struct {
 		userID string

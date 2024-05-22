@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint: gochecknoinits
+// nolint: gochecknoinits
 func init() {
 	rand.Seed(time.Now().UnixNano())
 

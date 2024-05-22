@@ -383,7 +383,6 @@ func (c *Client) CommitMessage(ctx context.Context, msgID string) (*Response, er
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, nil, &resp)
 	return &resp, err
-
 }
 
 // DeleteMessage soft deletes the message with given msgID.
