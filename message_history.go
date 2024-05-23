@@ -59,7 +59,7 @@ type QueryMessageHistoryResponse struct {
 }
 
 func (c *Client) QueryMessageHistory(ctx context.Context, request QueryMessageHistoryRequest) (*QueryMessageHistoryResponse, error) {
-	if request.Filter == nil {
+	if len(request.Filter) == 0 {
 		return nil, errors.New("you need specify one filter at least")
 	}
 	var resp QueryMessageHistoryResponse
