@@ -9,6 +9,8 @@ import (
 )
 
 func prepareCommand(t *testing.T, c *Client) *Command {
+	t.Helper()
+
 	cmd := &Command{
 		Name:        randomString(10),
 		Description: "test command",

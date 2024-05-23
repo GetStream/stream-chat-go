@@ -12,7 +12,6 @@ import (
 
 // TestEventSupportsAllFields that we can decode all of the keys in the
 // examples. We do this via the DisallowUnknownFields flag.
-//nolint:lll
 func TestEventSupportsAllFields(t *testing.T) {
 	// Tests are taken from https://getstream.io/chat/docs/webhook_events/ and
 	// compressed with `jq -c .`

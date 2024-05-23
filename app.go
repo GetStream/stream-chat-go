@@ -100,7 +100,7 @@ func NewAppSettings() *AppSettings {
 
 type AsyncModerationCallback struct {
 	Mode      string `json:"mode"`
-	ServerUrl string `json:"server_url"`
+	ServerURL string `json:"server_url"`
 }
 
 type AsyncModerationConfiguration struct {

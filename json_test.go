@@ -31,6 +31,8 @@ func randomExtraData(in interface{}) {
 }
 
 func testInvariantJSON(t *testing.T, in, in2 interface{}) {
+	t.Helper()
+
 	// put random
 	randomExtraData(in)
 

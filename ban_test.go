@@ -33,22 +33,22 @@ func TestShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
+	require.False(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, true, messageResp.Message.Shadowed)
+	require.True(t, messageResp.Message.Shadowed)
 
 	msg = &Message{Text: "test message"}
 	messageResp, err = ch.SendMessage(ctx, msg, userC.ID)
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
+	require.False(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, true, messageResp.Message.Shadowed)
+	require.True(t, messageResp.Message.Shadowed)
 
 	_, err = c.UnBanUser(ctx, userB.ID)
 	require.NoError(t, err)
@@ -58,11 +58,11 @@ func TestShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
+	require.False(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, false, messageResp.Message.Shadowed)
+	require.False(t, messageResp.Message.Shadowed)
 
 	_, err = ch.UnBanUser(ctx, userC.ID)
 	require.NoError(t, err)
@@ -72,11 +72,11 @@ func TestShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.Equal(t, false, msg.Shadowed)
+	require.False(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)
-	require.Equal(t, false, messageResp.Message.Shadowed)
+	require.False(t, messageResp.Message.Shadowed)
 }
 
 func TestBanUnbanUser(t *testing.T) {
@@ -94,7 +94,7 @@ func TestBanUnbanUser(t *testing.T) {
 		}},
 	})
 	require.NoError(t, err)
-	require.Equal(t, resp.Bans[0].Reason, "spammer")
+	require.Equal(t, "spammer", resp.Bans[0].Reason)
 	require.NotZero(t, resp.Bans[0].Expires)
 
 	_, err = c.UnBanUser(ctx, target.ID)

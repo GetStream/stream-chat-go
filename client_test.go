@@ -11,6 +11,8 @@ import (
 )
 
 func initClient(t *testing.T) *Client {
+	t.Helper()
+
 	c, err := NewClientFromEnvVars()
 	require.NoError(t, err, "new client")
 
@@ -18,6 +20,8 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
+	t.Helper()
+
 	owner := randomUser(t, c)
 	ctx := context.Background()
 
@@ -49,7 +53,6 @@ func TestClient_SwapHttpClient(t *testing.T) {
 	require.NoError(t, err)
 }
 
-//nolint: lll
 func TestClient_CreateToken(t *testing.T) {
 	type args struct {
 		userID string

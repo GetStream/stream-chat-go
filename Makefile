@@ -1,4 +1,4 @@
-GOLANGCI_VERSION = 1.46.2
+GOLANGCI_VERSION = 1.58.2
 GOLANGCI = vendor/golangci-lint/$(GOLANGCI_VERSION)/golangci-lint
 
 install-golangci:

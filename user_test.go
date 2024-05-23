@@ -9,17 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClient_DeactivateUser(t *testing.T) {
-}
-
-func TestClient_DeleteUser(t *testing.T) {
-}
-
-func TestClient_ExportUser(t *testing.T) {}
-
-func TestClient_FlagUser(t *testing.T) {
-}
-
 func TestClient_MuteUser(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -165,11 +154,8 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 
 	got := resp.Users
 	assert.Contains(t, got, user.ID)
-	assert.Contains(t, got[user.ID].ExtraData, "test",
-		"extra data contains: %v", got[user.ID].ExtraData)
-	assert.Equal(t, got[user.ID].ExtraData["test"], map[string]interface{}{
-		"passed": true,
-	})
+	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains: %v", got[user.ID].ExtraData)
+	assert.Equal(t, map[string]interface{}{"passed": true}, got[user.ID].ExtraData["test"])
 
 	update = PartialUserUpdate{
 		ID:    user.ID,
