@@ -45,6 +45,7 @@ type User struct {
 	LastActive *time.Time `json:"last_active,omitempty"`
 
 	Mutes                    []*Mute                `json:"mutes,omitempty"`
+	BlockedUserIDs           []string               `json:"blocked_user_ids"`
 	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
 	ExtraData                map[string]interface{} `json:"-"`
 	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
@@ -109,6 +110,94 @@ func (c *Client) MuteUser(ctx context.Context, targetID, mutedBy string, options
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPost, "moderation/mute", nil, opts, &resp)
+	return &resp, err
+}
+
+type BlockUsersResponse struct {
+	Response
+	BlockedByUserID string    `json:"blocked_by_user_id"`
+	BlockedUserID   string    `json:"blocked_user_id"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+type userBlockOptions struct {
+	BlockedUserID string `json:"blocked_user_id"`
+	UserID        string `json:"user_id"`
+}
+
+// BlockUser blocks targetID.
+func (c *Client) BlockUser(ctx context.Context, targetID, userID string) (*BlockUsersResponse, error) {
+	switch {
+	case targetID == "":
+		return nil, errors.New("targetID should not be empty")
+	case userID == "":
+		return nil, errors.New("userID should not be empty")
+	}
+
+	opts := &userBlockOptions{
+		BlockedUserID: targetID,
+		UserID:        userID,
+	}
+
+	var resp BlockUsersResponse
+	err := c.makeRequest(ctx, http.MethodPost, "users/block", nil, opts, &resp)
+	return &resp, err
+}
+
+type UnblockUsersResponse struct {
+	Response
+}
+
+type userUnblockOptions struct {
+	BlockedUserID string `json:"blocked_user_id"`
+	UserID        string `json:"user_id"`
+}
+
+// UnblockUser Unblocks targetID.
+func (c *Client) UnblockUser(ctx context.Context, targetID, userID string) (*UnblockUsersResponse, error) {
+	switch {
+	case targetID == "":
+		return nil, errors.New("targetID should not be empty")
+	case userID == "":
+		return nil, errors.New("userID should not be empty")
+	}
+
+	opts := &userUnblockOptions{
+		BlockedUserID: targetID,
+		UserID:        userID,
+	}
+
+	var resp UnblockUsersResponse
+	err := c.makeRequest(ctx, http.MethodPost, "users/unblock", nil, opts, &resp)
+	return &resp, err
+}
+
+type GetBlockedUsersResponse struct {
+	Response
+	BlockedUsers []*BlockedUserResponse `json:"blocks"`
+}
+
+type BlockedUserResponse struct {
+	BlockedByUser   UsersResponse `json:"user"`
+	BlockedByUserID string        `json:"user_id"`
+
+	BlockedUser   UsersResponse `json:"blocked_user"`
+	BlockedUserID string        `json:"blocked_user_id"`
+	CreatedAt     time.Time     `json:"created_at"`
+}
+
+// GetBlockedUser returns blocked user
+func (c *Client) GetBlockedUser(ctx context.Context, blockedBy string) (*GetBlockedUsersResponse, error) {
+	switch {
+	case blockedBy == "":
+		return nil, errors.New("user_id should not be empty")
+	}
+
+	var resp GetBlockedUsersResponse
+
+	params := make(url.Values)
+	params.Set("user_id", blockedBy)
+	err := c.makeRequest(ctx, http.MethodGet, "users/block", params, nil, &resp)
 	return &resp, err
 }
 
