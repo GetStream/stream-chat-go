@@ -80,6 +80,69 @@ func TestClient_MuteUsers(t *testing.T) {
 		assert.NotEmpty(t, mute.Expires, "mute should have Expires")
 	}
 }
+func TestClient_BlockUsers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	blockingUser := randomUser(t, c)
+	blockedUser := randomUser(t, c)
+
+	_, err := c.BlockUser(ctx, blockedUser.ID, blockingUser.ID)
+	require.NoError(t, err, "BlockUser should not return an error")
+
+	resp, err := c.QueryUsers(ctx, &QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": blockingUser.ID},
+		},
+	})
+
+	users := resp.Users
+	require.NoError(t, err, "QueryUsers should not return an error")
+	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
+	require.Equal(t, len(users[0].BlockedUserIDs), 1)
+
+	require.Equal(t, users[0].BlockedUserIDs[0], blockedUser.ID)
+}
+func TestClient_UnblockUsersGetBlockedUsers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	blockingUser := randomUser(t, c)
+	blockedUser := randomUser(t, c)
+
+	_, err := c.BlockUser(ctx, blockedUser.ID, blockingUser.ID)
+	require.NoError(t, err, "BlockUser should not return an error")
+
+	resp, err := c.QueryUsers(ctx, &QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": blockingUser.ID},
+		},
+	})
+
+	users := resp.Users
+	require.NoError(t, err, "QueryUsers should not return an error")
+	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
+	require.Equal(t, len(users[0].BlockedUserIDs), 1)
+	require.Equal(t, users[0].BlockedUserIDs[0], blockedUser.ID)
+
+	getRes, err := c.GetBlockedUser(ctx, blockingUser.ID)
+	require.Equal(t, 1, len(getRes.BlockedUsers))
+	require.Equal(t, blockedUser.ID, getRes.BlockedUsers[0].BlockedUserID)
+
+	_, err = c.UnblockUser(ctx, blockedUser.ID, blockingUser.ID)
+	require.NoError(t, err, "UnblockUser should not return an error")
+
+	resp, err = c.QueryUsers(ctx, &QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]string{"$eq": blockingUser.ID},
+		},
+	})
+
+	users = resp.Users
+	require.NoError(t, err, "QueryUsers should not return an error")
+	require.NotEmptyf(t, users, "QueryUsers should return a user: %+v", users)
+	require.Equal(t, 0, len(users[0].BlockedUserIDs))
+}
 
 func TestClient_UnmuteUser(t *testing.T) {
 	c := initClient(t)
