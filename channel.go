@@ -198,6 +198,12 @@ func (q QueryResponse) updateChannel(ch *Channel) {
 
 // Query makes request to channel api and updates channel internal state.
 func (ch *Channel) Query(ctx context.Context, q *QueryRequest) (*QueryResponse, error) {
+	if q != nil {
+		q.State = true
+	} else {
+		q = &QueryRequest{State: true}
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "query")
 
 	var resp QueryResponse
