@@ -106,6 +106,11 @@ func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, erro
 	return client, nil
 }
 
+// SetToken sets the auth token.
+func (c *Client) SetToken(token string) {
+	c.authToken = token
+}
+
 // SetClient sets a new underlying HTTP client.
 func (c *Client) SetClient(client *http.Client) {
 	c.HTTP = client
