@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +23,7 @@ func TestPermissions_RoleEndpoints(t *testing.T) {
 
 	roles, err := p.ListRoles(ctx)
 	require.NoError(t, err)
-	assert.NotEmpty(t, roles)
+	require.NotEmpty(t, roles)
 
 	t.Cleanup(func() {
 		resp, _ := p.ListRoles(ctx)
@@ -55,15 +54,15 @@ func TestPermissions_PermissionEndpoints(t *testing.T) {
 
 	perms, err := p.ListPermissions(ctx)
 	require.NoError(t, err)
-	assert.NotEmpty(t, perms)
+	require.NotEmpty(t, perms)
 
 	resp, err := p.GetPermission(ctx, "create-channel")
 	require.NoError(t, err)
 
 	perm := resp.Permission
-	assert.Equal(t, "create-channel", perm.ID)
-	assert.False(t, perm.Custom)
-	assert.Empty(t, perm.Condition)
+	require.Equal(t, "create-channel", perm.ID)
+	require.False(t, perm.Custom)
+	require.Empty(t, perm.Condition)
 
 	t.Cleanup(func() {
 		resp, _ := p.ListPermissions(ctx)

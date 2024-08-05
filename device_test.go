@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +13,7 @@ func TestClient_Devices(t *testing.T) {
 	user := randomUser(t, c)
 
 	devices := []*Device{
-		{UserID: user.ID, ID: randomString(12), PushProvider: PushProviderFirebase},
+		{UserID: user.ID, ID: "xxxx", PushProvider: PushProviderFirebase},
 		{UserID: user.ID, ID: randomString(12), PushProvider: PushProviderAPNS},
 	}
 
@@ -25,7 +24,7 @@ func TestClient_Devices(t *testing.T) {
 		resp, err := c.GetDevices(ctx, user.ID)
 		require.NoError(t, err, "get devices")
 
-		assert.True(t, deviceIDExists(resp.Devices, dev.ID), "device with ID %s was created", dev.ID)
+		require.True(t, deviceIDExists(resp.Devices, dev.ID), "device with ID %s was created", dev.ID)
 		_, err = c.DeleteDevice(ctx, user.ID, dev.ID)
 		require.NoError(t, err, "delete device")
 	}

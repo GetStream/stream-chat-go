@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,8 +34,8 @@ func TestClient_GetCommand(t *testing.T) {
 	resp, err := c.GetCommand(ctx, cmd.Name)
 	require.NoError(t, err, "get command")
 
-	assert.Equal(t, cmd.Name, resp.Command.Name)
-	assert.Equal(t, cmd.Description, resp.Command.Description)
+	require.Equal(t, cmd.Name, resp.Command.Name)
+	require.Equal(t, cmd.Description, resp.Command.Description)
 }
 
 func TestClient_ListCommands(t *testing.T) {
@@ -47,7 +46,7 @@ func TestClient_ListCommands(t *testing.T) {
 	resp, err := c.ListCommands(ctx)
 	require.NoError(t, err, "list commands")
 
-	assert.Contains(t, resp.Commands, cmd)
+	require.Contains(t, resp.Commands, cmd)
 }
 
 func TestClient_UpdateCommand(t *testing.T) {
@@ -59,8 +58,8 @@ func TestClient_UpdateCommand(t *testing.T) {
 	resp, err := c.UpdateCommand(ctx, cmd.Name, &update)
 	require.NoError(t, err, "update command")
 
-	assert.Equal(t, cmd.Name, resp.Command.Name)
-	assert.Equal(t, "new description", resp.Command.Description)
+	require.Equal(t, cmd.Name, resp.Command.Name)
+	require.Equal(t, "new description", resp.Command.Description)
 }
 
 // See https://getstream.io/chat/docs/custom_commands/ for more details.

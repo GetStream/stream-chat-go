@@ -5,7 +5,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,9 +41,9 @@ func TestChannel_SendReaction(t *testing.T) {
 	reactionResp, err := c.SendReaction(ctx, &reaction, resp.Message.ID, user.ID)
 	require.NoError(t, err, "send reaction")
 
-	assert.Equal(t, 1, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count", reaction)
+	require.Equal(t, 1, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count", reaction)
 
-	assert.Condition(t, reactionExistsCondition(reactionResp.Message.LatestReactions, reaction.Type), "latest reaction exists")
+	require.Condition(t, reactionExistsCondition(reactionResp.Message.LatestReactions, reaction.Type), "latest reaction exists")
 }
 
 func reactionExistsCondition(reactions []*Reaction, searchType string) func() bool {
@@ -78,8 +77,8 @@ func TestClient_DeleteReaction(t *testing.T) {
 	reactionResp, err = c.DeleteReaction(ctx, reactionResp.Message.ID, reaction.Type, user.ID)
 	require.NoError(t, err, "delete reaction")
 
-	assert.Equal(t, 0, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count")
-	assert.Empty(t, reactionResp.Message.LatestReactions, "latest reactions empty")
+	require.Equal(t, 0, reactionResp.Message.ReactionCounts[reaction.Type], "reaction count")
+	require.Empty(t, reactionResp.Message.LatestReactions, "latest reactions empty")
 }
 
 func TestClient_GetReactions(t *testing.T) {
@@ -98,7 +97,7 @@ func TestClient_GetReactions(t *testing.T) {
 
 	reactionsResp, err := c.GetReactions(ctx, msg.ID, nil)
 	require.NoError(t, err, "get reactions")
-	assert.Empty(t, reactionsResp.Reactions, "reactions empty")
+	require.Empty(t, reactionsResp.Reactions, "reactions empty")
 
 	reaction := Reaction{Type: "love"}
 
@@ -108,5 +107,5 @@ func TestClient_GetReactions(t *testing.T) {
 	reactionsResp, err = c.GetReactions(ctx, reactionResp.Message.ID, nil)
 	require.NoError(t, err, "get reactions")
 
-	assert.Condition(t, reactionExistsCondition(reactionsResp.Reactions, reaction.Type), "reaction exists")
+	require.Condition(t, reactionExistsCondition(reactionsResp.Reactions, reaction.Type), "reaction exists")
 }
