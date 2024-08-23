@@ -1,5 +1,10 @@
 package stream_chat
 
+import (
+	"strconv"
+	"time"
+)
+
 // ChannelConfig is the configuration for a channel.
 type ChannelConfig struct {
 	Name string `json:"name"`
@@ -34,6 +39,47 @@ type ChannelConfig struct {
 	BlockList         string       `json:"blocklist"`
 	BlockListBehavior modBehaviour `json:"blocklist_behavior"`
 	AutomodThresholds *Thresholds  `json:"automod_thresholds"`
+
+	// Dynamic Partitioning
+	PartitionSize int             `json:"partition_size,omitempty"`
+	PartitionTTL  *DurationString `json:"partition_ttl,omitempty"`
+}
+
+// DurationString is a duration that's encoded to as a string in JSON.
+type DurationString time.Duration
+
+// NewDurationString creates a pointer to a DurationString.
+func NewDurationString(d time.Duration) *DurationString {
+	duration := DurationString(d)
+	return &duration
+}
+
+// MarshalJSON encodes the duration as a string such as "2h30m".
+func (d DurationString) MarshalJSON() ([]byte, error) {
+	if d == 0 {
+		return []byte("null"), nil
+	}
+	return []byte(`"` + time.Duration(d).String() + `"`), nil
+}
+
+// String returns the duration as a string such as "2h30m".
+func (d DurationString) String() string {
+	return time.Duration(d).String()
+}
+
+// UnmarshalJSON decodes a duration from a string formatted as
+// [time.Duration.String()](https://golang.org/pkg/time/#Duration.String)
+func (d *DurationString) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	dur, err := time.ParseDuration(s)
+	if err != nil {
+		return err
+	}
+	*d = DurationString(dur)
+	return nil
 }
 
 type LabelThresholds struct {
