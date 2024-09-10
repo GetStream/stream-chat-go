@@ -14,7 +14,7 @@ func TestClient_QueryUsers(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 
-	const n = 4
+	const n = 5
 	ids := make([]string, n)
 	t.Cleanup(func() {
 		for _, id := range ids {
@@ -32,25 +32,30 @@ func TestClient_QueryUsers(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 	}
 
+	_, err := c.DeactivateUser(ctx, ids[n-1])
+	require.NoError(t, err)
+
 	t.Parallel()
 	t.Run("Query all", func(tt *testing.T) {
-		results, err := c.QueryUsers(ctx, &QueryOption{
-			Filter: map[string]interface{}{
-				"id": map[string]interface{}{
-					"$in": ids,
+		results, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": ids,
+					},
 				},
 			},
 		})
 
 		require.NoError(tt, err)
-		require.Len(tt, results.Users, len(ids))
+		require.Len(tt, results.Users, len(ids)-1)
 	})
 
 	t.Run("Query with offset/limit", func(tt *testing.T) {
 		offset := 1
 
-		results, err := c.QueryUsers(ctx,
-			&QueryOption{
+		results, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
 				Filter: map[string]interface{}{
 					"id": map[string]interface{}{
 						"$in": ids,
@@ -59,13 +64,29 @@ func TestClient_QueryUsers(t *testing.T) {
 				Offset: offset,
 				Limit:  2,
 			},
-		)
+		})
 
 		require.NoError(tt, err)
 		require.Len(tt, results.Users, 2)
 
 		require.Equal(tt, results.Users[0].ID, ids[offset])
 		require.Equal(tt, results.Users[1].ID, ids[offset+1])
+	})
+
+	t.Run("Query with deactivated", func(tt *testing.T) {
+		results, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": ids,
+					},
+				},
+			},
+			IncludeDeactivatedUsers: true,
+		})
+
+		require.NoError(tt, err)
+		require.Len(tt, results.Users, len(ids))
 	})
 }
 

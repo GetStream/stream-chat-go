@@ -17,9 +17,11 @@ func TestClient_MuteUser(t *testing.T) {
 	_, err := c.MuteUser(ctx, randomUser(t, c).ID, user.ID)
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	resp, err := c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": user.ID},
+	resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": user.ID},
+			},
 		},
 	})
 
@@ -38,9 +40,11 @@ func TestClient_MuteUser(t *testing.T) {
 	_, err = c.MuteUser(ctx, randomUser(t, c).ID, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUser should not return an error")
 
-	resp, err = c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": user.ID},
+	resp, err = c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": user.ID},
+			},
 		},
 	})
 
@@ -65,9 +69,11 @@ func TestClient_MuteUsers(t *testing.T) {
 	_, err := c.MuteUsers(ctx, targetIDs, user.ID, MuteWithExpiration(60))
 	require.NoError(t, err, "MuteUsers should not return an error")
 
-	resp, err := c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": user.ID},
+	resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": user.ID},
+			},
 		},
 	})
 
@@ -80,6 +86,7 @@ func TestClient_MuteUsers(t *testing.T) {
 		assert.NotEmpty(t, mute.Expires, "mute should have Expires")
 	}
 }
+
 func TestClient_BlockUsers(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -90,9 +97,11 @@ func TestClient_BlockUsers(t *testing.T) {
 	_, err := c.BlockUser(ctx, blockedUser.ID, blockingUser.ID)
 	require.NoError(t, err, "BlockUser should not return an error")
 
-	resp, err := c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": blockingUser.ID},
+	resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": blockingUser.ID},
+			},
 		},
 	})
 
@@ -103,6 +112,7 @@ func TestClient_BlockUsers(t *testing.T) {
 
 	require.Equal(t, users[0].BlockedUserIDs[0], blockedUser.ID)
 }
+
 func TestClient_UnblockUsersGetBlockedUsers(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -113,9 +123,11 @@ func TestClient_UnblockUsersGetBlockedUsers(t *testing.T) {
 	_, err := c.BlockUser(ctx, blockedUser.ID, blockingUser.ID)
 	require.NoError(t, err, "BlockUser should not return an error")
 
-	resp, err := c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": blockingUser.ID},
+	resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": blockingUser.ID},
+			},
 		},
 	})
 
@@ -132,9 +144,11 @@ func TestClient_UnblockUsersGetBlockedUsers(t *testing.T) {
 	_, err = c.UnblockUser(ctx, blockedUser.ID, blockingUser.ID)
 	require.NoError(t, err, "UnblockUser should not return an error")
 
-	resp, err = c.QueryUsers(ctx, &QueryOption{
-		Filter: map[string]interface{}{
-			"id": map[string]string{"$eq": blockingUser.ID},
+	resp, err = c.QueryUsers(ctx, &QueryUsersOptions{
+		QueryOption: QueryOption{
+			Filter: map[string]interface{}{
+				"id": map[string]string{"$eq": blockingUser.ID},
+			},
 		},
 	})
 

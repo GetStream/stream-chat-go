@@ -32,11 +32,12 @@ type queryRequest struct {
 	State    bool `json:"state"`
 	Presence bool `json:"presence"`
 
-	UserID       string `json:"user_id,omitempty"`
-	Limit        int    `json:"limit,omitempty"`
-	Offset       int    `json:"offset,omitempty"`
-	MemberLimit  *int   `json:"member_limit,omitempty"`
-	MessageLimit *int   `json:"message_limit,omitempty"`
+	UserID                  string `json:"user_id,omitempty"`
+	Limit                   int    `json:"limit,omitempty"`
+	Offset                  int    `json:"offset,omitempty"`
+	MemberLimit             *int   `json:"member_limit,omitempty"`
+	MessageLimit            *int   `json:"message_limit,omitempty"`
+	IncludeDeactivatedUsers bool   `json:"include_deactivated_users,omitempty"`
 
 	FilterConditions map[string]interface{} `json:"filter_conditions,omitempty"`
 	Sort             []*SortOption          `json:"sort,omitempty"`
@@ -58,19 +59,26 @@ type FlagReport struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+type QueryUsersOptions struct {
+	QueryOption
+
+	IncludeDeactivatedUsers bool `json:"include_deactivated_users"`
+}
+
 type QueryUsersResponse struct {
 	Users []*User `json:"users"`
 	Response
 }
 
-// QueryUsers returns list of users that match QueryOption.
+// QueryUsers returns list of users that match QueryUsersOptions.
 // If any number of SortOption are set, result will be sorted by field and direction in the order of sort options.
-func (c *Client) QueryUsers(ctx context.Context, q *QueryOption, sorters ...*SortOption) (*QueryUsersResponse, error) {
+func (c *Client) QueryUsers(ctx context.Context, q *QueryUsersOptions, sorters ...*SortOption) (*QueryUsersResponse, error) {
 	qp := queryRequest{
-		FilterConditions: q.Filter,
-		Limit:            q.Limit,
-		Offset:           q.Offset,
-		Sort:             sorters,
+		FilterConditions:        q.Filter,
+		Limit:                   q.Limit,
+		Offset:                  q.Offset,
+		IncludeDeactivatedUsers: q.IncludeDeactivatedUsers,
+		Sort:                    sorters,
 	}
 
 	data, err := json.Marshal(&qp)
