@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.0.0](https://github.com/GetStream/stream-chat-go/compare/v6.11.0...v7.0.0) (2024-09-10)
+
+
+### Features
+
+* add support for dynamic partitioning config ([#286](https://github.com/GetStream/stream-chat-go/issues/286)) ([f94bd70](https://github.com/GetStream/stream-chat-go/commit/f94bd7097a76c3fc823db4f10c7fb3c540d63f3b))
+* add support for querying deactivated users ([#288](https://github.com/GetStream/stream-chat-go/issues/288)) ([a64b64c](https://github.com/GetStream/stream-chat-go/commit/a64b64c94b9250622ba8acdad71c5210fdd08098))
+
 ## [6.11.0](https://github.com/GetStream/stream-chat-go/compare/v6.10.0...v6.11.0) (2024-05-27)
 
 
