@@ -42,9 +42,10 @@ type Message struct {
 	ShowInChannel      bool    `json:"show_in_channel,omitempty"` // show reply message also in channel
 	ThreadParticipants []*User `json:"thread_participants,omitempty"`
 
-	ReplyCount      int     `json:"reply_count,omitempty"`
-	QuotedMessageID string  `json:"quoted_message_id,omitempty"`
-	MentionedUsers  []*User `json:"mentioned_users"`
+	ReplyCount      int       `json:"reply_count,omitempty"`
+	QuotedMessage   *Message  `json:"quoted_message,omitempty"`
+	QuotedMessageID string    `json:"quoted_message_id,omitempty"`
+	MentionedUsers  []*User   `json:"mentioned_users"`
 
 	Command string `json:"command,omitempty"`
 
