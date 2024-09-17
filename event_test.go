@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +38,7 @@ func TestEventSupportsAllFields(t *testing.T) {
 			t.Errorf("Error unmarshaling %q: %v", name, err)
 		}
 
-		assert.Equal(t, name, result.Type)
+		require.Equal(t, name, result.Type)
 	}
 }
 

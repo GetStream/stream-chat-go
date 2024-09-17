@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,10 +39,10 @@ func TestClient_GetChannelType(t *testing.T) {
 	resp, err := c.GetChannelType(ctx, ct.Name)
 	require.NoError(t, err, "get channel type")
 
-	assert.Equal(t, ct.Name, resp.ChannelType.Name)
-	assert.Equal(t, len(ct.Commands), len(resp.ChannelType.Commands))
-	assert.Equal(t, ct.Permissions, resp.ChannelType.Permissions)
-	assert.NotEmpty(t, resp.Grants)
+	require.Equal(t, ct.Name, resp.ChannelType.Name)
+	require.Equal(t, len(ct.Commands), len(resp.ChannelType.Commands))
+	require.Equal(t, ct.Permissions, resp.ChannelType.Permissions)
+	require.NotEmpty(t, resp.Grants)
 }
 
 func TestClient_ListChannelTypes(t *testing.T) {
@@ -54,7 +53,7 @@ func TestClient_ListChannelTypes(t *testing.T) {
 	resp, err := c.ListChannelTypes(ctx)
 	require.NoError(t, err, "list channel types")
 
-	assert.Contains(t, resp.ChannelTypes, ct.Name)
+	require.Contains(t, resp.ChannelTypes, ct.Name)
 }
 
 func TestClient_UpdateChannelTypeMarkMessagesPending(t *testing.T) {

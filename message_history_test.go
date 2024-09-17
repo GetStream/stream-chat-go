@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,12 +28,12 @@ func TestMessageHistory(t *testing.T) {
 	updatedCustomFieldValue := "updated custom value"
 	// update the message by user1
 	_, err = client.UpdateMessage(ctx, &Message{Text: updatedText1, ExtraData: map[string]interface{}{customField: updatedCustomFieldValue}, UserID: user1.ID}, message.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	updatedText2 := "updated text 2"
 	// update the message by user2
 	_, err = client.UpdateMessage(ctx, &Message{Text: updatedText2, UserID: user2.ID}, message.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Run("test query", func(t *testing.T) {
 		req := QueryMessageHistoryRequest{
@@ -43,21 +42,21 @@ func TestMessageHistory(t *testing.T) {
 			},
 		}
 		messageHistoryResponse, err := client.QueryMessageHistory(ctx, req)
-		assert.NoError(t, err)
-		assert.NotNil(t, messageHistoryResponse)
+		require.NoError(t, err)
+		require.NotNil(t, messageHistoryResponse)
 
 		history := messageHistoryResponse.MessageHistory
-		assert.Equal(t, 2, len(history))
+		require.Equal(t, 2, len(history))
 
 		firstUpdate := history[1]
-		assert.Equal(t, initialText, firstUpdate.Text)
-		assert.Equal(t, user1.ID, firstUpdate.MessageUpdatedByID)
-		assert.Equal(t, initialCustomFieldValue, firstUpdate.ExtraData[customField].(string))
+		require.Equal(t, initialText, firstUpdate.Text)
+		require.Equal(t, user1.ID, firstUpdate.MessageUpdatedByID)
+		require.Equal(t, initialCustomFieldValue, firstUpdate.ExtraData[customField].(string))
 
 		secondUpdate := history[0]
-		assert.Equal(t, updatedText1, secondUpdate.Text)
-		assert.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
-		assert.Equal(t, updatedCustomFieldValue, secondUpdate.ExtraData[customField].(string))
+		require.Equal(t, updatedText1, secondUpdate.Text)
+		require.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
+		require.Equal(t, updatedCustomFieldValue, secondUpdate.ExtraData[customField].(string))
 	})
 
 	t.Run("test sorting", func(t *testing.T) {
@@ -73,18 +72,18 @@ func TestMessageHistory(t *testing.T) {
 			},
 		}
 		sortedHistoryResponse, err := client.QueryMessageHistory(ctx, sortedHistoryQueryRequest)
-		assert.NoError(t, err)
-		assert.NotNil(t, sortedHistoryResponse)
+		require.NoError(t, err)
+		require.NotNil(t, sortedHistoryResponse)
 
 		sortedHistory := sortedHistoryResponse.MessageHistory
-		assert.Equal(t, 2, len(sortedHistory))
+		require.Equal(t, 2, len(sortedHistory))
 
 		firstUpdate := sortedHistory[0]
-		assert.Equal(t, initialText, firstUpdate.Text)
-		assert.Equal(t, user1.ID, firstUpdate.MessageUpdatedByID)
+		require.Equal(t, initialText, firstUpdate.Text)
+		require.Equal(t, user1.ID, firstUpdate.MessageUpdatedByID)
 
 		secondUpdate := sortedHistory[1]
-		assert.Equal(t, updatedText1, secondUpdate.Text)
-		assert.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
+		require.Equal(t, updatedText1, secondUpdate.Text)
+		require.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
 	})
 }

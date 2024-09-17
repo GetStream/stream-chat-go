@@ -7,7 +7,6 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,11 +55,11 @@ func TestClient_CreateChannel(t *testing.T) {
 		require.NoError(t, err, "create channel", ch)
 
 		channel := resp.Channel
-		assert.Equal(t, c, channel.client, "client link")
-		assert.Equal(t, ch.Type, channel.Type, "channel type")
-		assert.Equal(t, ch.ID, channel.ID, "channel id")
-		assert.Equal(t, ch.MemberCount, channel.MemberCount, "member count")
-		assert.Len(t, channel.Members, ch.MemberCount, "members length")
+		require.Equal(t, c, channel.client, "client link")
+		require.Equal(t, ch.Type, channel.Type, "channel type")
+		require.Equal(t, ch.ID, channel.ID, "channel id")
+		require.Equal(t, ch.MemberCount, channel.MemberCount, "member count")
+		require.Len(t, channel.Members, ch.MemberCount, "members length")
 	})
 
 	tests := []struct {
@@ -98,13 +97,13 @@ func TestClient_CreateChannel(t *testing.T) {
 			require.NoError(t, err, "create channel", tt)
 
 			channel := resp.Channel
-			assert.Equal(t, tt.channelType, channel.Type, "channel type")
-			assert.NotEmpty(t, channel.ID)
+			require.Equal(t, tt.channelType, channel.Type, "channel type")
+			require.NotEmpty(t, channel.ID)
 			if tt.id != "" {
-				assert.Equal(t, tt.id, channel.ID, "channel id")
+				require.Equal(t, tt.id, channel.ID, "channel id")
 			}
 
-			assert.Equal(t, tt.userID, channel.CreatedBy.ID, "channel created by")
+			require.Equal(t, tt.userID, channel.CreatedBy.ID, "channel created by")
 		})
 	}
 }
@@ -134,7 +133,7 @@ func TestChannel_AddMembers(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	ch := resp.Channel
 
-	assert.Empty(t, ch.Members, "members are empty")
+	require.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
 
@@ -148,7 +147,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+	require.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
 func TestChannel_AssignRoles(t *testing.T) {
@@ -177,7 +176,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	ch := resp1.Channel
 
-	assert.Empty(t, ch.Members, "members are empty")
+	require.Empty(t, ch.Members, "members are empty")
 
 	prefix := randomString(12)
 	names := []string{"paul", "george", "john", "jessica", "john2"}
@@ -225,7 +224,7 @@ func TestChannel_InviteMembers(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	ch := resp.Channel
 
-	assert.Empty(t, ch.Members, "members are empty")
+	require.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
 
@@ -235,10 +234,10 @@ func TestChannel_InviteMembers(t *testing.T) {
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
-	assert.True(t, ch.Members[0].Invited, "member is invited")
-	assert.Nil(t, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
-	assert.Nil(t, ch.Members[0].InviteRejectedAt, "invite is not rejected")
+	require.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+	require.True(t, ch.Members[0].Invited, "member is invited")
+	require.Nil(t, ch.Members[0].InviteAcceptedAt, "invite is not accepted")
+	require.Nil(t, ch.Members[0].InviteRejectedAt, "invite is not rejected")
 }
 
 func TestChannel_Moderation(t *testing.T) {
@@ -251,7 +250,7 @@ func TestChannel_Moderation(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	ch := resp.Channel
 
-	assert.Empty(t, ch.Members, "members are empty")
+	require.Empty(t, ch.Members, "members are empty")
 
 	user := randomUser(t, c)
 
@@ -265,8 +264,8 @@ func TestChannel_Moderation(t *testing.T) {
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
-	assert.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
+	require.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
+	require.Equal(t, "moderator", ch.Members[0].Role, "user role is moderator")
 
 	_, err = ch.DemoteModerators(ctx, user.ID)
 	require.NoError(t, err, "demote moderators")
@@ -274,8 +273,8 @@ func TestChannel_Moderation(t *testing.T) {
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 
-	assert.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
-	assert.Equal(t, "member", ch.Members[0].Role, "user role is member")
+	require.Equal(t, user.ID, ch.Members[0].User.ID, "user exists")
+	require.Equal(t, "member", ch.Members[0].Role, "user role is member")
 }
 
 func TestChannel_Delete(t *testing.T) {
@@ -305,7 +304,7 @@ func TestChannel_GetReplies(t *testing.T) {
 
 	repliesResp, err := ch.GetReplies(ctx, msg.ID, nil)
 	require.NoError(t, err, "get replies")
-	assert.Len(t, repliesResp.Messages, 1)
+	require.Len(t, repliesResp.Messages, 1)
 }
 
 func TestChannel_RemoveMembers(t *testing.T) {
@@ -322,7 +321,7 @@ func TestChannel_RemoveMembers(t *testing.T) {
 	require.NoError(t, err, "remove members")
 
 	for _, member := range ch.Members {
-		assert.NotEqual(t, member.User.ID, user.ID, "member is not present")
+		require.NotEqual(t, member.User.ID, user.ID, "member is not present")
 	}
 }
 
@@ -358,8 +357,8 @@ func TestChannel_SendMessage(t *testing.T) {
 
 	// check that message was updated
 	msg = resp.Message
-	assert.NotEmpty(t, msg.ID, "message has ID")
-	assert.NotEmpty(t, msg.HTML, "message has HTML body")
+	require.NotEmpty(t, msg.ID, "message has ID")
+	require.NotEmpty(t, msg.HTML, "message has HTML body")
 
 	msg2 := &Message{
 		Text:   "text message 2",
@@ -371,9 +370,9 @@ func TestChannel_SendMessage(t *testing.T) {
 
 	// check that message was updated
 	msg2 = resp.Message
-	assert.NotEmpty(t, msg2.ID, "message has ID")
-	assert.NotEmpty(t, msg2.HTML, "message has HTML body")
-	assert.True(t, msg2.Silent, "message silent flag is set")
+	require.NotEmpty(t, msg2.ID, "message has ID")
+	require.NotEmpty(t, msg2.HTML, "message has HTML body")
+	require.True(t, msg2.Silent, "message silent flag is set")
 }
 
 func TestChannel_SendSystemMessage(t *testing.T) {
@@ -391,8 +390,8 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 
 	// check that message was updated
 	msg = resp.Message
-	assert.NotEmpty(t, msg.ID, "message has ID")
-	assert.Equal(t, MessageTypeSystem, msg.Type, "message type is system")
+	require.NotEmpty(t, msg.ID, "message has ID")
+	require.Equal(t, MessageTypeSystem, msg.Type, "message type is system")
 }
 
 func TestChannel_Truncate(t *testing.T) {
@@ -410,13 +409,13 @@ func TestChannel_Truncate(t *testing.T) {
 	resp, err := ch.SendMessage(ctx, msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
+	require.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
 	_, err = ch.Truncate(ctx)
 	require.NoError(t, err, "truncate channel")
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Empty(t, ch.Messages, "channel is empty")
+	require.Empty(t, ch.Messages, "channel is empty")
 }
 
 func TestChannel_TruncateWithOptions(t *testing.T) {
@@ -434,7 +433,7 @@ func TestChannel_TruncateWithOptions(t *testing.T) {
 	resp, err := ch.SendMessage(ctx, msg, user.ID)
 	require.NoError(t, err, "send message")
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
+	require.Equal(t, ch.Messages[0].ID, resp.Message.ID, "message exists")
 
 	// Now truncate it
 	_, err = ch.Truncate(ctx,

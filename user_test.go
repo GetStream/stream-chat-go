@@ -5,7 +5,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,9 +30,9 @@ func TestClient_MuteUser(t *testing.T) {
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
 
 	mute := users[0].Mutes[0]
-	assert.NotEmpty(t, mute.User, "mute should have a User")
-	assert.NotEmpty(t, mute.Target, "mute should have a Target")
-	assert.Empty(t, mute.Expires, "mute should have no Expires")
+	require.NotEmpty(t, mute.User, "mute should have a User")
+	require.NotEmpty(t, mute.Target, "mute should have a Target")
+	require.Empty(t, mute.Expires, "mute should have no Expires")
 
 	user = randomUser(t, c)
 	// when timeout is given, expiration field should be set on mute
@@ -54,9 +53,9 @@ func TestClient_MuteUser(t *testing.T) {
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
 
 	mute = users[0].Mutes[0]
-	assert.NotEmpty(t, mute.User, "mute should have a User")
-	assert.NotEmpty(t, mute.Target, "mute should have a Target")
-	assert.NotEmpty(t, mute.Expires, "mute should have Expires")
+	require.NotEmpty(t, mute.User, "mute should have a User")
+	require.NotEmpty(t, mute.Target, "mute should have a Target")
+	require.NotEmpty(t, mute.Expires, "mute should have Expires")
 }
 
 func TestClient_MuteUsers(t *testing.T) {
@@ -83,7 +82,7 @@ func TestClient_MuteUsers(t *testing.T) {
 	require.NotEmptyf(t, users[0].Mutes, "user should have Mutes: %+v", users[0])
 
 	for _, mute := range users[0].Mutes {
-		assert.NotEmpty(t, mute.Expires, "mute should have Expires")
+		require.NotEmpty(t, mute.Expires, "mute should have Expires")
 	}
 }
 
@@ -168,7 +167,7 @@ func TestClient_UnmuteUser(t *testing.T) {
 	require.NoError(t, err, "MuteUser should not return an error")
 
 	_, err = c.UnmuteUser(ctx, mutedUser.ID, user.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestClient_CreateGuestUser(t *testing.T) {
@@ -195,7 +194,7 @@ func TestClient_UnmuteUsers(t *testing.T) {
 	require.NoError(t, err, "MuteUsers should not return an error")
 
 	_, err = c.UnmuteUsers(ctx, targetIDs, user.ID)
-	assert.NoError(t, err, "unmute users")
+	require.NoError(t, err, "unmute users")
 }
 
 func TestClient_UpsertUsers(t *testing.T) {
@@ -207,9 +206,9 @@ func TestClient_UpsertUsers(t *testing.T) {
 	resp, err := c.UpsertUsers(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Contains(t, resp.Users, user.ID)
-	assert.NotEmpty(t, resp.Users[user.ID].CreatedAt)
-	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
+	require.Contains(t, resp.Users, user.ID)
+	require.NotEmpty(t, resp.Users[user.ID].CreatedAt)
+	require.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
 }
 
 func TestClient_PartialUpdateUsers(t *testing.T) {
@@ -230,9 +229,9 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	require.NoError(t, err, "partial update user")
 
 	got := resp.Users
-	assert.Contains(t, got, user.ID)
-	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains: %v", got[user.ID].ExtraData)
-	assert.Equal(t, map[string]interface{}{"passed": true}, got[user.ID].ExtraData["test"])
+	require.Contains(t, got, user.ID)
+	require.Contains(t, got[user.ID].ExtraData, "test", "extra data contains: %v", got[user.ID].ExtraData)
+	require.Equal(t, map[string]interface{}{"passed": true}, got[user.ID].ExtraData["test"])
 
 	update = PartialUserUpdate{
 		ID:    user.ID,
@@ -243,9 +242,9 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	require.NoError(t, err, "partial update user")
 
 	got = resp.Users
-	assert.Contains(t, got, user.ID)
-	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
-	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
+	require.Contains(t, got, user.ID)
+	require.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
+	require.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
 }
 
 func ExampleClient_UpsertUser() {
