@@ -43,6 +43,8 @@ type ChannelConfig struct {
 	// Dynamic Partitioning
 	PartitionSize int             `json:"partition_size,omitempty"`
 	PartitionTTL  *DurationString `json:"partition_ttl,omitempty"`
+
+	SkipLastMsgUpdateForSystemMsgs bool `json:"skip_last_msg_update_for_system_msgs,omitempty"`
 }
 
 // DurationString is a duration that's encoded to as a string in JSON.
