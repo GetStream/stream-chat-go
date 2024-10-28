@@ -20,7 +20,7 @@ func TestMessageHistory(t *testing.T) {
 	initialText := "initial text"
 	customField := "custom_field"
 	initialCustomFieldValue := "custom value"
-	// send a message with initial text
+	// send a message with initial text (user1)
 	response, err := ch.SendMessage(ctx, &Message{Text: initialText, ExtraData: map[string]interface{}{customField: initialCustomFieldValue}}, user1.ID)
 	require.NoError(t, err)
 	message := response.Message
@@ -56,7 +56,7 @@ func TestMessageHistory(t *testing.T) {
 
 		secondUpdate := history[0]
 		assert.Equal(t, updatedText1, secondUpdate.Text)
-		assert.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
+		assert.Equal(t, user1.ID, secondUpdate.MessageUpdatedByID)
 		assert.Equal(t, updatedCustomFieldValue, secondUpdate.ExtraData[customField].(string))
 	})
 
@@ -85,6 +85,6 @@ func TestMessageHistory(t *testing.T) {
 
 		secondUpdate := sortedHistory[1]
 		assert.Equal(t, updatedText1, secondUpdate.Text)
-		assert.Equal(t, user2.ID, secondUpdate.MessageUpdatedByID)
+		assert.Equal(t, user1.ID, secondUpdate.MessageUpdatedByID)
 	})
 }
