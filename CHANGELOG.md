@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/GetStream/stream-chat-go/compare/v7.0.0...v7.1.0) (2024-10-28)
+
 ## [7.0.0](https://github.com/GetStream/stream-chat-go/compare/v6.11.0...v7.0.0) (2024-09-10)
 
 
