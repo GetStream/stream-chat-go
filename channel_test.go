@@ -770,7 +770,7 @@ func TestChannel_Archive(t *testing.T) {
 	require.NoError(t, err, "unarchive channel")
 	require.Nil(t, member.ChannelMember.ArchivedAt)
 
-	// query for pinned the channel
+	// query for the archived channel
 	queryChannResp, err = c.QueryChannels(ctx, &QueryOption{
 		UserID: users[0].ID,
 		Filter: map[string]interface{}{
