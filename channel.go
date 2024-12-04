@@ -27,6 +27,8 @@ type ChannelMember struct {
 	InviteAcceptedAt *time.Time `json:"invite_accepted_at,omitempty"`
 	InviteRejectedAt *time.Time `json:"invite_rejected_at,omitempty"`
 	Role             string     `json:"role,omitempty"`
+	ArchivedAt       *time.Time `json:"archived_at,omitempty"`
+	PinnedAt         *time.Time `json:"pinned_at,omitempty"`
 
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
@@ -854,4 +856,45 @@ func (ch *Channel) Unmute(ctx context.Context, userID string) (*Response, error)
 	var resp Response
 	err := ch.client.makeRequest(ctx, http.MethodPost, "moderation/unmute/channel", nil, data, &resp)
 	return &resp, err
+}
+
+type ChannelMemberResponse struct {
+	ChannelMember ChannelMember `json:"channel_member"`
+	Response
+}
+
+func (ch *Channel) Pin(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "member", url.PathEscape(userID))
+
+	data := map[string]interface{}{
+		"set": map[string]interface{}{
+			"pinned": true,
+		},
+	}
+
+	resp := &ChannelMemberResponse{}
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
+	return resp, err
+}
+
+func (ch *Channel) Unpin(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "member", url.PathEscape(userID))
+
+	data := map[string]interface{}{
+		"set": map[string]interface{}{
+			"pinned": false,
+		},
+	}
+
+	resp := &ChannelMemberResponse{}
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
+	return resp, err
 }
