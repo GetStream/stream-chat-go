@@ -745,7 +745,7 @@ func TestChannel_Archive(t *testing.T) {
 	}
 	ch := initChannel(t, c, members...)
 
-	//pin the channel
+	//archive the channel
 	now := time.Now()
 	member, err := ch.Archive(ctx, users[0].ID)
 	require.NoError(t, err, "archive channel")
