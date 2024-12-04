@@ -23,15 +23,46 @@ type ChannelMember struct {
 	User        *User  `json:"user,omitempty"`
 	IsModerator bool   `json:"is_moderator,omitempty"`
 
-	Invited          bool       `json:"invited,omitempty"`
-	InviteAcceptedAt *time.Time `json:"invite_accepted_at,omitempty"`
-	InviteRejectedAt *time.Time `json:"invite_rejected_at,omitempty"`
-	Role             string     `json:"role,omitempty"`
-	ArchivedAt       *time.Time `json:"archived_at,omitempty"`
-	PinnedAt         *time.Time `json:"pinned_at,omitempty"`
+	Invited            bool       `json:"invited,omitempty"`
+	InviteAcceptedAt   *time.Time `json:"invite_accepted_at,omitempty"`
+	InviteRejectedAt   *time.Time `json:"invite_rejected_at,omitempty"`
+	Status             string     `json:"status,omitempty"`
+	Role               string     `json:"role,omitempty"`
+	ChannelRole        string     `json:"channel_role"`
+	Banned             bool       `json:"banned"`
+	BanExpires         *time.Time `json:"ban_expires,omitempty"`
+	ShadowBanned       bool       `json:"shadow_banned"`
+	ArchivedAt         *time.Time `json:"archived_at,omitempty"`
+	PinnedAt           *time.Time `json:"pinned_at,omitempty"`
+	NotificationsMuted bool       `json:"notifications_muted"`
+
+	ExtraData map[string]interface{} `json:"-"`
 
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+type channelMemberForJSON ChannelMember
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (m *ChannelMember) UnmarshalJSON(data []byte) error {
+	var m2 channelMemberForJSON
+	if err := json.Unmarshal(data, &m2); err != nil {
+		return err
+	}
+	*m = ChannelMember(m2)
+
+	if err := json.Unmarshal(data, &m.ExtraData); err != nil {
+		return err
+	}
+
+	removeFromMap(m.ExtraData, *m)
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (m ChannelMember) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(m.ExtraData, channelMemberForJSON(m))
 }
 
 type Channel struct {
@@ -863,6 +894,7 @@ type ChannelMemberResponse struct {
 	Response
 }
 
+// Pin pins the channel for the user.
 func (ch *Channel) Pin(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -881,6 +913,7 @@ func (ch *Channel) Pin(ctx context.Context, userID string) (*ChannelMemberRespon
 	return resp, err
 }
 
+// Unpin unpins the channel for the user.
 func (ch *Channel) Unpin(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -899,6 +932,7 @@ func (ch *Channel) Unpin(ctx context.Context, userID string) (*ChannelMemberResp
 	return resp, err
 }
 
+// Archive archives the channel for the user.
 func (ch *Channel) Archive(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -917,6 +951,7 @@ func (ch *Channel) Archive(ctx context.Context, userID string) (*ChannelMemberRe
 	return resp, err
 }
 
+// Unarchive unarchives the channel for the user.
 func (ch *Channel) Unarchive(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be not empty")
@@ -932,5 +967,18 @@ func (ch *Channel) Unarchive(ctx context.Context, userID string) (*ChannelMember
 
 	resp := &ChannelMemberResponse{}
 	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
+	return resp, err
+}
+
+// PartialUpdateMember set and unset specific fields when it is necessary to retain additional custom data fields on the object. AKA a patch style update.
+func (ch *Channel) PartialUpdateMember(ctx context.Context, userID string, update PartialUpdate) (*ChannelMemberResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "member", url.PathEscape(userID))
+
+	resp := &ChannelMemberResponse{}
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, resp)
 	return resp, err
 }

@@ -493,6 +493,41 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	require.Nil(t, ch.ExtraData["age"])
 }
 
+func TestChannel_MemberPartialUpdate(t *testing.T) {
+	c := initClient(t)
+	users := randomUsers(t, c, 5)
+	ctx := context.Background()
+
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
+	}
+
+	req := &ChannelRequest{Members: members}
+	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
+	require.NoError(t, err)
+
+	ch := resp.Channel
+	member, err := ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+		Set: map[string]interface{}{
+			"color": "red",
+		},
+		Unset: []string{"age"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "red", member.ChannelMember.ExtraData["color"])
+
+	member, err = ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+		Set: map[string]interface{}{
+			"age": "18",
+		},
+		Unset: []string{"color"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "18", member.ChannelMember.ExtraData["age"])
+	require.Nil(t, member.ChannelMember.ExtraData["color"])
+}
+
 func TestChannel_SendFile(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
