@@ -898,3 +898,39 @@ func (ch *Channel) Unpin(ctx context.Context, userID string) (*ChannelMemberResp
 	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
 	return resp, err
 }
+
+func (ch *Channel) Archive(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "member", url.PathEscape(userID))
+
+	data := map[string]interface{}{
+		"set": map[string]interface{}{
+			"archived": true,
+		},
+	}
+
+	resp := &ChannelMemberResponse{}
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
+	return resp, err
+}
+
+func (ch *Channel) Unarchive(ctx context.Context, userID string) (*ChannelMemberResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "member", url.PathEscape(userID))
+
+	data := map[string]interface{}{
+		"set": map[string]interface{}{
+			"archived": false,
+		},
+	}
+
+	resp := &ChannelMemberResponse{}
+	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, data, resp)
+	return resp, err
+}
