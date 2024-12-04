@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -492,6 +493,41 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	require.Nil(t, ch.ExtraData["age"])
 }
 
+func TestChannel_MemberPartialUpdate(t *testing.T) {
+	c := initClient(t)
+	users := randomUsers(t, c, 5)
+	ctx := context.Background()
+
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
+	}
+
+	req := &ChannelRequest{Members: members}
+	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
+	require.NoError(t, err)
+
+	ch := resp.Channel
+	member, err := ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+		Set: map[string]interface{}{
+			"color": "red",
+		},
+		Unset: []string{"age"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "red", member.ChannelMember.ExtraData["color"])
+
+	member, err = ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+		Set: map[string]interface{}{
+			"age": "18",
+		},
+		Unset: []string{"color"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "18", member.ChannelMember.ExtraData["age"])
+	require.Nil(t, member.ChannelMember.ExtraData["color"])
+}
+
 func TestChannel_SendFile(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
@@ -645,6 +681,108 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 
 	require.NoError(t, err, "query muted channel")
 	require.Len(t, queryChannResp.Channels, 1)
+}
+
+func TestChannel_Pin(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	users := randomUsers(t, c, 5)
+
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
+	}
+	ch := initChannel(t, c, members...)
+
+	//pin the channel
+	now := time.Now()
+	member, err := ch.Pin(ctx, users[0].ID)
+	require.NoError(t, err, "pin channel")
+	require.NotNil(t, member.ChannelMember.PinnedAt)
+	require.GreaterOrEqual(t, member.ChannelMember.PinnedAt.Unix(), now.Unix())
+
+	// query for pinned the channel
+	queryChannResp, err := c.QueryChannels(ctx, &QueryOption{
+		UserID: users[0].ID,
+		Filter: map[string]interface{}{
+			"pinned": true,
+			"cid":    ch.CID,
+		},
+	})
+
+	channels := queryChannResp.Channels
+	require.NoError(t, err, "query pinned channel")
+	require.Len(t, channels, 1)
+	require.Equal(t, channels[0].CID, ch.CID)
+
+	member, err = ch.Unpin(ctx, users[0].ID)
+	require.NoError(t, err, "unpin channel")
+	require.Nil(t, member.ChannelMember.PinnedAt)
+
+	// query for pinned the channel
+	queryChannResp, err = c.QueryChannels(ctx, &QueryOption{
+		UserID: users[0].ID,
+		Filter: map[string]interface{}{
+			"pinned": false,
+			"cid":    ch.CID,
+		},
+	})
+
+	channels = queryChannResp.Channels
+	require.NoError(t, err, "query pinned channel")
+	require.Len(t, channels, 1)
+	require.Equal(t, channels[0].CID, ch.CID)
+}
+
+func TestChannel_Archive(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	users := randomUsers(t, c, 5)
+
+	members := make([]string, 0, len(users))
+	for i := range users {
+		members = append(members, users[i].ID)
+	}
+	ch := initChannel(t, c, members...)
+
+	//archive the channel
+	now := time.Now()
+	member, err := ch.Archive(ctx, users[0].ID)
+	require.NoError(t, err, "archive channel")
+	require.NotNil(t, member.ChannelMember.ArchivedAt)
+	require.GreaterOrEqual(t, member.ChannelMember.ArchivedAt.Unix(), now.Unix())
+
+	// query for pinned the channel
+	queryChannResp, err := c.QueryChannels(ctx, &QueryOption{
+		UserID: users[0].ID,
+		Filter: map[string]interface{}{
+			"archived": true,
+			"cid":      ch.CID,
+		},
+	})
+
+	channels := queryChannResp.Channels
+	require.NoError(t, err, "query archived channel")
+	require.Len(t, channels, 1)
+	require.Equal(t, channels[0].CID, ch.CID)
+
+	member, err = ch.Unarchive(ctx, users[0].ID)
+	require.NoError(t, err, "unarchive channel")
+	require.Nil(t, member.ChannelMember.ArchivedAt)
+
+	// query for the archived channel
+	queryChannResp, err = c.QueryChannels(ctx, &QueryOption{
+		UserID: users[0].ID,
+		Filter: map[string]interface{}{
+			"archived": false,
+			"cid":      ch.CID,
+		},
+	})
+
+	channels = queryChannResp.Channels
+	require.NoError(t, err, "query archived channel")
+	require.Len(t, channels, 1)
+	require.Equal(t, channels[0].CID, ch.CID)
 }
 
 func ExampleChannel_Update() {
