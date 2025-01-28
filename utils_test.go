@@ -70,6 +70,27 @@ func randomUser(t *testing.T, c *Client) *User {
 	return resp.User
 }
 
+func randomUserWithRole(t *testing.T, c *Client, role string) *User {
+	t.Helper()
+
+	ctx := context.Background()
+	resp, err := c.UpsertUser(ctx, &User{
+		ID:   randomString(10),
+		Role: role,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_, _ = c.DeleteUsers(ctx, []string{resp.User.ID}, DeleteUserOptions{
+			User:          HardDelete,
+			Messages:      HardDelete,
+			Conversations: HardDelete,
+		})
+	})
+
+	return resp.User
+}
+
 func randomUsers(t *testing.T, c *Client, n int) []*User {
 	t.Helper()
 
