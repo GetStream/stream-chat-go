@@ -411,7 +411,7 @@ func TestChannel_SendRestrictedVisibilityMessage(t *testing.T) {
 
 	resp, err := ch.SendMessage(ctx, msg, adminUser.ID)
 	require.NoError(t, err, "send message")
-	assert.Equal(t, resp.Message.RestrictedVisibility, msg.RestrictedVisibility)
+	assert.Equal(t, msg.RestrictedVisibility, resp.Message.RestrictedVisibility)
 }
 
 func TestChannel_Truncate(t *testing.T) {
