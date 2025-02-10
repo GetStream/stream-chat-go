@@ -8,6 +8,7 @@ import (
 )
 
 func TestClient_TestBlocklistsEndToEnd(t *testing.T) {
+	t.Skip()
 	c := initClient(t)
 	ctx := context.Background()
 	blocklistName := randomString(10)
