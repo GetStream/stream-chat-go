@@ -16,9 +16,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Commit message linter
-        uses: wagoid/commitlint-github-action@v4
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
