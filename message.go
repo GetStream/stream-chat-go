@@ -42,9 +42,10 @@ type Message struct {
 	ShowInChannel      bool    `json:"show_in_channel,omitempty"` // show reply message also in channel
 	ThreadParticipants []*User `json:"thread_participants,omitempty"`
 
-	ReplyCount      int     `json:"reply_count,omitempty"`
-	QuotedMessageID string  `json:"quoted_message_id,omitempty"`
-	MentionedUsers  []*User `json:"mentioned_users"`
+	ReplyCount           int      `json:"reply_count,omitempty"`
+	QuotedMessageID      string   `json:"quoted_message_id,omitempty"`
+	MentionedUsers       []*User  `json:"mentioned_users"`
+	RestrictedVisibility []string `json:"restricted_visibility,omitempty"`
 
 	Command string `json:"command,omitempty"`
 
@@ -92,16 +93,17 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
-		Text:            m.Text,
-		Type:            m.Type,
-		Attachments:     m.Attachments,
-		UserID:          m.UserID,
-		ExtraData:       m.ExtraData,
-		Pinned:          m.Pinned,
-		ParentID:        m.ParentID,
-		ShowInChannel:   m.ShowInChannel,
-		Silent:          m.Silent,
-		QuotedMessageID: m.QuotedMessageID,
+		Text:                 m.Text,
+		Type:                 m.Type,
+		Attachments:          m.Attachments,
+		UserID:               m.UserID,
+		ExtraData:            m.ExtraData,
+		Pinned:               m.Pinned,
+		ParentID:             m.ParentID,
+		ShowInChannel:        m.ShowInChannel,
+		Silent:               m.Silent,
+		QuotedMessageID:      m.QuotedMessageID,
+		RestrictedVisibility: m.RestrictedVisibility,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -125,17 +127,18 @@ type messageRequest struct {
 }
 
 type messageRequestMessage struct {
-	Text            string                 `json:"text"`
-	Type            MessageType            `json:"type" validate:"omitempty,oneof=system"`
-	Attachments     []*Attachment          `json:"attachments"`
-	UserID          string                 `json:"user_id"`
-	MentionedUsers  []string               `json:"mentioned_users"`
-	ParentID        string                 `json:"parent_id"`
-	ShowInChannel   bool                   `json:"show_in_channel"`
-	Silent          bool                   `json:"silent"`
-	QuotedMessageID string                 `json:"quoted_message_id"`
-	Pinned          bool                   `json:"pinned"`
-	ExtraData       map[string]interface{} `json:"-"`
+	Text                 string                 `json:"text"`
+	Type                 MessageType            `json:"type" validate:"omitempty,oneof=system"`
+	Attachments          []*Attachment          `json:"attachments"`
+	UserID               string                 `json:"user_id"`
+	MentionedUsers       []string               `json:"mentioned_users"`
+	ParentID             string                 `json:"parent_id"`
+	ShowInChannel        bool                   `json:"show_in_channel"`
+	Silent               bool                   `json:"silent"`
+	QuotedMessageID      string                 `json:"quoted_message_id"`
+	Pinned               bool                   `json:"pinned"`
+	RestrictedVisibility []string               `json:"restricted_visibility"`
+	ExtraData            map[string]interface{} `json:"-"`
 }
 
 type messageRequestForJSON messageRequestMessage

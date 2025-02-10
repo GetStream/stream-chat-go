@@ -396,6 +396,24 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 	assert.Equal(t, MessageTypeSystem, msg.Type, "message type is system")
 }
 
+func TestChannel_SendRestrictedVisibilityMessage(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+	adminUser := randomUserWithRole(t, c, "admin")
+	user := randomUser(t, c)
+	msg := &Message{
+		Text: "test message",
+		RestrictedVisibility: []string{
+			user.ID,
+		},
+	}
+
+	resp, err := ch.SendMessage(ctx, msg, adminUser.ID)
+	require.NoError(t, err, "send message")
+	assert.Equal(t, msg.RestrictedVisibility, resp.Message.RestrictedVisibility)
+}
+
 func TestChannel_Truncate(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
