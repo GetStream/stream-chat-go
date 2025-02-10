@@ -167,6 +167,7 @@ func TestClient_UpdateRestrictedVisibilityMessage(t *testing.T) {
 
 	msg = resp.Message
 	msg.RestrictedVisibility = []string{user2.ID}
+	msg.UserID = adminUser.ID
 	resp, err = c.UpdateMessage(ctx, msg, msg.ID)
 	require.NoError(t, err, "send message")
 	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
@@ -186,10 +187,10 @@ func TestClient_PartialUpdateRestrictedVisibilityMessage(t *testing.T) {
 		},
 	}
 
-	_, err := ch.SendMessage(ctx, msg, adminUser.ID)
+	messageResponse, err := ch.SendMessage(ctx, msg, adminUser.ID)
 	require.NoError(t, err, "send message")
 
-	resp, err := c.PartialUpdateMessage(ctx, msg.ID, &MessagePartialUpdateRequest{
+	resp, err := c.PartialUpdateMessage(ctx, messageResponse.Message.ID, &MessagePartialUpdateRequest{
 		UserID: adminUser.ID,
 		PartialUpdate: PartialUpdate{
 			Set: map[string]interface{}{
