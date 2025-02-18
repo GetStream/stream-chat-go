@@ -124,3 +124,34 @@ func TestClient_ExportChannels(t *testing.T) {
 		}
 	})
 }
+
+func TestClient_ExportUsers(t *testing.T) {
+	c := initClient(t)
+	ch1 := initChannel(t, c)
+	ctx := context.Background()
+
+	t.Run("Return error if there are 0 user IDs", func(t *testing.T) {
+		_, err := c.ExportUsers(ctx, nil)
+		require.Error(t, err)
+	})
+
+	t.Run("Export users with no error", func(t *testing.T) {
+		resp, err := c.ExportUsers(ctx, []string{ch1.CreatedBy.ID})
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.TaskID)
+
+		for i := 0; i < 10; i++ {
+			task, err := c.GetTask(ctx, resp.TaskID)
+			require.NoError(t, err)
+			require.Equal(t, resp.TaskID, task.TaskID)
+			require.NotEmpty(t, task.Status)
+
+			if task.Status == TaskStatusCompleted {
+				require.Contains(t, task.Result["url"], "/exports/users/")
+				break
+			}
+
+			time.Sleep(time.Second)
+		}
+	})
+}
