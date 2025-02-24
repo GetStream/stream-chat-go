@@ -176,3 +176,21 @@ func (c *Client) GetExportChannelsTask(ctx context.Context, taskID string) (*Tas
 	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &task)
 	return &task, err
 }
+
+// ExportUsers requests an asynchronous export of the provided user IDs.
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
+func (c *Client) ExportUsers(ctx context.Context, userIDs []string) (*AsyncTaskResponse, error) {
+	if len(userIDs) == 0 {
+		return nil, errors.New("number of user IDs must be at least one")
+	}
+
+	req := struct {
+		UserIDs []string `json:"user_ids"`
+	}{
+		UserIDs: userIDs,
+	}
+
+	var resp AsyncTaskResponse
+	err := c.makeRequest(ctx, http.MethodPost, "export/users", nil, req, &resp)
+	return &resp, err
+}
