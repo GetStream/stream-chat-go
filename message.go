@@ -174,6 +174,7 @@ type Attachment struct {
 	ThumbURL    string `json:"thumb_url,omitempty"`
 	AssetURL    string `json:"asset_url,omitempty"`
 	OGScrapeURL string `json:"og_scrape_url,omitempty"`
+	MimeType    string `json:"mime_type,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
 }
