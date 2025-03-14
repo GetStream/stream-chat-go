@@ -609,15 +609,21 @@ func (ch *Channel) demoteModerators(ctx context.Context, userIDs []string, msg *
 
 type markReadOption struct {
 	MessageID string `json:"message_id"`
+	ThreadID  string `json:"thread_id"`
 
 	UserID string `json:"user_id"`
 }
-
 type MarkReadOption func(*markReadOption)
 
 func MarkReadUntilMessage(id string) func(*markReadOption) {
 	return func(opt *markReadOption) {
 		opt.MessageID = id
+	}
+}
+
+func MarkReadThread(id string) func(*markReadOption) {
+	return func(opt *markReadOption) {
+		opt.ThreadID = id
 	}
 }
 
@@ -631,6 +637,49 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkR
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "read")
 
 	opts := &markReadOption{
+		UserID: userID,
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
+
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	return &resp, err
+}
+
+type markUnreadOption struct {
+	MessageID string `json:"message_id"`
+	ThreadID  string `json:"thread_id"`
+
+	UserID string `json:"user_id"`
+}
+
+type MarkUnreadOption func(option *markUnreadOption)
+
+// Specify ID of the message from where the channel is marked unread
+func MarkUnreadFromMessage(id string) func(*markUnreadOption) {
+	return func(opt *markUnreadOption) {
+		opt.MessageID = id
+	}
+}
+
+func MarkUnreadThread(id string) func(*markUnreadOption) {
+	return func(opt *markUnreadOption) {
+		opt.ThreadID = id
+	}
+}
+
+// MarkUnread message or thread (not both) for specified user.
+func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...MarkUnreadOption) (*Response, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "unread")
+
+	opts := &markUnreadOption{
 		UserID: userID,
 	}
 
