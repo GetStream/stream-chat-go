@@ -212,6 +212,49 @@ func TestClient_UpsertUsers(t *testing.T) {
 	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
 }
 
+func TestClient_UpdatePrivacySettings(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	user := &User{ID: randomString(10)}
+
+	resp, err := c.UpsertUser(ctx, user)
+	require.NoError(t, err, "update users")
+
+	assert.Equal(t, resp.User.ID, user.ID)
+	assert.NotNil(t, resp.User.PrivacySettings)
+	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+
+	user = resp.User
+	user.PrivacySettings = PrivacySettings{
+		TypingIndicators: TypingIndicators{
+			Enabled: true,
+		},
+	}
+	resp, err = c.UpsertUser(ctx, user)
+	require.NoError(t, err, "update users")
+
+	assert.Equal(t, resp.User.ID, user.ID)
+	assert.NotNil(t, resp.User.PrivacySettings)
+	assert.True(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+
+	user = resp.User
+	user.PrivacySettings = PrivacySettings{
+		ReadReceipts: ReadReceipts{
+			Enabled: true,
+		},
+	}
+	resp, err = c.UpsertUser(ctx, user)
+	require.NoError(t, err, "update users")
+
+	assert.Equal(t, resp.User.ID, user.ID)
+	assert.NotNil(t, resp.User.PrivacySettings)
+	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	assert.True(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+}
+
 func TestClient_PartialUpdateUsers(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -246,6 +289,38 @@ func TestClient_PartialUpdateUsers(t *testing.T) {
 	assert.Contains(t, got, user.ID)
 	assert.Contains(t, got[user.ID].ExtraData, "test", "extra data contains", got[user.ID].ExtraData)
 	assert.Empty(t, got[user.ID].ExtraData["test"], "extra data field removed")
+}
+
+func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	user := &User{ID: randomString(10)}
+
+	upsertResponse, err := c.UpsertUser(ctx, user)
+	require.NoError(t, err, "update users")
+
+	assert.Equal(t, upsertResponse.User.ID, user.ID)
+	assert.NotNil(t, upsertResponse.User.PrivacySettings)
+	assert.False(t, upsertResponse.User.PrivacySettings.TypingIndicators.Enabled)
+	assert.False(t, upsertResponse.User.PrivacySettings.ReadReceipts.Enabled)
+
+	update := PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"privacy_settings": map[string]interface{}{
+				"typing_indicators": map[string]interface{}{
+					"enabled": true,
+				},
+			},
+		},
+	}
+
+	partialUpdateResponse, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	require.NoError(t, err, "partial update user")
+
+	assert.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
+	assert.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
 }
 
 func ExampleClient_UpsertUser() {
