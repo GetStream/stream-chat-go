@@ -658,7 +658,7 @@ type markUnreadOption struct {
 
 type MarkUnreadOption func(option *markUnreadOption)
 
-// Specify ID of the message from where the channel is marked unread
+// Specify ID of the message from where the channel is marked unread.
 func MarkUnreadFromMessage(id string) func(*markUnreadOption) {
 	return func(opt *markUnreadOption) {
 		opt.MessageID = id
@@ -1030,4 +1030,143 @@ func (ch *Channel) PartialUpdateMember(ctx context.Context, userID string, updat
 	resp := &ChannelMemberResponse{}
 	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, resp)
 	return resp, err
+}
+
+// CreateDraft creates or updates a draft message in a channel.
+func (ch *Channel) CreateDraft(ctx context.Context, userID string, message *messageRequestMessage) (*CreateDraftResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+	if message == nil {
+		return nil, errors.New("message is required")
+	}
+
+	// Set the userID in the message
+	message.UserID = userID
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "draft")
+
+	data := map[string]interface{}{
+		"message": message,
+	}
+
+	var resp CreateDraftResponse
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
+	return &resp, err
+}
+
+// DeleteDraft deletes a draft message from a channel.
+func (ch *Channel) DeleteDraft(ctx context.Context, userID string, parentID *string) (*Response, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "draft")
+
+	data := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	// Convert to url.Values
+	values := url.Values{}
+	if parentID != nil {
+		values.Set("parent_id", *parentID)
+	}
+
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodDelete, p, values, data, &resp)
+	return &resp, err
+}
+
+// GetDraft retrieves a draft message from a channel.
+func (ch *Channel) GetDraft(ctx context.Context, parentID *string, userID string) (*GetDraftResponse, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "draft")
+
+	data := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	// Convert to url.Values
+	values := url.Values{}
+	if parentID != nil {
+		values.Set("parent_id", *parentID)
+	}
+
+	var resp GetDraftResponse
+	err := ch.client.makeRequest(ctx, http.MethodGet, p, values, data, &resp)
+	return &resp, err
+}
+
+// DraftMessage represents a draft message.
+type DraftMessage struct {
+	ID              string                 `json:"id"`
+	Text            string                 `json:"text"`
+	HTML            *string                `json:"html,omitempty"`
+	MML             *string                `json:"mml,omitempty"`
+	ParentID        *string                `json:"parent_id,omitempty"`
+	ShowInChannel   *bool                  `json:"show_in_channel,omitempty"`
+	Attachments     []Attachment           `json:"attachments,omitempty"`
+	MentionedUsers  []User                 `json:"mentioned_users,omitempty"`
+	Custom          map[string]interface{} `json:"custom,omitempty"`
+	QuotedMessageID *string                `json:"quoted_message_id,omitempty"`
+	Type            string                 `json:"type,omitempty"`
+	Silent          *bool                  `json:"silent,omitempty"`
+	PollID          string                 `json:"poll_id,omitempty"`
+}
+
+// Draft represents a draft message with channel information.
+type Draft struct {
+	ChannelCID    string        `json:"channel_cid"`
+	CreatedAt     time.Time     `json:"created_at"`
+	Message       *DraftMessage `json:"message"`
+	Channel       *Channel      `json:"channel,omitempty"`
+	ParentID      string        `json:"parent_id,omitempty"`
+	ParentMessage *Message      `json:"parent_message,omitempty"`
+	QuotedMessage *Message      `json:"quoted_message,omitempty"`
+}
+
+// CreateDraftResponse is the response from CreateDraft.
+type CreateDraftResponse struct {
+	Draft Draft `json:"draft"`
+	Response
+}
+
+// GetDraftResponse is the response from GetDraft.
+type GetDraftResponse struct {
+	Draft Draft `json:"draft"`
+	Response
+}
+
+// QueryDraftsResponse is the response from QueryDrafts.
+type QueryDraftsResponse struct {
+	Drafts []Draft `json:"drafts"`
+	Next   *string `json:"next,omitempty"`
+	Response
+}
+
+// QueryDraftsOptions represents the options for the QueryDrafts request.
+type QueryDraftsOptions struct {
+	UserID string `json:"user_id"`
+	// Limit the number of drafts returned.
+	Limit int `json:"limit,omitempty"`
+	// Pagination parameter. Pass the 'next' value from a previous response to continue from that point.
+	Next string `json:"next,omitempty"`
+	// Pagination parameter. See [Next](#next)
+	Prev string `json:"prev,omitempty"`
+}
+
+// QueryDrafts retrieves all drafts for the current user
+func (c *Client) QueryDrafts(ctx context.Context, options *QueryDraftsOptions) (*QueryDraftsResponse, error) {
+	if options.UserID == "" {
+		return nil, errors.New("user ID must be not empty")
+	}
+
+	p := "drafts/query"
+
+	var resp QueryDraftsResponse
+	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
+	return &resp, err
 }
