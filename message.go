@@ -136,7 +136,7 @@ type messageRequestMessage struct {
 	ShowInChannel        bool                   `json:"show_in_channel"`
 	Silent               bool                   `json:"silent"`
 	QuotedMessageID      string                 `json:"quoted_message_id"`
-	Pinned               bool                   `json:"pinned"`
+	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
 	ExtraData            map[string]interface{} `json:"-"`
 }
