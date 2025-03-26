@@ -212,6 +212,28 @@ func TestClient_UpsertUsers(t *testing.T) {
 	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
 }
 
+func TestClient_UpsertUsersWithRoleAndTeamsRole(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	user := &User{
+		ID:        randomString(10),
+		Role:      "admin",
+		Teams:     []string{"blue"},
+		TeamsRole: map[string]string{"blue": "admin"},
+	}
+
+	resp, err := c.UpsertUsers(ctx, user)
+	require.NoError(t, err, "update users with role and teams_role")
+
+	assert.Contains(t, resp.Users, user.ID)
+	assert.Equal(t, "admin", resp.Users[user.ID].Role)
+	assert.Equal(t, []string{"blue"}, resp.Users[user.ID].Teams)
+	assert.Equal(t, map[string]string{"blue": "admin"}, resp.Users[user.ID].TeamsRole)
+	assert.NotEmpty(t, resp.Users[user.ID].CreatedAt)
+	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
+}
+
 func TestClient_UpdatePrivacySettings(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -321,6 +343,34 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 
 	assert.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
 	assert.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
+}
+
+func TestClient_PartialUpdateUserWithTeam(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// First create a basic user
+	user := &User{ID: randomString(10)}
+	upsertResp, err := c.UpsertUser(ctx, user)
+	require.NoError(t, err, "create user")
+	assert.Equal(t, upsertResp.User.ID, user.ID)
+
+	// Partially update the user with team and teams_role
+	update := PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"teams":      []string{"blue"},
+			"teams_role": map[string]string{"blue": "admin"},
+		},
+	}
+
+	partialResp, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	require.NoError(t, err, "partial update user with team")
+
+	// Verify the changes
+	assert.Contains(t, partialResp.Users, user.ID)
+	assert.Equal(t, []string{"blue"}, partialResp.Users[user.ID].Teams)
+	assert.Equal(t, map[string]string{"blue": "admin"}, partialResp.Users[user.ID].TeamsRole)
 }
 
 func ExampleClient_UpsertUser() {
