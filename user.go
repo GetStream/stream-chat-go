@@ -30,8 +30,8 @@ type ChannelMute struct {
 }
 
 type PrivacySettings struct {
-	TypingIndicators TypingIndicators `json:"typing_indicators,omitempty"`
-	ReadReceipts     ReadReceipts     `json:"read_receipts,omitempty"`
+	TypingIndicators *TypingIndicators `json:"typing_indicators,omitempty"`
+	ReadReceipts     *ReadReceipts     `json:"read_receipts,omitempty"`
 }
 
 type TypingIndicators struct {
@@ -50,9 +50,9 @@ type User struct {
 	Teams    []string `json:"teams,omitempty"`
 	Language string   `json:"language,omitempty"`
 
-	Online          bool            `json:"online,omitempty"`
-	Invisible       bool            `json:"invisible,omitempty"`
-	PrivacySettings PrivacySettings `json:"privacy_settings,omitempty"`
+	Online          bool             `json:"online,omitempty"`
+	Invisible       bool             `json:"invisible,omitempty"`
+	PrivacySettings *PrivacySettings `json:"privacy_settings,omitempty"`
 
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
