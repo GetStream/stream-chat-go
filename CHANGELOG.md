@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.5.1](https://github.com/GetStream/stream-chat-go/compare/v7.5.0...v7.5.1) (2025-04-01)
+
+
+### Features
+
+* Add mark unread and update mark read params ([#305](https://github.com/GetStream/stream-chat-go/issues/305)) ([ca4898d](https://github.com/GetStream/stream-chat-go/commit/ca4898d381355f971bdf806fd8459f7e9a8ce3f1))
+
 ## [7.5.0](https://github.com/GetStream/stream-chat-go/compare/v7.4.0...v7.5.0) (2025-03-13)
 
 ## [7.4.0](https://github.com/GetStream/stream-chat-go/compare/v7.3.0...v7.4.0) (2025-02-24)
