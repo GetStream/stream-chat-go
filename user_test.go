@@ -223,7 +223,7 @@ func TestClient_UpdatePrivacySettings(t *testing.T) {
 
 	require.Equal(t, resp.User.ID, user.ID)
 	require.Nil(t, resp.User.PrivacySettings)
-	
+
 	user = resp.User
 	user.PrivacySettings = &PrivacySettings{
 		TypingIndicators: &TypingIndicators{
@@ -334,7 +334,7 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 	partialUpdateResponse, err = c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	require.NoError(t, err, "partial update user")
 	require.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
+	require.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
 }
 
 func ExampleClient_UpsertUser() {
