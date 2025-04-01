@@ -159,3 +159,78 @@ func TestClient_QueryDrafts(t *testing.T) {
 	assert.True(t, foundDraft1, "First draft not found")
 	assert.True(t, foundDraft2, "Second draft not found")
 }
+
+func TestClient_QueryDraftsWithFilters(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// Create a channel
+	user := randomUser(t, c)
+	channel1 := initChannel(t, c, user.ID)
+
+	// Create a draft message
+	draft1 := &messageRequestMessage{
+		Text: "Draft in channel 1",
+	}
+	_, err := channel1.CreateDraft(ctx, user.ID, draft1)
+	require.NoError(t, err)
+
+	// Create a second channel
+	channel2 := initChannel(t, c, user.ID)
+
+	// Create a draft in the second channel
+	draft2 := &messageRequestMessage{
+		Text: "Draft in channel 2",
+	}
+	_, err = channel2.CreateDraft(ctx, user.ID, draft2)
+	require.NoError(t, err)
+
+	// Query all drafts for the user
+	resp, err := c.QueryDrafts(ctx, &QueryDraftsOptions{UserID: user.ID})
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(resp.Drafts))
+
+	// Query drafts for a specific channel
+	resp, err = c.QueryDrafts(ctx, &QueryDraftsOptions{
+		UserID: user.ID,
+		Filter: map[string]interface{}{
+			"channel_cid": channel2.CID,
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(resp.Drafts))
+	assert.Equal(t, channel2.CID, resp.Drafts[0].ChannelCID)
+	assert.Equal(t, "Draft in channel 2", resp.Drafts[0].Message.Text)
+
+	// Query drafts with sort
+	resp, err = c.QueryDrafts(ctx, &QueryDraftsOptions{
+		UserID: user.ID,
+		Sort: []*SortOption{
+			{Field: "created_at", Direction: 1},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(resp.Drafts))
+	assert.Equal(t, channel1.CID, resp.Drafts[0].ChannelCID)
+	assert.Equal(t, channel2.CID, resp.Drafts[1].ChannelCID)
+
+	// Query drafts with pagination
+	resp, err = c.QueryDrafts(ctx, &QueryDraftsOptions{
+		UserID: user.ID,
+		Limit:  1,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(resp.Drafts))
+	assert.Equal(t, channel2.CID, resp.Drafts[0].ChannelCID)
+	assert.NotNil(t, resp.Next)
+
+	// Query drafts with pagination using next token
+	resp, err = c.QueryDrafts(ctx, &QueryDraftsOptions{
+		UserID: user.ID,
+		Limit:  1,
+		Next:   *resp.Next,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(resp.Drafts))
+	assert.Equal(t, channel1.CID, resp.Drafts[0].ChannelCID)
+}

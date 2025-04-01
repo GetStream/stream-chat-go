@@ -1117,7 +1117,7 @@ type DraftMessage struct {
 	PollID          string                 `json:"poll_id,omitempty"`
 }
 
-// Draft represents a draft message with channel information.
+// Draft represents a draft message and its associated channel and optionally parent and quoted message.
 type Draft struct {
 	ChannelCID    string        `json:"channel_cid"`
 	CreatedAt     time.Time     `json:"created_at"`
@@ -1143,22 +1143,32 @@ type GetDraftResponse struct {
 // QueryDraftsResponse is the response from QueryDrafts.
 type QueryDraftsResponse struct {
 	Drafts []Draft `json:"drafts"`
-	Next   *string `json:"next,omitempty"`
+	// Next is to be used as the 'next' parameter to get the next page.
+	Next *string `json:"next,omitempty"`
+	// Prev is to be used as the 'prev' parameter to get the previous page.
+	Prev *string `json:"prev,omitempty"`
 	Response
 }
 
 // QueryDraftsOptions represents the options for the QueryDrafts request.
 type QueryDraftsOptions struct {
 	UserID string `json:"user_id"`
+
+	// Filter is the filter to be used to query the drafts based on 'channel_cid', 'parent_id' or 'created_at'..
+	Filter map[string]any `json:"filter,omitempty"`
+
+	// Sort is the sort to be used to query the drafts. Can sort by 'created_at'.
+	Sort []*SortOption `json:"sort,omitempty"`
+
 	// Limit the number of drafts returned.
 	Limit int `json:"limit,omitempty"`
 	// Pagination parameter. Pass the 'next' value from a previous response to continue from that point.
 	Next string `json:"next,omitempty"`
-	// Pagination parameter. See [Next](#next)
+	// Pagination parameter. Pass the 'prev' value from a previous response to continue from that point.
 	Prev string `json:"prev,omitempty"`
 }
 
-// QueryDrafts retrieves all drafts for the current user
+// QueryDrafts retrieves all drafts for the current user.
 func (c *Client) QueryDrafts(ctx context.Context, options *QueryDraftsOptions) (*QueryDraftsResponse, error) {
 	if options.UserID == "" {
 		return nil, errors.New("user ID must be not empty")
