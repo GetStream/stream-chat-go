@@ -1063,18 +1063,14 @@ func (ch *Channel) DeleteDraft(ctx context.Context, userID string, parentID *str
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "draft")
 
-	data := map[string]interface{}{
-		"user_id": userID,
-	}
-
 	// Convert to url.Values
-	values := url.Values{}
+	values := url.Values{"user_id": []string{userID}}
 	if parentID != nil {
 		values.Set("parent_id", *parentID)
 	}
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodDelete, p, values, data, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodDelete, p, values, nil, &resp)
 	return &resp, err
 }
 
@@ -1085,18 +1081,14 @@ func (ch *Channel) GetDraft(ctx context.Context, parentID *string, userID string
 	}
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "draft")
 
-	data := map[string]interface{}{
-		"user_id": userID,
-	}
-
 	// Convert to url.Values
-	values := url.Values{}
+	values := url.Values{"user_id": []string{userID}}
 	if parentID != nil {
 		values.Set("parent_id", *parentID)
 	}
 
 	var resp GetDraftResponse
-	err := ch.client.makeRequest(ctx, http.MethodGet, p, values, data, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodGet, p, values, nil, &resp)
 	return &resp, err
 }
 
