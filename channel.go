@@ -1033,15 +1033,50 @@ func (ch *Channel) PartialUpdateMember(ctx context.Context, userID string, updat
 	return resp, err
 }
 
+type LiveLocation struct {
+	ID                string     `json:"id"`
+	UserID            string     `json:"user_id"`
+	ChannelID         string     `json:"channel_cid"`
+	MessageID         string     `json:"message_id"`
+	Latitude          float64    `json:"latitude"`
+	Longitude         float64    `json:"longitude"`
+	EndAt             *time.Time `json:"end_at"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+}
+
+type LiveLocationRequest struct {
+	ID                string     `json:"location_id"`
+	UserID            string     `json:"user_id"`
+	ChannelID         string     `json:"channel_id"`
+	MessageID         string     `json:"message_id"`
+	Latitude          float64    `json:"latitude"`
+	Longitude         float64    `json:"longitude"`
+	EndAt             *time.Time `json:"end_at"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+}
+
 // UpdateLiveLocation updates the live location for the channel.
-func (ch *Channel) UpdateLiveLocation(ctx context.Context, liveLocation *LiveLocation) (*Response, error) {
+func (ch *Channel) UpdateLiveLocation(ctx context.Context, liveLocation *LiveLocation, userID string) (*Response, error) {
 	if liveLocation == nil {
 		return nil, errors.New("liveLocation should not be nil")
+	}
+
+	data := map[string]interface{}{
+		"location_id":          liveLocation.ID,
+		"latitude":             liveLocation.Latitude,
+		"longitude":            liveLocation.Longitude,
+		"end_at":               liveLocation.EndAt,
+		"created_by_device_id": liveLocation.CreatedByDeviceID,
+		"user_id":              userID,
 	}
 
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "live_location")
 
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, liveLocation, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodPut, p, nil, data, &resp)
 	return &resp, err
 }

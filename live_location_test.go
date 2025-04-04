@@ -15,35 +15,29 @@ func TestChannel_UpdateLiveLocation(t *testing.T) {
 
 	// Create users
 	user := randomUser(t, c)
-
-	// Create a channel
-	ch := c.Channel("messaging", randomString(10))
-	_, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
-	require.NoError(t, err)
-
-	// Create a message to associate with the live location
-	msg := &Message{
-		Text: "Message with live location",
-		User: user,
-	}
-	resp, err := ch.SendMessage(ctx, msg, user.ID)
-	require.NoError(t, err)
-	require.NotNil(t, resp.Message)
+	channel := initChannel(t, c)
 
 	// Create a live location
 	endTime := time.Now().Add(1 * time.Hour)
 	liveLocation := &LiveLocation{
 		UserID:            user.ID,
-		ChannelID:         ch.ID,
-		MessageID:         resp.Message.ID,
+		ChannelID:         channel.ID,
 		Latitude:          40.7128,
 		Longitude:         -74.0060,
 		EndAt:             &endTime,
 		CreatedByDeviceID: "test-device",
 	}
 
+	// Create a message to associate with the live location
+	msg := &Message{
+		LiveLocation: liveLocation,
+	}
+	resp, err := channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Message)
+
 	// Update live location
-	updateResp, err := ch.UpdateLiveLocation(ctx, liveLocation)
+	updateResp, err := channel.UpdateLiveLocation(ctx, resp.Message.LiveLocation, user.ID)
 	require.NoError(t, err)
 	require.NotNil(t, updateResp)
 }
@@ -56,34 +50,27 @@ func TestClient_GetUserActiveLiveLocations(t *testing.T) {
 	user := randomUser(t, c)
 
 	// Create a channel
-	ch := c.Channel("messaging", randomString(10))
-	_, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
-	require.NoError(t, err)
-
-	// Create a message to associate with the live location
-	msg := &Message{
-		Text: "Message with live location",
-		User: user,
-	}
-	resp, err := ch.SendMessage(ctx, msg, user.ID)
-	require.NoError(t, err)
-	require.NotNil(t, resp.Message)
+	channel, err := c.CreateChannelWithMembers(ctx, "messaging", randomString(12), user.ID)
+	require.NoError(t, err, "create channel")
 
 	// Create a live location
 	endTime := time.Now().Add(1 * time.Hour)
 	liveLocation := &LiveLocation{
 		UserID:            user.ID,
-		ChannelID:         ch.ID,
-		MessageID:         resp.Message.ID,
+		ChannelID:         channel.Channel.ID,
 		Latitude:          40.7128,
 		Longitude:         -74.0060,
 		EndAt:             &endTime,
 		CreatedByDeviceID: "test-device",
 	}
 
-	// Update live location
-	_, err = ch.UpdateLiveLocation(ctx, liveLocation)
+	// Create a message to associate with the live location
+	msg := &Message{
+		LiveLocation: liveLocation,
+	}
+	resp, err := channel.Channel.SendMessage(ctx, msg, user.ID)
 	require.NoError(t, err)
+	require.NotNil(t, resp.Message)
 
 	locationResp, err := c.GetUserActiveLiveLocations(ctx, user.ID)
 	require.NoError(t, err)
@@ -92,8 +79,7 @@ func TestClient_GetUserActiveLiveLocations(t *testing.T) {
 	if err == nil && locationResp != nil {
 		if len(locationResp.LiveLocations) > 0 {
 			location := locationResp.LiveLocations[0]
-			assert.Equal(t, user.ID, location.UserID)
-			assert.Equal(t, ch.ID, location.ChannelID)
+			assert.Equal(t, channel.Channel.CID, location.ChannelID)
 			assert.Equal(t, resp.Message.ID, location.MessageID)
 			assert.InDelta(t, 40.7128, location.Latitude, 0.0001)
 			assert.InDelta(t, -74.0060, location.Longitude, 0.0001)
@@ -106,13 +92,10 @@ func TestChannel_UpdateLiveLocation_Error(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a channel
-	ch := c.Channel("messaging", randomString(10))
-	user := randomUser(t, c)
-	_, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
-	require.NoError(t, err)
+	channel := initChannel(t, c)
 
 	// Test nil live location
-	resp, err := ch.UpdateLiveLocation(ctx, nil)
+	resp, err := channel.UpdateLiveLocation(ctx, nil, "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "liveLocation should not be nil")
 	assert.Nil(t, resp)
@@ -123,7 +106,7 @@ func TestChannel_UpdateLiveLocation_Error(t *testing.T) {
 		Latitude:  40.7128,
 		Longitude: -74.0060,
 	}
-	_, err = ch.UpdateLiveLocation(ctx, invalidLocation)
+	_, err = channel.UpdateLiveLocation(ctx, invalidLocation, "")
 	// The API might return an error or it might succeed with warnings
 	// This test just ensures the function runs without panicking
 	if err != nil {

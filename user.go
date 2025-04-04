@@ -665,25 +665,19 @@ func (c *Client) GetUserActiveLiveLocations(ctx context.Context, userID string) 
 
 	p := path.Join("users", url.PathEscape(userID), "live_locations")
 
+	options := map[string]string{
+		"user_id": userID,
+	}
+
+	params := make(url.Values)
+	params.Set("user_id", userID)
+
 	var resp GetUserActiveLiveLocationsResponse
-	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, p, params, options, &resp)
 	return &resp, err
 }
 
 type GetUserActiveLiveLocationsResponse struct {
 	Response
 	LiveLocations []*LiveLocation `json:"live_locations"`
-}
-
-type LiveLocation struct {
-	ID                string     `json:"id"`
-	UserID            string     `json:"user_id"`
-	ChannelID         string     `json:"channel_id"`
-	MessageID         string     `json:"message_id"`
-	Latitude          float64    `json:"latitude"`
-	Longitude         float64    `json:"longitude"`
-	EndAt             *time.Time `json:"end_at"`
-	CreatedByDeviceID string     `json:"created_by_device_id"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
 }
