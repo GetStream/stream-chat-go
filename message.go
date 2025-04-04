@@ -60,6 +60,9 @@ type Message struct {
 	MML  string            `json:"mml,omitempty"`
 	I18n map[string]string `json:"i18n,omitempty"`
 
+	LiveLocationID string        `json:"live_location_id,omitempty"`
+	LiveLocation   *LiveLocation `json:"live_location,omitempty"`
+
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
@@ -104,6 +107,7 @@ func (m *Message) toRequest() messageRequest {
 		Silent:               m.Silent,
 		QuotedMessageID:      m.QuotedMessageID,
 		RestrictedVisibility: m.RestrictedVisibility,
+		LiveLocation:         m.LiveLocation,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -139,6 +143,7 @@ type messageRequestMessage struct {
 	Pinned               bool                   `json:"pinned"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
 	ExtraData            map[string]interface{} `json:"-"`
+	LiveLocation         *LiveLocation          `json:"live_location"`
 }
 
 type messageRequestForJSON messageRequestMessage
