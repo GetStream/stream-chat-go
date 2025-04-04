@@ -43,12 +43,13 @@ type ReadReceipts struct {
 }
 
 type User struct {
-	ID       string   `json:"id"`
-	Name     string   `json:"name,omitempty"`
-	Image    string   `json:"image,omitempty"`
-	Role     string   `json:"role,omitempty"`
-	Teams    []string `json:"teams,omitempty"`
-	Language string   `json:"language,omitempty"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name,omitempty"`
+	Image     string            `json:"image,omitempty"`
+	Role      string            `json:"role,omitempty"`
+	Teams     []string          `json:"teams,omitempty"`
+	TeamsRole map[string]string `json:"teams_role,omitempty"`
+	Language  string            `json:"language,omitempty"`
 
 	Online          bool             `json:"online,omitempty"`
 	Invisible       bool             `json:"invisible,omitempty"`
