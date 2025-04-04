@@ -100,10 +100,12 @@ type queryChannelResponse struct {
 }
 
 type queryChannelResponseData struct {
-	Channel  *Channel         `json:"channel"`
-	Messages []*Message       `json:"messages"`
-	Read     []*ChannelRead   `json:"read"`
-	Members  []*ChannelMember `json:"members"`
+	Channel         *Channel         `json:"channel"`
+	Messages        []*Message       `json:"messages"`
+	Read            []*ChannelRead   `json:"read"`
+	Members         []*ChannelMember `json:"members"`
+	PendingMessages []*Message       `json:"pending_messages"`
+	PinnedMessages  []*Message       `json:"pinned_messages"`
 }
 
 type QueryChannelsResponse struct {
@@ -135,6 +137,8 @@ func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*Sor
 		result[i] = data.Channel
 		result[i].Members = data.Members
 		result[i].Messages = data.Messages
+		result[i].PendingMessages = data.PendingMessages
+		result[i].PinnedMessages = data.PinnedMessages
 		result[i].Read = data.Read
 		result[i].client = c
 	}
