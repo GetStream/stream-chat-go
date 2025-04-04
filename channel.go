@@ -94,6 +94,12 @@ type Channel struct {
 
 	ExtraData map[string]interface{} `json:"-"`
 
+	WatcherCount int     `json:"watcher_count"`
+	Watchers     []*User `json:"watchers"`
+
+	PushPreferences *ChannelPushPreferences `json:"push_preferences"`
+	Hidden          bool                    `json:"hidden"`
+
 	client *Client
 }
 
