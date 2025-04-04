@@ -80,10 +80,11 @@ type Channel struct {
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
 
-	Messages        []*Message     `json:"messages"`
-	PinnedMessages  []*Message     `json:"pinned_messages"`
-	PendingMessages []*Message     `json:"pending_messages"`
-	Read            []*ChannelRead `json:"read"`
+	Messages            []*Message      `json:"messages"`
+	PinnedMessages      []*Message      `json:"pinned_messages"`
+	PendingMessages     []*Message      `json:"pending_messages"`
+	Read                []*ChannelRead  `json:"read"`
+	ActiveLiveLocations []*LiveLocation `json:"active_live_locations"`
 
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -1030,4 +1031,17 @@ func (ch *Channel) PartialUpdateMember(ctx context.Context, userID string, updat
 	resp := &ChannelMemberResponse{}
 	err := ch.client.makeRequest(ctx, http.MethodPatch, p, nil, update, resp)
 	return resp, err
+}
+
+// UpdateLiveLocation updates the live location for the channel.
+func (ch *Channel) UpdateLiveLocation(ctx context.Context, liveLocation *LiveLocation) (*Response, error) {
+	if liveLocation == nil {
+		return nil, errors.New("liveLocation should not be nil")
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID), "live_location")
+
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, liveLocation, &resp)
+	return &resp, err
 }

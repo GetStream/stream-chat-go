@@ -137,7 +137,7 @@ func TestClient_UnblockUsersGetBlockedUsers(t *testing.T) {
 	require.Equal(t, len(users[0].BlockedUserIDs), 1)
 	require.Equal(t, users[0].BlockedUserIDs[0], blockedUser.ID)
 
-	getRes, err := c.GetBlockedUser(ctx, blockingUser.ID)
+	getRes, _ := c.GetBlockedUser(ctx, blockingUser.ID)
 	require.Equal(t, 1, len(getRes.BlockedUsers))
 	require.Equal(t, blockedUser.ID, getRes.BlockedUsers[0].BlockedUserID)
 

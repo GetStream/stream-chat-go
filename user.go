@@ -656,3 +656,34 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
 	return &resp.Response, err
 }
+
+// GetUserActiveLiveLocations returns the active live locations for a user.
+func (c *Client) GetUserActiveLiveLocations(ctx context.Context, userID string) (*GetUserActiveLiveLocationsResponse, error) {
+	if userID == "" {
+		return nil, errors.New("userID should not be empty")
+	}
+
+	p := path.Join("users", url.PathEscape(userID), "live_locations")
+
+	var resp GetUserActiveLiveLocationsResponse
+	err := c.makeRequest(ctx, http.MethodGet, p, nil, nil, &resp)
+	return &resp, err
+}
+
+type GetUserActiveLiveLocationsResponse struct {
+	Response
+	LiveLocations []*LiveLocation `json:"live_locations"`
+}
+
+type LiveLocation struct {
+	ID                string     `json:"id"`
+	UserID            string     `json:"user_id"`
+	ChannelID         string     `json:"channel_id"`
+	MessageID         string     `json:"message_id"`
+	Latitude          float64    `json:"latitude"`
+	Longitude         float64    `json:"longitude"`
+	EndAt             *time.Time `json:"end_at"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+}
