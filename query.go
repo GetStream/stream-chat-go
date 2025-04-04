@@ -100,15 +100,27 @@ type queryChannelResponse struct {
 }
 
 type queryChannelResponseData struct {
-	Channel  *Channel         `json:"channel"`
-	Messages []*Message       `json:"messages"`
-	Read     []*ChannelRead   `json:"read"`
-	Members  []*ChannelMember `json:"members"`
+	Channel         *Channel                `json:"channel"`
+	Messages        []*Message              `json:"messages"`
+	Read            []*ChannelRead          `json:"read"`
+	Members         []*ChannelMember        `json:"members"`
+	PendingMessages []*Message              `json:"pending_messages"`
+	PinnedMessages  []*Message              `json:"pinned_messages"`
+	Hidden          bool                    `json:"hidden"`
+	PushPreferences *ChannelPushPreferences `json:"push_preferences"`
+	WatcherCount    int                     `json:"watcher_count"`
+	Watchers        []*User                 `json:"watchers"`
 }
 
 type QueryChannelsResponse struct {
 	Channels []*Channel
 	Response
+}
+
+type ChannelPushPreferences struct {
+	ChatLevel     string     `json:"chat_level"`
+	CallLevel     string     `json:"call_level"`
+	DisabledUntil *time.Time `json:"disabled_until"`
 }
 
 // QueryChannels returns list of channels with members and messages, that match QueryOption.
@@ -135,6 +147,12 @@ func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*Sor
 		result[i] = data.Channel
 		result[i].Members = data.Members
 		result[i].Messages = data.Messages
+		result[i].PendingMessages = data.PendingMessages
+		result[i].PinnedMessages = data.PinnedMessages
+		result[i].Hidden = data.Hidden
+		result[i].PushPreferences = data.PushPreferences
+		result[i].WatcherCount = data.WatcherCount
+		result[i].Watchers = data.Watchers
 		result[i].Read = data.Read
 		result[i].client = c
 	}
