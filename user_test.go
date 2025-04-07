@@ -243,38 +243,39 @@ func TestClient_UpdatePrivacySettings(t *testing.T) {
 	resp, err := c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.Nil(t, resp.User.PrivacySettings)
 
 	user = resp.User
-	user.PrivacySettings = PrivacySettings{
-		TypingIndicators: TypingIndicators{
-			Enabled: true,
+	user.PrivacySettings = &PrivacySettings{
+		TypingIndicators: &TypingIndicators{
+			Enabled: false,
 		},
 	}
 	resp, err = c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.True(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.NotNil(t, resp.User.PrivacySettings)
+	require.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	require.Nil(t, resp.User.PrivacySettings.ReadReceipts)
 
 	user = resp.User
-	user.PrivacySettings = PrivacySettings{
-		ReadReceipts: ReadReceipts{
+	user.PrivacySettings = &PrivacySettings{
+		TypingIndicators: &TypingIndicators{
 			Enabled: true,
+		},
+		ReadReceipts: &ReadReceipts{
+			Enabled: false,
 		},
 	}
 	resp, err = c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.True(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.NotNil(t, resp.User.PrivacySettings)
+	require.True(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	require.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
 }
 
 func TestClient_PartialUpdateUsers(t *testing.T) {
@@ -322,10 +323,8 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 	upsertResponse, err := c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, upsertResponse.User.ID, user.ID)
-	assert.NotNil(t, upsertResponse.User.PrivacySettings)
-	assert.False(t, upsertResponse.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, upsertResponse.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, upsertResponse.User.ID, user.ID)
+	require.Nil(t, upsertResponse.User.PrivacySettings)
 
 	update := PartialUserUpdate{
 		ID: user.ID,
@@ -341,8 +340,23 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 	partialUpdateResponse, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	require.NoError(t, err, "partial update user")
 
-	assert.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
+	require.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
+	require.Nil(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts)
+
+	update = PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"privacy_settings": map[string]interface{}{
+				"read_receipts": map[string]interface{}{
+					"enabled": false,
+				},
+			},
+		},
+	}
+	partialUpdateResponse, err = c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	require.NoError(t, err, "partial update user")
+	require.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
+	require.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
 }
 
 func TestClient_PartialUpdateUserWithTeam(t *testing.T) {
