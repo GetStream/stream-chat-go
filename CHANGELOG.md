@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.7.0](https://github.com/GetStream/stream-chat-go/compare/v7.6.0...v7.7.0) (2025-04-07)
+
+
+### Features
+
+* Add pending and pinned messages to query channel response ([#313](https://github.com/GetStream/stream-chat-go/issues/313)) ([9036c50](https://github.com/GetStream/stream-chat-go/commit/9036c50891ab32d366283101f2a1117868e6989e))
+
 ## [7.6.0](https://github.com/GetStream/stream-chat-go/compare/v7.5.0...v7.6.0) (2025-03-17)
 
 
