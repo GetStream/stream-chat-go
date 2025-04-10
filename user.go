@@ -657,3 +657,15 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
 	return &resp.Response, err
 }
+
+func (c *Client) RestoreUsers(ctx context.Context, userIDs []string) (*Response, error) {
+	if len(userIDs) == 0 {
+		return nil, errors.New("userIDs are empty")
+	}
+
+	path := path.Join("users", "restore")
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, path, nil, userIDs, &resp)
+	return &resp, err
+}

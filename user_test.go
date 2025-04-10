@@ -387,6 +387,72 @@ func TestClient_PartialUpdateUserWithTeam(t *testing.T) {
 	assert.Equal(t, map[string]string{"blue": "admin"}, partialResp.Users[user.ID].TeamsRole)
 }
 
+func TestClient_RestoreUsers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	userIDs := randomUsersID(t, c, 3)
+	users := make([]*User, len(userIDs))
+	for i, userID := range userIDs {
+		users[i] = &User{ID: userID}
+	}
+
+	// create users
+	_, err := c.UpsertUsers(ctx, users...)
+	require.NoError(t, err, "UpsertUsers should not return an error")
+
+	// Test error case: empty userIDs
+	t.Run("Empty userIDs", func(t *testing.T) {
+		_, err := c.RestoreUsers(ctx, []string{})
+		require.Error(t, err, "RestoreUsers should return an error when userIDs is empty")
+		require.Equal(t, "userIDs are empty", err.Error(), "Error message should match")
+	})
+
+	// Test successful case
+	t.Run("Restore deactivated users", func(t *testing.T) {
+		// Deactivate the users first
+		_, err = c.DeactivateUsers(ctx, userIDs)
+		require.NoError(t, err, "DeactivateUsers should not return an error")
+
+		// Get the users to verify they are deactivated
+		resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": userIDs,
+					},
+				},
+			},
+		})
+
+		require.NoError(t, err, "QueryUsers should not return an error")
+		// check that the users are deactivated
+		require.Equal(t, len(userIDs), len(resp.Users), "Should find all deactivated users")
+		for _, user := range resp.Users {
+			require.Contains(t, userIDs, user.ID, "User should be in the list of deactivated users")
+		}
+
+		// Restore the users
+		restoreResp, err := c.RestoreUsers(ctx, userIDs)
+		require.NoError(t, err, "RestoreUsers should not return an error")
+		require.NotNil(t, restoreResp, "Response should not be nil")
+
+		// Verify users are restored by querying them without IncludeDeactivatedUsers
+		verifyResp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": userIDs,
+					},
+				},
+			},
+		})
+		require.NoError(t, err, "QueryUsers should not return an error")
+		for _, user := range verifyResp.Users {
+			require.Contains(t, userIDs, user.ID, "User should be in the list of restored users")
+		}
+	})
+}
 func ExampleClient_UpsertUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()
