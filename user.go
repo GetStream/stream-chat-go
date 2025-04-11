@@ -657,3 +657,21 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
 	return &resp.Response, err
 }
+
+type RestoreUserRequest struct {
+	UserIDs []string `json:"user_ids"`
+}
+
+func (c *Client) RestoreUsers(ctx context.Context, userIDs []string) (*Response, error) {
+	if len(userIDs) == 0 {
+		return nil, errors.New("userIDs are empty")
+	}
+
+	path := path.Join("users", "restore")
+
+	req := RestoreUserRequest{UserIDs: userIDs}
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, path, nil, req, &resp)
+	return &resp, err
+}
