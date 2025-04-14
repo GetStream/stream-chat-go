@@ -15,6 +15,7 @@ func TestClient_QueryThreads(t *testing.T) {
 	t.Run("basic query", func(t *testing.T) {
 		membersID, ch, parentMsg, replyMsg := testThreadSetup(t, c, 3)
 
+		limit := 10
 		query := &QueryThreadsRequest{
 			Filter: map[string]any{
 				"channel_cid": map[string]any{
@@ -28,7 +29,7 @@ func TestClient_QueryThreads(t *testing.T) {
 				},
 			},
 			PagerRequest: PagerRequest{
-				Limit: intPtr(10),
+				Limit: &limit,
 			},
 			UserID: membersID[0],
 		}
@@ -47,6 +48,7 @@ func TestClient_QueryThreads(t *testing.T) {
 
 	t.Run("with pagination", func(t *testing.T) {
 		membersID, ch, parentMsg1, replyMsg1 := testThreadSetup(t, c, 3)
+		limit := 1
 
 		// Create a second thread
 		parentMsg2, err := ch.SendMessage(ctx, &Message{Text: "Parent message for thread 2"}, ch.CreatedBy.ID)
@@ -72,7 +74,7 @@ func TestClient_QueryThreads(t *testing.T) {
 				},
 			},
 			PagerRequest: PagerRequest{
-				Limit: intPtr(1),
+				Limit: &limit,
 			},
 			UserID: membersID[0],
 		}
@@ -100,7 +102,7 @@ func TestClient_QueryThreads(t *testing.T) {
 				},
 			},
 			PagerRequest: PagerRequest{
-				Limit: intPtr(1),
+				Limit: &limit,
 				Next:  resp.Next,
 			},
 			UserID: membersID[0],
@@ -155,9 +157,4 @@ func assertThreadParticipants(t *testing.T, thread ThreadResponse, createdByID s
 	assert.Equal(t, createdByID, thread.Participants[0].UserID, "participant user ID should match")
 	assert.NotZero(t, thread.Participants[0].CreatedAt, "participant created at should not be zero")
 	assert.NotZero(t, thread.Participants[0].LastReadAt, "participant last read at should not be zero")
-}
-
-// Helper function to create a pointer to an int
-func intPtr(i int) *int {
-	return &i
 }
