@@ -17,7 +17,9 @@ func TestClient_QueryThreads(t *testing.T) {
 
 		query := &QueryThreadsRequest{
 			Filter: map[string]any{
-				"channel_cid": ch.CID,
+				"channel_cid": map[string]any{
+					"$eq": ch.CID,
+				},
 			},
 			Sort: &SortParamRequestList{
 				{
@@ -59,7 +61,9 @@ func TestClient_QueryThreads(t *testing.T) {
 		// First page query
 		query := &QueryThreadsRequest{
 			Filter: map[string]any{
-				"channel_cid": ch.CID,
+				"channel_cid": map[string]any{
+					"$eq": ch.CID,
+				},
 			},
 			Sort: &SortParamRequestList{
 				{
@@ -85,7 +89,9 @@ func TestClient_QueryThreads(t *testing.T) {
 		// Second page query
 		query2 := &QueryThreadsRequest{
 			Filter: map[string]any{
-				"channel_cid": ch.CID,
+				"channel_cid": map[string]any{
+					"$eq": ch.CID,
+				},
 			},
 			Sort: &SortParamRequestList{
 				{
