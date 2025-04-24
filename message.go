@@ -93,13 +93,16 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
+		ID:                   m.ID,
 		Text:                 m.Text,
 		Type:                 m.Type,
 		Attachments:          m.Attachments,
 		UserID:               m.UserID,
 		ExtraData:            m.ExtraData,
+		HTML:                 m.HTML,
 		Pinned:               m.Pinned,
 		ParentID:             m.ParentID,
+		MML:                  m.MML,
 		ShowInChannel:        m.ShowInChannel,
 		Silent:               m.Silent,
 		QuotedMessageID:      m.QuotedMessageID,
@@ -128,14 +131,17 @@ type messageRequest struct {
 
 type messageRequestMessage struct {
 	Text                 string                 `json:"text"`
+	ID                   string                 `json:"id,omitempty"`
 	Type                 MessageType            `json:"type" validate:"omitempty,oneof=system"`
 	Attachments          []*Attachment          `json:"attachments"`
 	UserID               string                 `json:"user_id"`
 	MentionedUsers       []string               `json:"mentioned_users"`
+	MML                  string                 `json:"mml,omitempty"`
 	ParentID             string                 `json:"parent_id"`
 	ShowInChannel        bool                   `json:"show_in_channel"`
 	Silent               bool                   `json:"silent"`
 	QuotedMessageID      string                 `json:"quoted_message_id"`
+	HTML                 string                 `json:"html,omitempty"`
 	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
 	ExtraData            map[string]interface{} `json:"-"`

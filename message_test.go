@@ -24,6 +24,27 @@ func TestClient_TranslateMessage(t *testing.T) {
 	require.Equal(t, "mensaje de prueba", translated.Message.I18n["es_text"])
 }
 
+func TestClient_SendMessage(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{ID: randomString(10), Text: "test message", MML: "test mml", HTML: "test HTML"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+	require.Equal(t, ch.CID, messageResp.Message.CID)
+	require.Equal(t, user.ID, messageResp.Message.User.ID)
+	require.Equal(t, msg.ID, messageResp.Message.ID)
+	require.Equal(t, msg.Text, messageResp.Message.Text)
+	require.Equal(t, msg.MML, messageResp.Message.MML)
+	require.Equal(t, msg.HTML, messageResp.Message.HTML)
+}
+
 func TestClient_SendMessage_Pending(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
