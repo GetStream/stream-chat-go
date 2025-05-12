@@ -123,7 +123,7 @@ type messageRequest struct {
 	Message                messageRequestMessage `json:"message"`
 	SkipPush               bool                  `json:"skip_push,omitempty"`
 	SkipEnrichURL          bool                  `json:"skip_enrich_url,omitempty"`
-	Pending                bool                  `json:"pending,omitempty"`
+	Pending                *bool                 `json:"pending,omitempty"`
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
@@ -227,8 +227,20 @@ func MessageSkipEnrichURL(r *messageRequest) {
 
 // MessagePending is a flag that makes this a pending message.
 func MessagePending(r *messageRequest) {
-	if r != nil {
-		r.Pending = true
+	withPending(true)(r)
+}
+
+// MessageImmediate sets message.Pending=false explicitly.
+func MessageImmediate(r *messageRequest) {
+	withPending(false)(r)
+}
+
+// withPending returns an option that sets the Pending flag to the specified value.
+func withPending(pending bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.Pending = &pending
+		}
 	}
 }
 

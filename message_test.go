@@ -69,6 +69,30 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestClient_SendMessage_Immediate(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "test immediate message"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, MessageImmediate)
+	require.NoError(t, err)
+
+	// Get the message to verify it's not in pending state
+	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
+
+	// No need to commit the message as it's already in non-pending state
+	// The message should be immediately available without requiring a commit
+	require.NotNil(t, gotMsg.Message)
+	require.Equal(t, msg.Text, gotMsg.Message.Text)
+}
+
 func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
