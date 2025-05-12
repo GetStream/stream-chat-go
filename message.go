@@ -225,18 +225,14 @@ func MessageSkipEnrichURL(r *messageRequest) {
 	}
 }
 
-// MessagePending is a flag that makes this a pending message.
+// MessagePending sets a flag that marks this message as pending.
+// Deprecated: Use WithPending(true) instead.
 func MessagePending(r *messageRequest) {
-	withPending(true)(r)
+	WithPending(true)(r)
 }
 
-// MessageImmediate sets message.Pending=false explicitly.
-func MessageImmediate(r *messageRequest) {
-	withPending(false)(r)
-}
-
-// withPending returns an option that sets the Pending flag to the specified value.
-func withPending(pending bool) SendMessageOption {
+// WithPending returns an option that sets the Pending flag to the specified value.
+func WithPending(pending bool) SendMessageOption {
 	return func(r *messageRequest) {
 		if r != nil {
 			r.Pending = &pending

@@ -69,7 +69,7 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestClient_SendMessage_Immediate(t *testing.T) {
+func TestClient_SendMessage_WithPendingFalse(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
 
@@ -79,8 +79,8 @@ func TestClient_SendMessage_Immediate(t *testing.T) {
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 
-	msg := &Message{Text: "test immediate message"}
-	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, MessageImmediate)
+	msg := &Message{Text: "message with WithPending(false) - non-pending message"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, WithPending(false))
 	require.NoError(t, err)
 
 	// Get the message to verify it's not in pending state
