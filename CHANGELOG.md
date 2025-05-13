@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.9.0](https://github.com/GetStream/stream-chat-go/compare/v7.8.1...v7.9.0) (2025-05-13)
+
+
+### Features
+
+* **message:** add MessageImmediate option for setting pending=false ([#320](https://github.com/GetStream/stream-chat-go/issues/320)) ([282014f](https://github.com/GetStream/stream-chat-go/commit/282014fd4ae7b15918b6cd2c523d63f1e792fc69))
+
 ### [7.8.1](https://github.com/GetStream/stream-chat-go/compare/v7.8.0...v7.8.1) (2025-04-24)
 
 ## [7.8.0](https://github.com/GetStream/stream-chat-go/compare/v7.7.0...v7.8.0) (2025-04-11)
