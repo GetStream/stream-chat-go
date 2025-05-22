@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.10.0](https://github.com/GetStream/stream-chat-go/compare/v7.9.0...v7.10.0) (2025-05-22)
+
+
+### Features
+
+* add optional force_moderation field parameter to the send message request ([#322](https://github.com/GetStream/stream-chat-go/issues/322)) ([208ee0b](https://github.com/GetStream/stream-chat-go/commit/208ee0b4d666d62964df73aa2b4f493380624b5f))
+
 ## [7.9.0](https://github.com/GetStream/stream-chat-go/compare/v7.8.1...v7.9.0) (2025-05-13)
 
 
