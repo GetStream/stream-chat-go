@@ -127,6 +127,7 @@ type messageRequest struct {
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
+	ForceModeration        *bool                 `json:"force_moderation,omitempty"`
 }
 
 type messageRequestMessage struct {
@@ -236,6 +237,15 @@ func WithPending(pending bool) SendMessageOption {
 	return func(r *messageRequest) {
 		if r != nil {
 			r.Pending = &pending
+		}
+	}
+}
+
+// WithForceModeration returns an option that sets the ForceModeration flag to the specified value.
+func WithForceModeration(forceModeration bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.ForceModeration = &forceModeration
 		}
 	}
 }
