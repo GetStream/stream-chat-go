@@ -52,6 +52,7 @@ type AppSettings struct {
 	EnforceUniqueUsernames    *string                       `json:"enforce_unique_usernames,omitempty"`
 	ChannelHideMembersOnly    *bool                         `json:"channel_hide_members_only,omitempty"`
 	AsyncModerationConfig     *AsyncModerationConfiguration `json:"async_moderation_config,omitempty"`
+	EventHooks                []EventHook                   `json:"event_hooks,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -91,6 +92,11 @@ func (a *AppSettings) SetGrants(g map[string][]string) *AppSettings {
 
 func (a *AppSettings) SetAsyncModerationConfig(c AsyncModerationConfiguration) *AppSettings {
 	a.AsyncModerationConfig = &c
+	return a
+}
+
+func (a *AppSettings) SetEventHooks(eventHooks []EventHook) *AppSettings {
+	a.EventHooks = eventHooks
 	return a
 }
 
@@ -183,6 +189,36 @@ type Policy struct {
 	Priority  int       `json:"priority"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type HookType string
+
+const (
+	WebhookHook HookType = "webhook"
+	SQSHook     HookType = "sqs"
+	SNSHook     HookType = "sns"
+)
+
+type EventHook struct {
+	ID          string    `json:"id"`
+	HookType    HookType  `json:"hook_type"`
+	Enabled     bool      `json:"enabled"`
+	EventTypes  []string  `json:"event_types"`
+	WebhookURL  string    `json:"webhook_url,omitempty"`
+	SQSQueueURL string    `json:"sqs_queue_url,omitempty"`
+	SQSRegion   string    `json:"sqs_region,omitempty"`
+	SQSAuthType string    `json:"sqs_auth_type,omitempty"`
+	SQSKey      string    `json:"sqs_key,omitempty"`
+	SQSSecret   string    `json:"sqs_secret,omitempty"`
+	SQSRoleARN  string    `json:"sqs_role_arn,omitempty"`
+	SNSTopicARN string    `json:"sns_topic_arn,omitempty"`
+	SNSRegion   string    `json:"sns_region,omitempty"`
+	SNSAuthType string    `json:"sns_auth_type,omitempty"`
+	SNSKey      string    `json:"sns_key,omitempty"`
+	SNSSecret   string    `json:"sns_secret,omitempty"`
+	SNSRoleARN  string    `json:"sns_role_arn,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type AppResponse struct {
