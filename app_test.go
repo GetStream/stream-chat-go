@@ -62,7 +62,7 @@ func TestClient_UpdateAppSettingsClearing(t *testing.T) {
 
 	_, err := c.UpdateAppSettings(ctx, settings)
 	if err != nil {
-		assert.Equal(t, err.Error(), "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks.")
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks."`)
 		return
 	}
 	require.NoError(t, err)
@@ -71,14 +71,14 @@ func TestClient_UpdateAppSettingsClearing(t *testing.T) {
 	settings.SqsURL = &sqsURL
 	_, err = c.UpdateAppSettings(ctx, settings)
 	if err != nil {
-		assert.Equal(t, err.Error(), "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks.")
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks."`)
 		return
 	}
 	require.NoError(t, err)
 
 	s, err := c.GetAppSettings(ctx)
 	if err != nil {
-		assert.Equal(t, err.Error(), "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks.")
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, or SNS secret in new hook v2 system. Use the event_hooks field to configure webhooks."`)
 		return
 	}
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestClientUpdateEventHooks(t *testing.T) {
 	settings := NewAppSettings().SetEventHooks(eventHooks)
 	_, err := c.UpdateAppSettings(ctx, settings)
 	if err != nil {
-		assert.Equal(t, err.Error(), "cannot set event hooks in hook v1 system")
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "cannot set event hooks in hook v1 system"`)
 		return
 	}
 	require.NoError(t, err)
