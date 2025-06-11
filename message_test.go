@@ -24,6 +24,27 @@ func TestClient_TranslateMessage(t *testing.T) {
 	require.Equal(t, "mensaje de prueba", translated.Message.I18n["es_text"])
 }
 
+func TestClient_SendMessage(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{ID: randomString(10), Text: "test message", MML: "test mml", HTML: "test HTML"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+	require.Equal(t, ch.CID, messageResp.Message.CID)
+	require.Equal(t, user.ID, messageResp.Message.User.ID)
+	require.Equal(t, msg.ID, messageResp.Message.ID)
+	require.Equal(t, msg.Text, messageResp.Message.Text)
+	require.Equal(t, msg.MML, messageResp.Message.MML)
+	require.Equal(t, msg.HTML, messageResp.Message.HTML)
+}
+
 func TestClient_SendMessage_Pending(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
@@ -46,6 +67,30 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 
 	_, err = c.CommitMessage(ctx, messageResp.Message.ID)
 	require.NoError(t, err)
+}
+
+func TestClient_SendMessage_WithPendingFalse(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "message with WithPending(false) - non-pending message"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, WithPending(false))
+	require.NoError(t, err)
+
+	// Get the message to verify it's not in pending state
+	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
+
+	// No need to commit the message as it's already in non-pending state
+	// The message should be immediately available without requiring a commit
+	require.NotNil(t, gotMsg.Message)
+	require.Equal(t, msg.Text, gotMsg.Message.Text)
 }
 
 func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {

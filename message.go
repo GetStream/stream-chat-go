@@ -93,13 +93,16 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
+		ID:                   m.ID,
 		Text:                 m.Text,
 		Type:                 m.Type,
 		Attachments:          m.Attachments,
 		UserID:               m.UserID,
 		ExtraData:            m.ExtraData,
+		HTML:                 m.HTML,
 		Pinned:               m.Pinned,
 		ParentID:             m.ParentID,
+		MML:                  m.MML,
 		ShowInChannel:        m.ShowInChannel,
 		Silent:               m.Silent,
 		QuotedMessageID:      m.QuotedMessageID,
@@ -120,23 +123,27 @@ type messageRequest struct {
 	Message                messageRequestMessage `json:"message"`
 	SkipPush               bool                  `json:"skip_push,omitempty"`
 	SkipEnrichURL          bool                  `json:"skip_enrich_url,omitempty"`
-	Pending                bool                  `json:"pending,omitempty"`
+	Pending                *bool                 `json:"pending,omitempty"`
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
+	ForceModeration        *bool                 `json:"force_moderation,omitempty"`
 }
 
 type messageRequestMessage struct {
 	Text                 string                 `json:"text"`
+	ID                   string                 `json:"id,omitempty"`
 	Type                 MessageType            `json:"type" validate:"omitempty,oneof=system"`
 	Attachments          []*Attachment          `json:"attachments"`
 	UserID               string                 `json:"user_id"`
 	MentionedUsers       []string               `json:"mentioned_users"`
+	MML                  string                 `json:"mml,omitempty"`
 	ParentID             string                 `json:"parent_id"`
 	ShowInChannel        bool                   `json:"show_in_channel"`
 	Silent               bool                   `json:"silent"`
 	QuotedMessageID      string                 `json:"quoted_message_id"`
-	Pinned               bool                   `json:"pinned"`
+	HTML                 string                 `json:"html,omitempty"`
+	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
 	ExtraData            map[string]interface{} `json:"-"`
 }
@@ -219,10 +226,27 @@ func MessageSkipEnrichURL(r *messageRequest) {
 	}
 }
 
-// MessagePending is a flag that makes this a pending message.
+// MessagePending sets a flag that marks this message as pending.
+// Deprecated: Use WithPending(true) instead.
 func MessagePending(r *messageRequest) {
-	if r != nil {
-		r.Pending = true
+	WithPending(true)(r)
+}
+
+// WithPending returns an option that sets the Pending flag to the specified value.
+func WithPending(pending bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.Pending = &pending
+		}
+	}
+}
+
+// WithForceModeration returns an option that sets the ForceModeration flag to the specified value.
+func WithForceModeration(forceModeration bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.ForceModeration = &forceModeration
+		}
 	}
 }
 
