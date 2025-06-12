@@ -675,3 +675,36 @@ func (c *Client) RestoreUsers(ctx context.Context, userIDs []string) (*Response,
 	err := c.makeRequest(ctx, http.MethodPost, path, nil, req, &resp)
 	return &resp, err
 }
+
+type SharedLocation struct {
+	ChannelCID        string     `json:"channel_cid"`
+	CreatedAt         time.Time  `json:"created_at"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	EndAt             *time.Time `json:"end_at,omitempty"`
+	Latitude          float64    `json:"latitude"`
+	Longitude         float64    `json:"longitude"`
+	MessageID         string     `json:"message_id"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+	UserID            string     `json:"user_id"`
+}
+
+type ActiveLiveLocationsResponse struct {
+	ActiveLiveLocations []*SharedLocation `json:"active_live_locations"`
+	Response
+}
+
+// GetSharedLocations returns all active live locations
+func (c *Client) GetSharedLocations(ctx context.Context) (*ActiveLiveLocationsResponse, error) {
+	path := path.Join("users", "live_locations")
+	var resp ActiveLiveLocationsResponse
+	err := c.makeRequest(ctx, http.MethodGet, path, nil, nil, &resp)
+	return &resp, err
+}
+
+// UpdateLocation updates a location
+func (c *Client) UpdateLocation(ctx context.Context, location *SharedLocation) (*Response, error) {
+	path := path.Join("users", "live_locations")
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPut, path, nil, location, &resp)
+	return &resp, err
+}
