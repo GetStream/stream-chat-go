@@ -192,33 +192,48 @@ type Policy struct {
 }
 
 type HookType string
+type CallbackMode string
 
 const (
-	WebhookHook HookType = "webhook"
-	SQSHook     HookType = "sqs"
-	SNSHook     HookType = "sns"
+	WebhookHook    HookType = "webhook"
+	SQSHook        HookType = "sqs"
+	SNSHook        HookType = "sns"
+	PendingMessage HookType = "pending_message"
+
+	CallbackModeNone  CallbackMode = "CALLBACK_MODE_NONE"
+	CallbackModeREST  CallbackMode = "CALLBACK_MODE_REST"
+	CallbackModeTwirp CallbackMode = "CALLBACK_MODE_TWIRP"
 )
 
+type Callback struct {
+	Mode CallbackMode `json:"mode"`
+}
+
 type EventHook struct {
-	ID          string    `json:"id"`
-	HookType    HookType  `json:"hook_type"`
-	Enabled     bool      `json:"enabled"`
-	EventTypes  []string  `json:"event_types"`
-	WebhookURL  string    `json:"webhook_url,omitempty"`
-	SQSQueueURL string    `json:"sqs_queue_url,omitempty"`
-	SQSRegion   string    `json:"sqs_region,omitempty"`
-	SQSAuthType string    `json:"sqs_auth_type,omitempty"`
-	SQSKey      string    `json:"sqs_key,omitempty"`
-	SQSSecret   string    `json:"sqs_secret,omitempty"`
-	SQSRoleARN  string    `json:"sqs_role_arn,omitempty"`
-	SNSTopicARN string    `json:"sns_topic_arn,omitempty"`
-	SNSRegion   string    `json:"sns_region,omitempty"`
-	SNSAuthType string    `json:"sns_auth_type,omitempty"`
-	SNSKey      string    `json:"sns_key,omitempty"`
-	SNSSecret   string    `json:"sns_secret,omitempty"`
-	SNSRoleARN  string    `json:"sns_role_arn,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          string   `json:"id"`
+	HookType    HookType `json:"hook_type"`
+	Enabled     bool     `json:"enabled"`
+	EventTypes  []string `json:"event_types"`
+	WebhookURL  string   `json:"webhook_url,omitempty"`
+	SQSQueueURL string   `json:"sqs_queue_url,omitempty"`
+	SQSRegion   string   `json:"sqs_region,omitempty"`
+	SQSAuthType string   `json:"sqs_auth_type,omitempty"`
+	SQSKey      string   `json:"sqs_key,omitempty"`
+	SQSSecret   string   `json:"sqs_secret,omitempty"`
+	SQSRoleARN  string   `json:"sqs_role_arn,omitempty"`
+	SNSTopicARN string   `json:"sns_topic_arn,omitempty"`
+	SNSRegion   string   `json:"sns_region,omitempty"`
+	SNSAuthType string   `json:"sns_auth_type,omitempty"`
+	SNSKey      string   `json:"sns_key,omitempty"`
+	SNSSecret   string   `json:"sns_secret,omitempty"`
+	SNSRoleARN  string   `json:"sns_role_arn,omitempty"`
+
+	// pending message config
+	TimeoutMs int       `json:"timeout_ms,omitempty"`
+	Callback  *Callback `json:"callback,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type AppResponse struct {
