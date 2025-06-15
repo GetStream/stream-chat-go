@@ -46,6 +46,14 @@ func createTestChannel(t *testing.T, c *stream_chat.Client) (*stream_chat.Channe
 	channelResp, err := c.CreateChannelWithMembers(ctx, "messaging", channelID, userID)
 	require.NoError(t, err)
 
+	channelResp.Channel.PartialUpdate(ctx, stream_chat.PartialUpdate{
+		Set: map[string]interface{}{
+			"config_override": map[string]interface{}{
+				"user_message_reminders": true,
+			},
+		},
+	})
+
 	t.Cleanup(func() {
 		_, _ = c.DeleteUsers(ctx, []string{userID}, stream_chat.DeleteUserOptions{
 			User:          stream_chat.HardDelete,
