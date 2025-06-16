@@ -29,16 +29,31 @@ type ChannelMute struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-type User struct {
-	ID       string   `json:"id"`
-	Name     string   `json:"name,omitempty"`
-	Image    string   `json:"image,omitempty"`
-	Role     string   `json:"role,omitempty"`
-	Teams    []string `json:"teams,omitempty"`
-	Language string   `json:"language,omitempty"`
+type PrivacySettings struct {
+	TypingIndicators *TypingIndicators `json:"typing_indicators,omitempty"`
+	ReadReceipts     *ReadReceipts     `json:"read_receipts,omitempty"`
+}
 
-	Online    bool `json:"online,omitempty"`
-	Invisible bool `json:"invisible,omitempty"`
+type TypingIndicators struct {
+	Enabled bool `json:"enabled"`
+}
+
+type ReadReceipts struct {
+	Enabled bool `json:"enabled"`
+}
+
+type User struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name,omitempty"`
+	Image     string            `json:"image,omitempty"`
+	Role      string            `json:"role,omitempty"`
+	Teams     []string          `json:"teams,omitempty"`
+	TeamsRole map[string]string `json:"teams_role,omitempty"`
+	Language  string            `json:"language,omitempty"`
+
+	Online          bool             `json:"online,omitempty"`
+	Invisible       bool             `json:"invisible,omitempty"`
+	PrivacySettings *PrivacySettings `json:"privacy_settings,omitempty"`
 
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
@@ -641,4 +656,22 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 
 	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
 	return &resp.Response, err
+}
+
+type RestoreUserRequest struct {
+	UserIDs []string `json:"user_ids"`
+}
+
+func (c *Client) RestoreUsers(ctx context.Context, userIDs []string) (*Response, error) {
+	if len(userIDs) == 0 {
+		return nil, errors.New("userIDs are empty")
+	}
+
+	path := path.Join("users", "restore")
+
+	req := RestoreUserRequest{UserIDs: userIDs}
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, path, nil, req, &resp)
+	return &resp, err
 }

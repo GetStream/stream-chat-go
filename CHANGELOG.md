@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.10.0](https://github.com/GetStream/stream-chat-go/compare/v7.9.0...v7.10.0) (2025-05-22)
+
+
+### Features
+
+* add optional force_moderation field parameter to the send message request ([#322](https://github.com/GetStream/stream-chat-go/issues/322)) ([208ee0b](https://github.com/GetStream/stream-chat-go/commit/208ee0b4d666d62964df73aa2b4f493380624b5f))
+
+## [7.10.0](https://github.com/GetStream/stream-chat-go/compare/v7.9.0...v7.10.0) (2025-05-22)
+
+
+### Features
+
+* add optional force_moderation field parameter to the send message request ([#322](https://github.com/GetStream/stream-chat-go/issues/322)) ([208ee0b](https://github.com/GetStream/stream-chat-go/commit/208ee0b4d666d62964df73aa2b4f493380624b5f))
+
+## [7.9.0](https://github.com/GetStream/stream-chat-go/compare/v7.8.1...v7.9.0) (2025-05-13)
+
+
+### Features
+
+* **message:** add MessageImmediate option for setting pending=false ([#320](https://github.com/GetStream/stream-chat-go/issues/320)) ([282014f](https://github.com/GetStream/stream-chat-go/commit/282014fd4ae7b15918b6cd2c523d63f1e792fc69))
+
+### [7.8.1](https://github.com/GetStream/stream-chat-go/compare/v7.8.0...v7.8.1) (2025-04-24)
+
+## [7.8.0](https://github.com/GetStream/stream-chat-go/compare/v7.7.0...v7.8.0) (2025-04-11)
+
+## [7.7.0](https://github.com/GetStream/stream-chat-go/compare/v7.6.0...v7.7.0) (2025-04-07)
+
+
+### Features
+
+* Add pending and pinned messages to query channel response ([#313](https://github.com/GetStream/stream-chat-go/issues/313)) ([9036c50](https://github.com/GetStream/stream-chat-go/commit/9036c50891ab32d366283101f2a1117868e6989e))
+
+## [7.6.0](https://github.com/GetStream/stream-chat-go/compare/v7.5.0...v7.6.0) (2025-03-17)
+
+
+### Features
+
+* Add mark unread and update mark read params ([#305](https://github.com/GetStream/stream-chat-go/issues/305)) ([ca4898d](https://github.com/GetStream/stream-chat-go/commit/ca4898d381355f971bdf806fd8459f7e9a8ce3f1))
+
+## [7.5.0](https://github.com/GetStream/stream-chat-go/compare/v7.4.0...v7.5.0) (2025-03-13)
+
 ## [7.4.0](https://github.com/GetStream/stream-chat-go/compare/v7.3.0...v7.4.0) (2025-02-24)
 
 ## [7.3.0](https://github.com/GetStream/stream-chat-go/compare/v7.2.0...v7.3.0) (2025-02-10)
