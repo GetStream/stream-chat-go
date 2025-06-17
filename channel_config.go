@@ -45,6 +45,9 @@ type ChannelConfig struct {
 	PartitionTTL  *DurationString `json:"partition_ttl,omitempty"`
 
 	SkipLastMsgUpdateForSystemMsgs bool `json:"skip_last_msg_update_for_system_msgs,omitempty"`
+
+	// UserMessageReminders is a flag to enable user message reminders.
+	UserMessageReminders bool `json:"user_message_reminders,omitempty"`
 }
 
 // DurationString is a duration that's encoded to as a string in JSON.
