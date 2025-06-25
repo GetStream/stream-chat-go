@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -452,6 +453,65 @@ func TestClient_RestoreUsers(t *testing.T) {
 		}
 	})
 }
+
+func TestClient_LiveLocation(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// Create a user
+	user := randomUser(t, c)
+	require.NotNil(t, user)
+
+	// Create a shared location
+	location := &SharedLocation{
+		ChannelCID:        "messaging:test-channel",
+		MessageID:         randomString(10),
+		Longitude:         -122.4194,
+		Latitude:          37.7749,
+		EndAt:             timePtr(time.Now().Add(1 * time.Hour)),
+		CreatedByDeviceID: "test-device",
+		UserID:            user.ID,
+	}
+
+	// Update the location
+	resp, err := c.UpdateLocation(ctx, location)
+	require.NoError(t, err, "UpdateLocation should not return an error")
+	require.NotNil(t, resp)
+
+	// Get active live locations
+	getResp, err := c.GetSharedLocations(ctx)
+	require.NoError(t, err, "GetSharedLocations should not return an error")
+	require.NotNil(t, getResp)
+	require.NotEmpty(t, getResp.ActiveLiveLocations, "Should have active live locations")
+
+	// Verify the location data
+	found := false
+	for _, loc := range getResp.ActiveLiveLocations {
+		if loc.MessageID == location.MessageID {
+			found = true
+			assert.Equal(t, location.Latitude, loc.Latitude)
+			assert.Equal(t, location.Longitude, loc.Longitude)
+			assert.Equal(t, location.UserID, loc.UserID)
+			assert.Equal(t, location.ChannelCID, loc.ChannelCID)
+			break
+		}
+	}
+	assert.True(t, found, "Should find the updated location")
+
+	// Update the location with new coordinates
+	location.Latitude = 37.7833
+	location.Longitude = -122.4167
+
+	updateResp, err := c.UpdateLocation(ctx, location)
+	require.NoError(t, err, "UpdateLocation should not return an error")
+	require.NotNil(t, updateResp)
+}
+
+// Helper function to create a time pointer
+func timePtr(t time.Time) *time.Time {
+	return &t
+}
+
 func ExampleClient_UpsertUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()
