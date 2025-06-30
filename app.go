@@ -119,6 +119,7 @@ type FileUploadConfig struct {
 	BlockedFileExtensions []string `json:"blocked_file_extensions,omitempty"`
 	AllowedMimeTypes      []string `json:"allowed_mime_types,omitempty"`
 	BlockedMimeTypes      []string `json:"blocked_mime_types,omitempty"`
+	SizeLimit             *int     `json:"size_limit,omitempty"`
 }
 
 type APNConfig struct {
