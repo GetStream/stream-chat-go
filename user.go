@@ -688,21 +688,29 @@ type SharedLocation struct {
 	UserID            string     `json:"user_id"`
 }
 
+type UserActiveLocation struct {
+	MessageID         string     `json:"message_id"`
+	Latitude          *float64   `json:"latitude,omitempty"`
+	Longitude         *float64   `json:"longitude,omitempty"`
+	EndAt             *time.Time `json:"end_at,omitempty"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+}
+
 type ActiveLiveLocationsResponse struct {
 	ActiveLiveLocations []*SharedLocation `json:"active_live_locations"`
 	Response
 }
 
-// GetSharedLocations returns all active live locations
-func (c *Client) GetSharedLocations(ctx context.Context) (*ActiveLiveLocationsResponse, error) {
+// GetUserActiveLocations returns all active live locations for a user
+func (c *Client) GetUserActiveLocations(ctx context.Context) (*ActiveLiveLocationsResponse, error) {
 	path := path.Join("users", "live_locations")
 	var resp ActiveLiveLocationsResponse
 	err := c.makeRequest(ctx, http.MethodGet, path, nil, nil, &resp)
 	return &resp, err
 }
 
-// UpdateLocation updates a location
-func (c *Client) UpdateLocation(ctx context.Context, location *SharedLocation) (*Response, error) {
+// UpdateUserActiveLocation updates a location
+func (c *Client) UpdateUserActiveLocation(ctx context.Context, location *SharedLocation) (*Response, error) {
 	path := path.Join("users", "live_locations")
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodPut, path, nil, location, &resp)

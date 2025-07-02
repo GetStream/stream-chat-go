@@ -474,13 +474,13 @@ func TestClient_LiveLocation(t *testing.T) {
 	}
 
 	// Update the location
-	resp, err := c.UpdateLocation(ctx, location)
-	require.NoError(t, err, "UpdateLocation should not return an error")
+	resp, err := c.UpdateUserActiveLocation(ctx, location)
+	require.NoError(t, err, "UpdateUserActiveLocation should not return an error")
 	require.NotNil(t, resp)
 
 	// Get active live locations
-	getResp, err := c.GetSharedLocations(ctx)
-	require.NoError(t, err, "GetSharedLocations should not return an error")
+	getResp, err := c.GetUserActiveLocations(ctx)
+	require.NoError(t, err, "GetUserActiveLocations should not return an error")
 	require.NotNil(t, getResp)
 	require.NotEmpty(t, getResp.ActiveLiveLocations, "Should have active live locations")
 
@@ -502,8 +502,8 @@ func TestClient_LiveLocation(t *testing.T) {
 	location.Latitude = 37.7833
 	location.Longitude = -122.4167
 
-	updateResp, err := c.UpdateLocation(ctx, location)
-	require.NoError(t, err, "UpdateLocation should not return an error")
+	updateResp, err := c.UpdateUserActiveLocation(ctx, location)
+	require.NoError(t, err, "UpdateUserActiveLocation should not return an error")
 	require.NotNil(t, updateResp)
 }
 
