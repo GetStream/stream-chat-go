@@ -1,23 +1,22 @@
-package stream_chat_test
+package stream_chat
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	stream_chat "github.com/GetStream/stream-chat-go/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func createTestChannelWithSharedLocations(t *testing.T, c *stream_chat.Client) (*stream_chat.Channel, *stream_chat.User) {
+func createTestChannelWithSharedLocations(t *testing.T, c *Client) (*Channel, *User) {
 	t.Helper()
 
 	ctx := context.Background()
 	userID := "test-user-" + randomString(10)
 	channelID := "test-channel-" + randomString(10)
 
-	user := &stream_chat.User{ID: userID}
+	user := &User{ID: userID}
 	resp, err := c.UpsertUser(ctx, user)
 	require.NoError(t, err)
 	user = resp.User
@@ -25,7 +24,7 @@ func createTestChannelWithSharedLocations(t *testing.T, c *stream_chat.Client) (
 	channelResp, err := c.CreateChannelWithMembers(ctx, "messaging", channelID, userID)
 	require.NoError(t, err)
 
-	_, err = channelResp.Channel.PartialUpdate(ctx, stream_chat.PartialUpdate{
+	_, err = channelResp.Channel.PartialUpdate(ctx, PartialUpdate{
 		Set: map[string]interface{}{
 			"config_overrides": map[string]interface{}{
 				"shared_locations": true,
@@ -35,10 +34,10 @@ func createTestChannelWithSharedLocations(t *testing.T, c *stream_chat.Client) (
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_, _ = c.DeleteUsers(ctx, []string{userID}, stream_chat.DeleteUserOptions{
-			User:          stream_chat.HardDelete,
-			Messages:      stream_chat.HardDelete,
-			Conversations: stream_chat.HardDelete,
+		_, _ = c.DeleteUsers(ctx, []string{userID}, DeleteUserOptions{
+			User:          HardDelete,
+			Messages:      HardDelete,
+			Conversations: HardDelete,
 		})
 		_, _ = c.DeleteChannels(ctx, []string{channelResp.Channel.CID}, true)
 	})
@@ -46,15 +45,11 @@ func createTestChannelWithSharedLocations(t *testing.T, c *stream_chat.Client) (
 	return channelResp.Channel, user
 }
 
-func timePtr(t time.Time) *time.Time {
-	return &t
-}
-
 func TestClient_LiveLocation(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 
-	settings := stream_chat.NewAppSettings().SetSharedLocationsEnabled(true)
+	settings := NewAppSettings().SetSharedLocationsEnabled(true)
 
 	_, err := c.UpdateAppSettings(ctx, settings)
 	require.NoError(t, err)
@@ -62,27 +57,29 @@ func TestClient_LiveLocation(t *testing.T) {
 	// Create a user
 	channel, user := createTestChannelWithSharedLocations(t, c)
 
+	longitude := -122.4194
+	latitude := 38.999
+
 	// Create a shared location
-	location := &stream_chat.SharedLocation{
-		UserID:            user.ID,
-		MessageID:         randomString(10),
-		Longitude:         -122.4194,
-		Latitude:          37.7749,
+	location := &SharedLocationRequest{
+		Longitude:         &longitude,
+		Latitude:          &latitude,
 		EndAt:             timePtr(time.Now().Add(1 * time.Hour)),
 		CreatedByDeviceID: "test-device",
 	}
 
-	messageResp, err := channel.SendMessage(ctx, &stream_chat.Message{
+	messageResp, err := channel.SendMessage(ctx, &Message{
 		SharedLocation: location,
+		Text:           "Test message for shared location",
 	}, user.ID)
 	require.NoError(t, err)
 	message := messageResp.Message
 
-	newLocation := &stream_chat.SharedLocation{
-		UserID:            user.ID,
+	newLocation := &SharedLocation{
 		MessageID:         message.ID,
 		Longitude:         -122.4194,
 		Latitude:          38.999,
+		EndAt:             timePtr(time.Now().Add(10 * time.Hour)),
 		CreatedByDeviceID: "test-device",
 	}
 
@@ -102,22 +99,12 @@ func TestClient_LiveLocation(t *testing.T) {
 	// Verify the location data
 	found := false
 	for _, loc := range getResp.ActiveLiveLocations {
-		if loc.MessageID == location.MessageID {
+		if loc.MessageID == messageResp.Message.ID {
 			found = true
-			assert.Equal(t, location.Latitude, loc.Latitude)
-			assert.Equal(t, location.Longitude, loc.Longitude)
-			assert.Equal(t, location.UserID, loc.UserID)
-			assert.Equal(t, location.ChannelCID, loc.ChannelCID)
+			assert.Equal(t, messageResp.Message.SharedLocation.Latitude, loc.Latitude)
+			assert.Equal(t, messageResp.Message.SharedLocation.Longitude, loc.Longitude)
 			break
 		}
 	}
 	assert.True(t, found, "Should find the updated location")
-
-	// Update the location with new coordinates
-	location.Latitude = 37.7833
-	location.Longitude = -122.4167
-
-	updateResp2, err := c.UpdateUserActiveLocation(ctx, user.ID, location)
-	require.NoError(t, err, "UpdateUserActiveLocation should not return an error")
-	require.NotNil(t, updateResp2)
 }

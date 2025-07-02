@@ -688,6 +688,13 @@ type SharedLocation struct {
 	UserID            string     `json:"user_id"`
 }
 
+type SharedLocationRequest struct {
+	Latitude          *float64   `json:"latitude,omitempty"`
+	Longitude         *float64   `json:"longitude,omitempty"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	EndAt             *time.Time `json:"end_at,omitempty"`
+}
+
 type UserActiveLocation struct {
 	MessageID         string     `json:"message_id"`
 	Latitude          *float64   `json:"latitude,omitempty"`
@@ -736,6 +743,13 @@ func (c *Client) UpdateUserActiveLocation(ctx context.Context, userID string, lo
 	path := path.Join("users", "live_locations")
 	var resp SharedLocationResponse
 
-	err := c.makeRequest(ctx, http.MethodPut, path, nil, location, &resp)
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
+	params := url.Values{}
+	params.Set("user_id", userID)
+
+	err := c.makeRequest(ctx, http.MethodPut, path, params, location, &resp)
 	return &resp, err
 }
