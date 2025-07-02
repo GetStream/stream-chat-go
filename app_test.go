@@ -5,6 +5,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,14 +61,26 @@ func TestClient_UpdateAppSettingsClearing(t *testing.T) {
 	settings.SqsSecret = &sqsSecret
 
 	_, err := c.UpdateAppSettings(ctx, settings)
+	if err != nil {
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
+		return
+	}
 	require.NoError(t, err)
 
 	sqsURL = ""
 	settings.SqsURL = &sqsURL
 	_, err = c.UpdateAppSettings(ctx, settings)
+	if err != nil {
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
+		return
+	}
 	require.NoError(t, err)
 
 	s, err := c.GetAppSettings(ctx)
+	if err != nil {
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
+		return
+	}
 	require.NoError(t, err)
 	require.Equal(t, *settings.SqsURL, *s.App.SqsURL)
 }
@@ -111,6 +124,28 @@ func TestClient_CheckPush(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, msgResp.Message.ID, resp.RenderedMessage["message_id"])
+}
+
+func TestClientUpdateEventHooks(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	eventHooks := []EventHook{
+		{
+			HookType:   WebhookHook,
+			Enabled:    true,
+			EventTypes: []string{"message.new"},
+			WebhookURL: "http://test-webhook-url",
+		},
+	}
+
+	settings := NewAppSettings().SetEventHooks(eventHooks)
+	_, err := c.UpdateAppSettings(ctx, settings)
+	if err != nil {
+		assert.Equal(t, err.Error(), `UpdateApp failed with error: "cannot set event hooks in hook v1 system"`)
+		return
+	}
+	require.NoError(t, err)
 }
 
 // See https://getstream.io/chat/docs/app_settings_auth/ for
