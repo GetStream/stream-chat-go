@@ -53,6 +53,7 @@ type AppSettings struct {
 	ChannelHideMembersOnly    *bool                         `json:"channel_hide_members_only,omitempty"`
 	AsyncModerationConfig     *AsyncModerationConfiguration `json:"async_moderation_config,omitempty"`
 	EventHooks                []EventHook                   `json:"event_hooks,omitempty"`
+	SharedLocationsEnabled    *bool                         `json:"shared_locations_enabled,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -97,6 +98,11 @@ func (a *AppSettings) SetAsyncModerationConfig(c AsyncModerationConfiguration) *
 
 func (a *AppSettings) SetEventHooks(eventHooks []EventHook) *AppSettings {
 	a.EventHooks = eventHooks
+	return a
+}
+
+func (a *AppSettings) SetSharedLocationsEnabled(b bool) *AppSettings {
+	a.SharedLocationsEnabled = &b
 	return a
 }
 
