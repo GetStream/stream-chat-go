@@ -736,15 +736,6 @@ func (c *Client) UpdateUserActiveLocation(ctx context.Context, userID string, lo
 	path := path.Join("users", "live_locations")
 	var resp SharedLocationResponse
 
-	if userID == "" {
-		return nil, errors.New("user ID is empty")
-	}
-
-	data := map[string]interface{}{
-		"user_id":         userID,
-		"shared_location": location,
-	}
-
-	err := c.makeRequest(ctx, http.MethodPut, path, nil, data, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, path, nil, location, &resp)
 	return &resp, err
 }

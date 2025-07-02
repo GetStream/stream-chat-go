@@ -64,6 +64,7 @@ func TestClient_LiveLocation(t *testing.T) {
 
 	// Create a shared location
 	location := &stream_chat.SharedLocation{
+		UserID:            user.ID,
 		MessageID:         randomString(10),
 		Longitude:         -122.4194,
 		Latitude:          37.7749,
@@ -78,6 +79,7 @@ func TestClient_LiveLocation(t *testing.T) {
 	message := messageResp.Message
 
 	newLocation := &stream_chat.SharedLocation{
+		UserID:            user.ID,
 		MessageID:         message.ID,
 		Longitude:         -122.4194,
 		Latitude:          38.999,
