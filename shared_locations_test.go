@@ -2,6 +2,7 @@ package stream_chat
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -74,6 +75,7 @@ func TestClient_LiveLocation(t *testing.T) {
 	}, user.ID)
 	require.NoError(t, err)
 	message := messageResp.Message
+	fmt.Println(message.SharedLocation)
 
 	newLocation := &SharedLocation{
 		MessageID:         message.ID,
@@ -101,8 +103,8 @@ func TestClient_LiveLocation(t *testing.T) {
 	for _, loc := range getResp.ActiveLiveLocations {
 		if loc.MessageID == messageResp.Message.ID {
 			found = true
-			assert.Equal(t, messageResp.Message.SharedLocation.Latitude, loc.Latitude)
-			assert.Equal(t, messageResp.Message.SharedLocation.Longitude, loc.Longitude)
+			assert.Equal(t, *messageResp.Message.SharedLocation.Latitude, loc.Latitude)
+			assert.Equal(t, *messageResp.Message.SharedLocation.Longitude, loc.Longitude)
 			break
 		}
 	}

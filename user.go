@@ -731,10 +731,14 @@ func (c *Client) GetUserActiveLocations(ctx context.Context, userID string) (*Ac
 		return nil, errors.New("user ID is empty")
 	}
 
-	data := map[string]interface{}{
-		"user_id": userID,
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
 	}
-	err := c.makeRequest(ctx, http.MethodGet, path, nil, data, &resp)
+
+	params := url.Values{}
+	params.Set("user_id", userID)
+
+	err := c.makeRequest(ctx, http.MethodGet, path, params, nil, &resp)
 	return &resp, err
 }
 
