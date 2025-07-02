@@ -701,18 +701,50 @@ type ActiveLiveLocationsResponse struct {
 	Response
 }
 
+type SharedLocationResponse struct {
+	ChannelCID        string     `json:"channel_cid"`
+	MessageID         string     `json:"message_id"`
+	UserID            string     `json:"user_id"`
+	Latitude          float64    `json:"latitude"`
+	Longitude         float64    `json:"longitude"`
+	CreatedByDeviceID string     `json:"created_by_device_id"`
+	EndAt             *time.Time `json:"end_at,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+
+	Message *MessageResponse `json:"message,omitempty"`
+	Channel *Channel         `json:"channel,omitempty"`
+}
+
 // GetUserActiveLocations returns all active live locations for a user
-func (c *Client) GetUserActiveLocations(ctx context.Context) (*ActiveLiveLocationsResponse, error) {
+func (c *Client) GetUserActiveLocations(ctx context.Context, userID string) (*ActiveLiveLocationsResponse, error) {
 	path := path.Join("users", "live_locations")
 	var resp ActiveLiveLocationsResponse
-	err := c.makeRequest(ctx, http.MethodGet, path, nil, nil, &resp)
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
+	data := map[string]interface{}{
+		"user_id": userID,
+	}
+	err := c.makeRequest(ctx, http.MethodGet, path, nil, data, &resp)
 	return &resp, err
 }
 
 // UpdateUserActiveLocation updates a location
-func (c *Client) UpdateUserActiveLocation(ctx context.Context, location *SharedLocation) (*Response, error) {
+func (c *Client) UpdateUserActiveLocation(ctx context.Context, userID string, location *SharedLocation) (*SharedLocationResponse, error) {
 	path := path.Join("users", "live_locations")
-	var resp Response
-	err := c.makeRequest(ctx, http.MethodPut, path, nil, location, &resp)
+	var resp SharedLocationResponse
+
+	if userID == "" {
+		return nil, errors.New("user ID is empty")
+	}
+
+	data := map[string]interface{}{
+		"user_id":         userID,
+		"shared_location": location,
+	}
+
+	err := c.makeRequest(ctx, http.MethodPut, path, nil, data, &resp)
 	return &resp, err
 }

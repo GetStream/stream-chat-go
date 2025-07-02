@@ -65,6 +65,8 @@ type Message struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
+
+	SharedLocation *SharedLocation `json:"shared_location,omitempty"`
 }
 
 type messageForJSON Message

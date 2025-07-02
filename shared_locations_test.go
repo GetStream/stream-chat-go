@@ -64,22 +64,35 @@ func TestClient_LiveLocation(t *testing.T) {
 
 	// Create a shared location
 	location := &stream_chat.SharedLocation{
-		ChannelCID:        channel.CID,
 		MessageID:         randomString(10),
 		Longitude:         -122.4194,
 		Latitude:          37.7749,
 		EndAt:             timePtr(time.Now().Add(1 * time.Hour)),
 		CreatedByDeviceID: "test-device",
-		UserID:            user.ID,
+	}
+
+	messageResp, err := channel.SendMessage(ctx, &stream_chat.Message{
+		SharedLocation: location,
+	}, user.ID)
+	require.NoError(t, err)
+	message := messageResp.Message
+
+	newLocation := &stream_chat.SharedLocation{
+		MessageID:         message.ID,
+		Longitude:         -122.4194,
+		Latitude:          38.999,
+		CreatedByDeviceID: "test-device",
 	}
 
 	// Update the location
-	resp, err := c.UpdateUserActiveLocation(ctx, location)
+	updateResp1, err := c.UpdateUserActiveLocation(ctx, user.ID, newLocation)
 	require.NoError(t, err, "UpdateUserActiveLocation should not return an error")
-	require.NotNil(t, resp)
+	require.NotNil(t, updateResp1)
+	assert.Equal(t, newLocation.Latitude, updateResp1.Latitude)
+	assert.Equal(t, newLocation.Longitude, updateResp1.Longitude)
 
 	// Get active live locations
-	getResp, err := c.GetUserActiveLocations(ctx)
+	getResp, err := c.GetUserActiveLocations(ctx, user.ID)
 	require.NoError(t, err, "GetUserActiveLocations should not return an error")
 	require.NotNil(t, getResp)
 	require.NotEmpty(t, getResp.ActiveLiveLocations, "Should have active live locations")
@@ -102,7 +115,7 @@ func TestClient_LiveLocation(t *testing.T) {
 	location.Latitude = 37.7833
 	location.Longitude = -122.4167
 
-	updateResp, err := c.UpdateUserActiveLocation(ctx, location)
+	updateResp2, err := c.UpdateUserActiveLocation(ctx, user.ID, location)
 	require.NoError(t, err, "UpdateUserActiveLocation should not return an error")
-	require.NotNil(t, updateResp)
+	require.NotNil(t, updateResp2)
 }
