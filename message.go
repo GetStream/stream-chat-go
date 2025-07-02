@@ -66,7 +66,7 @@ type Message struct {
 
 	ExtraData map[string]interface{} `json:"-"`
 
-	SharedLocation *SharedLocationRequest `json:"shared_location,omitempty"`
+	SharedLocation *SharedLocation `json:"shared_location,omitempty"`
 }
 
 type messageForJSON Message
@@ -148,7 +148,7 @@ type messageRequestMessage struct {
 	HTML                 string                 `json:"html,omitempty"`
 	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
-	SharedLocation       *SharedLocationRequest `json:"shared_location,omitempty"`
+	SharedLocation       *SharedLocation        `json:"shared_location,omitempty"`
 	ExtraData            map[string]interface{} `json:"-"`
 }
 

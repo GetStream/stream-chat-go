@@ -62,7 +62,7 @@ func TestClient_LiveLocation(t *testing.T) {
 	latitude := 38.999
 
 	// Create a shared location
-	location := &SharedLocationRequest{
+	location := &SharedLocation{
 		Longitude:         &longitude,
 		Latitude:          &latitude,
 		EndAt:             timePtr(time.Now().Add(1 * time.Hour)),
@@ -77,10 +77,13 @@ func TestClient_LiveLocation(t *testing.T) {
 	message := messageResp.Message
 	fmt.Println(message.SharedLocation)
 
+	longitude = -122.4194
+	latitude = 38.999
+
 	newLocation := &SharedLocation{
 		MessageID:         message.ID,
-		Longitude:         -122.4194,
-		Latitude:          38.999,
+		Longitude:         &longitude,
+		Latitude:          &latitude,
 		EndAt:             timePtr(time.Now().Add(10 * time.Hour)),
 		CreatedByDeviceID: "test-device",
 	}
@@ -103,8 +106,8 @@ func TestClient_LiveLocation(t *testing.T) {
 	for _, loc := range getResp.ActiveLiveLocations {
 		if loc.MessageID == messageResp.Message.ID {
 			found = true
-			assert.Equal(t, *messageResp.Message.SharedLocation.Latitude, loc.Latitude)
-			assert.Equal(t, *messageResp.Message.SharedLocation.Longitude, loc.Longitude)
+			assert.Equal(t, messageResp.Message.SharedLocation.Latitude, loc.Latitude)
+			assert.Equal(t, messageResp.Message.SharedLocation.Longitude, loc.Longitude)
 			break
 		}
 	}
