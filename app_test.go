@@ -32,6 +32,18 @@ func TestClient_UpdateAppSettingsWithFileUploadConfig(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 
+	// Save original settings for cleanup
+	originalSettings, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+
+	// Cleanup: restore original settings after test
+	defer func() {
+		cleanupSettings := NewAppSettings()
+		cleanupSettings.FileUploadConfig = originalSettings.App.FileUploadConfig
+		_, err := c.UpdateAppSettings(ctx, cleanupSettings)
+		require.NoError(t, err)
+	}()
+
 	// Test updating app settings with file upload config including size limit
 	sizeLimit := 10485760 // 10MB
 	fileUploadConfig := &FileUploadConfig{
@@ -43,13 +55,25 @@ func TestClient_UpdateAppSettingsWithFileUploadConfig(t *testing.T) {
 	settings := NewAppSettings()
 	settings.FileUploadConfig = fileUploadConfig
 
-	_, err := c.UpdateAppSettings(ctx, settings)
+	_, err = c.UpdateAppSettings(ctx, settings)
 	require.NoError(t, err)
 }
 
 func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
+
+	// Save original settings for cleanup
+	originalSettings, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+
+	// Cleanup: restore original settings after test
+	defer func() {
+		cleanupSettings := NewAppSettings()
+		cleanupSettings.FileUploadConfig = originalSettings.App.FileUploadConfig
+		_, err := c.UpdateAppSettings(ctx, cleanupSettings)
+		require.NoError(t, err)
+	}()
 
 	// First, set up file upload config with size limit
 	sizeLimit := 5242880 // 5MB
@@ -61,7 +85,7 @@ func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 
 	settings := NewAppSettings()
 	settings.FileUploadConfig = fileUploadConfig
-	_, err := c.UpdateAppSettings(ctx, settings)
+	_, err = c.UpdateAppSettings(ctx, settings)
 	require.NoError(t, err)
 
 	resp, err := c.GetAppSettings(ctx)
@@ -73,7 +97,6 @@ func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 	require.Equal(t, []string{"image/jpeg", "image/png"}, resp.App.FileUploadConfig.AllowedMimeTypes)
 	require.NotNil(t, resp.App.FileUploadConfig.SizeLimit)
 	require.Equal(t, sizeLimit, *resp.App.FileUploadConfig.SizeLimit)
-
 }
 
 func TestClient_CheckAsyncModeConfig(t *testing.T) {
