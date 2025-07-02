@@ -2,7 +2,6 @@ package stream_chat
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -75,7 +74,6 @@ func TestClient_LiveLocation(t *testing.T) {
 	}, user.ID)
 	require.NoError(t, err)
 	message := messageResp.Message
-	fmt.Println(message.SharedLocation)
 
 	longitude = -122.4194
 	latitude = 38.999
