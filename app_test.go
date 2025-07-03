@@ -78,8 +78,8 @@ func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 	// First, set up file upload config with size limit
 	sizeLimit := 5242880 // 5MB
 	fileUploadConfig := &FileUploadConfig{
-		AllowedFileExtensions: []string{".jpg", ".png"},
-		AllowedMimeTypes:      []string{"image/jpeg", "image/png"},
+		AllowedFileExtensions: []string{".jpg", ".png", ".txt"},
+		AllowedMimeTypes:      []string{"image/jpeg", "image/png", "text/plain"},
 		SizeLimit:             &sizeLimit,
 	}
 
@@ -93,8 +93,8 @@ func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 	require.NotNil(t, resp.App.FileUploadConfig)
 
 	// Verify all fields are present and correct
-	require.Equal(t, []string{".jpg", ".png"}, resp.App.FileUploadConfig.AllowedFileExtensions)
-	require.Equal(t, []string{"image/jpeg", "image/png"}, resp.App.FileUploadConfig.AllowedMimeTypes)
+	require.Equal(t, []string{".jpg", ".png", ".txt"}, resp.App.FileUploadConfig.AllowedFileExtensions)
+	require.Equal(t, []string{"image/jpeg", "image/png", "text/plain"}, resp.App.FileUploadConfig.AllowedMimeTypes)
 	require.NotNil(t, resp.App.FileUploadConfig.SizeLimit)
 	require.Equal(t, sizeLimit, *resp.App.FileUploadConfig.SizeLimit)
 }
