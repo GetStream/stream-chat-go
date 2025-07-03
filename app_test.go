@@ -28,6 +28,77 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestClient_UpdateAppSettingsWithFileUploadConfig(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// Save original settings for cleanup
+	originalSettings, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+
+	// Cleanup: restore original settings after test
+	defer func() {
+		cleanupSettings := NewAppSettings()
+		cleanupSettings.FileUploadConfig = originalSettings.App.FileUploadConfig
+		_, err := c.UpdateAppSettings(ctx, cleanupSettings)
+		require.NoError(t, err)
+	}()
+
+	// Test updating app settings with file upload config including size limit
+	sizeLimit := 10485760 // 10MB
+	fileUploadConfig := &FileUploadConfig{
+		AllowedFileExtensions: []string{".pdf", ".doc", ".txt"},
+		AllowedMimeTypes:      []string{"application/pdf", "text/plain"},
+		SizeLimit:             &sizeLimit,
+	}
+
+	settings := NewAppSettings()
+	settings.FileUploadConfig = fileUploadConfig
+
+	_, err = c.UpdateAppSettings(ctx, settings)
+	require.NoError(t, err)
+}
+
+func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// Save original settings for cleanup
+	originalSettings, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+
+	// Cleanup: restore original settings after test
+	defer func() {
+		cleanupSettings := NewAppSettings()
+		cleanupSettings.FileUploadConfig = originalSettings.App.FileUploadConfig
+		_, err := c.UpdateAppSettings(ctx, cleanupSettings)
+		require.NoError(t, err)
+	}()
+
+	// First, set up file upload config with size limit
+	sizeLimit := 5242880 // 5MB
+	fileUploadConfig := &FileUploadConfig{
+		AllowedFileExtensions: []string{".jpg", ".png", ".txt"},
+		AllowedMimeTypes:      []string{"image/jpeg", "image/png", "text/plain"},
+		SizeLimit:             &sizeLimit,
+	}
+
+	settings := NewAppSettings()
+	settings.FileUploadConfig = fileUploadConfig
+	_, err = c.UpdateAppSettings(ctx, settings)
+	require.NoError(t, err)
+
+	resp, err := c.GetAppSettings(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, resp.App.FileUploadConfig)
+
+	// Verify all fields are present and correct
+	require.Equal(t, []string{".jpg", ".png", ".txt"}, resp.App.FileUploadConfig.AllowedFileExtensions)
+	require.Equal(t, []string{"image/jpeg", "image/png", "text/plain"}, resp.App.FileUploadConfig.AllowedMimeTypes)
+	require.NotNil(t, resp.App.FileUploadConfig.SizeLimit)
+	require.Equal(t, sizeLimit, *resp.App.FileUploadConfig.SizeLimit)
+}
+
 func TestClient_CheckAsyncModeConfig(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
