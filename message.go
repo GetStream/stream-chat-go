@@ -65,6 +65,8 @@ type Message struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
+
+	SharedLocation *SharedLocation `json:"shared_location,omitempty"`
 }
 
 type messageForJSON Message
@@ -107,6 +109,7 @@ func (m *Message) toRequest() messageRequest {
 		Silent:               m.Silent,
 		QuotedMessageID:      m.QuotedMessageID,
 		RestrictedVisibility: m.RestrictedVisibility,
+		SharedLocation:       m.SharedLocation,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -145,6 +148,7 @@ type messageRequestMessage struct {
 	HTML                 string                 `json:"html,omitempty"`
 	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
+	SharedLocation       *SharedLocation        `json:"shared_location,omitempty"`
 	ExtraData            map[string]interface{} `json:"-"`
 }
 
