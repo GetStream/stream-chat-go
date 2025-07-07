@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -452,6 +453,12 @@ func TestClient_RestoreUsers(t *testing.T) {
 		}
 	})
 }
+
+// Helper function to create a time pointer
+func timePtr(t time.Time) *time.Time {
+	return &t
+}
+
 func ExampleClient_UpsertUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()
