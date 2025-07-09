@@ -64,6 +64,7 @@ type User struct {
 	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
 	ExtraData                map[string]interface{} `json:"-"`
 	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
+	AvgResponseTime          *float64               `json:"avg_response_time,omitempty"`
 }
 
 type userForJSON User

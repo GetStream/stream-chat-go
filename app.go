@@ -54,6 +54,7 @@ type AppSettings struct {
 	AsyncModerationConfig     *AsyncModerationConfiguration `json:"async_moderation_config,omitempty"`
 	EventHooks                []EventHook                   `json:"event_hooks,omitempty"`
 	SharedLocationsEnabled    *bool                         `json:"shared_locations_enabled,omitempty"`
+	UserResponseTimeEnabled   *bool                         `json:"user_response_time_enabled,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -103,6 +104,11 @@ func (a *AppSettings) SetEventHooks(eventHooks []EventHook) *AppSettings {
 
 func (a *AppSettings) SetSharedLocationsEnabled(b bool) *AppSettings {
 	a.SharedLocationsEnabled = &b
+	return a
+}
+
+func (a *AppSettings) SetUserResponseTimeEnabled(b bool) *AppSettings {
+	a.UserResponseTimeEnabled = &b
 	return a
 }
 
