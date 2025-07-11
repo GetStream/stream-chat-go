@@ -374,7 +374,7 @@ func (ch *Channel) GetMessages(ctx context.Context, messageIDs []string) (*GetMe
 }
 
 type addMembersOptions struct {
-	MemberIDs []ChannelMember `json:"add_members"`
+	Members []ChannelMember `json:"add_members"`
 
 	RolesAssignement []*RoleAssignment `json:"assign_roles"`
 	HideHistory      bool              `json:"hide_history"`
@@ -408,7 +408,7 @@ func (ch *Channel) AddMembers(ctx context.Context, members []ChannelMember, opti
 	}
 
 	opts := &addMembersOptions{
-		MemberIDs: members,
+		Members: members,
 	}
 
 	for _, fn := range options {
@@ -810,8 +810,8 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 }
 
 // CreateChannelWithMembers creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...ChannelMember) (*CreateChannelResponse, error) {
-	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
+func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, members ...ChannelMember) (*CreateChannelResponse, error) {
+	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: members})
 }
 
 type SendFileRequest struct {
