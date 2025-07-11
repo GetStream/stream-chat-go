@@ -137,11 +137,14 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUser(t, c)
+	user := randomUsersChannelMember(t, c, 1)
 
-	msg := &Message{Text: "some members", User: &User{ID: user.ID}}
+	msg := &Message{
+		Text: "some members",
+		User: &User{ID: user[0].UserID},
+	}
 	_, err = ch.AddMembers(ctx,
-		[]string{user.ID},
+		user,
 		AddMembersWithMessage(msg),
 		AddMembersWithHideHistory(),
 	)
@@ -149,7 +152,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+	assert.Equal(t, user[0].UserID, ch.Members[0].User.ID, "members contain user id")
 }
 
 func TestChannel_AssignRoles(t *testing.T) {
@@ -185,9 +188,11 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	for _, name := range names {
 		id := prefix + name
-		_, err := c.UpsertUser(ctx, &User{ID: id, Name: id})
+		_, err := c.UpsertUser(ctx, &User{ID: id, Name: name})
 		require.NoError(t, err)
-		_, err = ch.AddMembers(ctx, []string{id})
+		_, err = ch.AddMembers(ctx, []ChannelMember{
+			{UserID: id, User: &User{ID: id, Name: name}},
+		})
 		require.NoError(t, err)
 	}
 

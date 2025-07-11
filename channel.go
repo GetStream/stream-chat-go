@@ -374,7 +374,7 @@ func (ch *Channel) GetMessages(ctx context.Context, messageIDs []string) (*GetMe
 }
 
 type addMembersOptions struct {
-	MemberIDs []string `json:"add_members"`
+	MemberIDs []ChannelMember `json:"add_members"`
 
 	RolesAssignement []*RoleAssignment `json:"assign_roles"`
 	HideHistory      bool              `json:"hide_history"`
@@ -402,13 +402,13 @@ func AddMembersWithRolesAssignment(assignements []*RoleAssignment) func(*addMemb
 }
 
 // AddMembers adds members with given user IDs to the channel.
-func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...AddMembersOptions) (*Response, error) {
-	if len(userIDs) == 0 {
+func (ch *Channel) AddMembers(ctx context.Context, members []ChannelMember, options ...AddMembersOptions) (*Response, error) {
+	if len(members) == 0 {
 		return nil, errors.New("user IDs are empty")
 	}
 
 	opts := &addMembersOptions{
-		MemberIDs: userIDs,
+		MemberIDs: members,
 	}
 
 	for _, fn := range options {
