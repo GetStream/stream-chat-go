@@ -188,10 +188,10 @@ func TestChannel_QueryMembers(t *testing.T) {
 
 	for _, name := range names {
 		id := prefix + name
-		_, err := c.UpsertUser(ctx, &User{ID: id, Name: name})
+		_, err := c.UpsertUser(ctx, &User{ID: id, Name: id})
 		require.NoError(t, err)
 		_, err = ch.AddMembers(ctx, []ChannelMember{
-			{UserID: id, User: &User{ID: id, Name: name}},
+			{UserID: id, User: &User{ID: id, Name: id}},
 		})
 		require.NoError(t, err)
 	}
