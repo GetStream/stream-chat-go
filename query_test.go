@@ -121,7 +121,7 @@ func TestClient_Search(t *testing.T) {
 
 	user1, user2 := randomUser(t, c), randomUser(t, c)
 
-	ch := initChannel(t, c, user1.ID, user2.ID)
+	ch := initChannel(t, c, user1, user2)
 
 	text := randomString(10)
 

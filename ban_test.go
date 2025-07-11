@@ -14,7 +14,7 @@ func TestShadowBanUser(t *testing.T) {
 	userC := randomUser(t, c)
 	ctx := context.Background()
 
-	ch := initChannel(t, c, userA.ID, userB.ID, userC.ID)
+	ch := initChannel(t, c, userA, userB, userC)
 	resp, err := c.CreateChannel(ctx, ch.Type, ch.ID, userA.ID, nil)
 	require.NoError(t, err)
 
@@ -113,7 +113,7 @@ func TestChannelBanUnban(t *testing.T) {
 	c := initClient(t)
 	target := randomUser(t, c)
 	user := randomUser(t, c)
-	ch := initChannel(t, c, user.ID, target.ID)
+	ch := initChannel(t, c, user, target)
 	ctx := context.Background()
 
 	_, err := ch.BanUser(ctx, target.ID, user.ID, BanWithReason("spammer"), BanWithExpiration(60))

@@ -166,7 +166,7 @@ func TestClient_QueryDraftsWithFilters(t *testing.T) {
 
 	// Create a channel
 	user := randomUser(t, c)
-	channel1 := initChannel(t, c, user.ID)
+	channel1 := initChannel(t, c, user)
 
 	// Create a draft message
 	draft1 := &messageRequestMessage{
@@ -176,7 +176,7 @@ func TestClient_QueryDraftsWithFilters(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a second channel
-	channel2 := initChannel(t, c, user.ID)
+	channel2 := initChannel(t, c, user)
 
 	// Create a draft in the second channel
 	draft2 := &messageRequestMessage{
