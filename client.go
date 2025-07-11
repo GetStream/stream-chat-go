@@ -19,14 +19,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 const (
 	// DefaultBaseURL is the default base URL for the stream chat api.
 	// It works like CDN style and connects you to the closest production server.
 	// By default, there is no real reason to change it. Use it only if you know what you are doing.
-	DefaultBaseURL = "https://chat.stream-io-api.com"
+	// DefaultBaseURL = "https://chat.stream-io-api.com"
+	DefaultBaseURL = "http://localhost:3030"
 	defaultTimeout = 6 * time.Second
 )
 

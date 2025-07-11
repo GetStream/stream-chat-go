@@ -155,7 +155,7 @@ type ChannelRequest struct {
 	AutoTranslationLanguage string                 `json:"auto_translation_language,omitempty"`
 	Frozen                  *bool                  `json:"frozen,omitempty"`
 	Disabled                *bool                  `json:"disabled,omitempty"`
-	Members                 []string               `json:"members,omitempty"`
+	Members                 []ChannelMember        `json:"members,omitempty"`
 	Invites                 []string               `json:"invites,omitempty"`
 	ExtraData               map[string]interface{} `json:"-"`
 }
@@ -810,7 +810,7 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 }
 
 // CreateChannelWithMembers creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...string) (*CreateChannelResponse, error) {
+func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...ChannelMember) (*CreateChannelResponse, error) {
 	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
 }
 

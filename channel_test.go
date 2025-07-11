@@ -77,12 +77,12 @@ func TestClient_CreateChannel(t *testing.T) {
 		{"create channel without ID and members", "messaging", "", userID, nil, nil, true},
 		{
 			"create channel without ID but with members", "messaging", "", userID,
-			&ChannelRequest{Members: randomUsersID(t, c, 2)},
+			&ChannelRequest{Members: randomUsersChannelMember(t, c, 2)},
 			nil, false,
 		},
 		{
 			"create channel with HideForCreator", "messaging", "", userID,
-			&ChannelRequest{Members: []string{userID, randomUsersID(t, c, 1)[0]}},
+			&ChannelRequest{Members: []ChannelMember{ChannelMember{UserID: userID}, randomUsersChannelMember(t, c, 1)[0]}},
 			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
@@ -485,9 +485,9 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	users := randomUsers(t, c, 5)
 	ctx := context.Background()
 
-	members := make([]string, 0, len(users))
+	members := make([]ChannelMember, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, ChannelMember{UserID: users[i].ID})
 	}
 
 	req := &ChannelRequest{Members: members, ExtraData: map[string]interface{}{"color": "blue", "age": 30}}
@@ -516,9 +516,9 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	users := randomUsers(t, c, 5)
 	ctx := context.Background()
 
-	members := make([]string, 0, len(users))
+	members := make([]ChannelMember, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, ChannelMember{UserID: users[i].ID})
 	}
 
 	req := &ChannelRequest{Members: members}
@@ -526,7 +526,7 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	ch := resp.Channel
-	member, err := ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+	member, err := ch.PartialUpdateMember(ctx, members[0].UserID, PartialUpdate{
 		Set: map[string]interface{}{
 			"color": "red",
 		},
@@ -535,7 +535,7 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "red", member.ChannelMember.ExtraData["color"])
 
-	member, err = ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
+	member, err = ch.PartialUpdateMember(ctx, members[0].UserID, PartialUpdate{
 		Set: map[string]interface{}{
 			"age": "18",
 		},
@@ -622,16 +622,16 @@ func TestChannel_AcceptInvite(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(users))
+	members := make([]ChannelMember, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, ChannelMember{UserID: users[i].ID})
 	}
 
-	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
+	req := &ChannelRequest{Members: members, Invites: []string{members[0].UserID}}
 	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
-	_, err = resp.Channel.AcceptInvite(ctx, members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
+	_, err = resp.Channel.AcceptInvite(ctx, members[0].UserID, &Message{Text: "accepted", User: &User{ID: members[0].UserID}})
 	require.NoError(t, err, "accept invite")
 }
 
@@ -640,16 +640,16 @@ func TestChannel_RejectInvite(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(users))
+	members := make([]ChannelMember, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, ChannelMember{UserID: users[i].ID})
 	}
 
-	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
+	req := &ChannelRequest{Members: members, Invites: []string{members[0].UserID}}
 	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
-	_, err = resp.Channel.RejectInvite(ctx, members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
+	_, err = resp.Channel.RejectInvite(ctx, members[0].UserID, &Message{Text: "rejected", User: &User{ID: members[0].UserID}})
 	require.NoError(t, err, "reject invite")
 }
 

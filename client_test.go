@@ -24,8 +24,11 @@ func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 
 	owner := randomUser(t, c)
 	ctx := context.Background()
-
-	resp, err := c.CreateChannelWithMembers(ctx, "team", randomString(12), owner.ID, membersID...)
+	members := make([]ChannelMember, len(membersID))
+	for _, member := range membersID {
+		members = append(members, ChannelMember{UserID: member})
+	}
+	resp, err := c.CreateChannelWithMembers(ctx, "team", randomString(12), owner.ID, members...)
 	require.NoError(t, err, "create channel")
 
 	t.Cleanup(func() {

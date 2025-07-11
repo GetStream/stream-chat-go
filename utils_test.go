@@ -119,6 +119,17 @@ func randomUsersID(t *testing.T, c *Client, n int) []string {
 	return ids
 }
 
+func randomUsersChannelMember(t *testing.T, c *Client, n int) []ChannelMember {
+	t.Helper()
+
+	users := randomUsers(t, c, n)
+	members := make([]ChannelMember, n)
+	for i, u := range users {
+		members[i] = ChannelMember{UserID: u.ID}
+	}
+	return members
+}
+
 func randomString(n int) string {
 	bytes := make([]byte, n)
 	for i := 0; i < n; i++ {
