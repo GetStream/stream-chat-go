@@ -19,8 +19,8 @@ func (ch *Channel) refresh(ctx context.Context) error {
 
 func TestClient_TestQuery(t *testing.T) {
 	c := initClient(t)
-	membersID := randomUsersID(t, c, 3)
-	ch := initChannel(t, c, membersID...)
+	members := randomUsers(t, c, 3)
+	ch := initChannel(t, c, members...)
 	ctx := context.Background()
 	msg, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
 	require.NoError(t, err)
@@ -51,8 +51,8 @@ func TestClient_CreateChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("get existing channel", func(t *testing.T) {
-		membersID := randomUsersID(t, c, 3)
-		ch := initChannel(t, c, membersID...)
+		members := randomUsers(t, c, 3)
+		ch := initChannel(t, c, members...)
 		resp, err := c.CreateChannel(ctx, ch.Type, ch.ID, userID, nil)
 		require.NoError(t, err, "create channel", ch)
 
@@ -115,7 +115,7 @@ func TestChannel_GetManyMessages(t *testing.T) {
 	c := initClient(t)
 	userA := randomUser(t, c)
 	userB := randomUser(t, c)
-	ch := initChannel(t, c, userA.ID, userB.ID)
+	ch := initChannel(t, c, userA, userB)
 
 	msg := &Message{Text: "test message"}
 	messageResp, err := ch.SendMessage(ctx, msg, userB.ID)
@@ -658,21 +658,21 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(users))
+	members := make([]*User, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, users[i])
 	}
 	ch := initChannel(t, c, members...)
 
 	// mute the channel
-	mute, err := ch.Mute(ctx, members[0], nil)
+	mute, err := ch.Mute(ctx, members[0].ID, nil)
 	require.NoError(t, err, "mute channel")
 
 	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
-	require.Equal(t, members[0], mute.ChannelMute.User.ID)
+	require.Equal(t, members[0].ID, mute.ChannelMute.User.ID)
 	// query for muted the channel
 	queryChannResp, err := c.QueryChannels(ctx, &QueryOption{
-		UserID: members[0],
+		UserID: members[0].ID,
 		Filter: map[string]interface{}{
 			"muted": true,
 			"cid":   ch.CID,
@@ -685,12 +685,12 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.Equal(t, channels[0].CID, ch.CID)
 
 	// unmute the channel
-	_, err = ch.Unmute(ctx, members[0])
+	_, err = ch.Unmute(ctx, members[0].ID)
 	require.NoError(t, err, "mute channel")
 
 	// query for unmuted the channel should return 1 results
 	queryChannResp, err = c.QueryChannels(ctx, &QueryOption{
-		UserID: members[0],
+		UserID: members[0].ID,
 		Filter: map[string]interface{}{
 			"muted": false,
 			"cid":   ch.CID,
@@ -706,9 +706,9 @@ func TestChannel_Pin(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(users))
+	members := make([]*User, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, users[i])
 	}
 	ch := initChannel(t, c, members...)
 
@@ -757,9 +757,9 @@ func TestChannel_Archive(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]string, 0, len(users))
+	members := make([]*User, 0, len(users))
 	for i := range users {
-		members = append(members, users[i].ID)
+		members = append(members, users[i])
 	}
 	ch := initChannel(t, c, members...)
 

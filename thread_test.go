@@ -31,7 +31,7 @@ func TestClient_QueryThreads(t *testing.T) {
 			PagerRequest: PagerRequest{
 				Limit: &limit,
 			},
-			UserID: membersID[0],
+			UserID: membersID[0].ID,
 		}
 
 		resp, err := c.QueryThreads(ctx, query)
@@ -76,7 +76,7 @@ func TestClient_QueryThreads(t *testing.T) {
 			PagerRequest: PagerRequest{
 				Limit: &limit,
 			},
-			UserID: membersID[0],
+			UserID: membersID[0].ID,
 		}
 
 		resp, err := c.QueryThreads(ctx, query)
@@ -105,7 +105,7 @@ func TestClient_QueryThreads(t *testing.T) {
 				Limit: &limit,
 				Next:  resp.Next,
 			},
-			UserID: membersID[0],
+			UserID: membersID[0].ID,
 		}
 
 		resp, err = c.QueryThreads(ctx, query2)
@@ -120,8 +120,8 @@ func TestClient_QueryThreads(t *testing.T) {
 }
 
 // testThreadSetup creates a channel with members and returns necessary test data
-func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]string, *Channel, *MessageResponse, *MessageResponse) {
-	membersID := randomUsersID(t, c, numMembers)
+func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]*User, *Channel, *MessageResponse, *MessageResponse) {
+	membersID := randomUsers(t, c, numMembers)
 	ch := initChannel(t, c, membersID...)
 
 	// Create a parent message

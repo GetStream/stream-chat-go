@@ -125,7 +125,7 @@ func randomUsersChannelMember(t *testing.T, c *Client, n int) []ChannelMember {
 	users := randomUsers(t, c, n)
 	members := make([]ChannelMember, n)
 	for i, u := range users {
-		members[i] = ChannelMember{UserID: u.ID}
+		members[i] = ChannelMember{UserID: u.ID, User: u}
 	}
 	return members
 }
