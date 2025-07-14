@@ -19,8 +19,8 @@ func (ch *Channel) refresh(ctx context.Context) error {
 
 func TestClient_TestQuery(t *testing.T) {
 	c := initClient(t)
-	members := randomUsers(t, c, 3)
-	ch := initChannel(t, c, members...)
+	membersID := randomUsersID(t, c, 3)
+	ch := initChannel(t, c, membersID...)
 	ctx := context.Background()
 	msg, err := ch.SendMessage(ctx, &Message{Text: "test message", Pinned: true}, ch.CreatedBy.ID)
 	require.NoError(t, err)
@@ -51,8 +51,8 @@ func TestClient_CreateChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("get existing channel", func(t *testing.T) {
-		members := randomUsers(t, c, 3)
-		ch := initChannel(t, c, members...)
+		membersID := randomUsersID(t, c, 3)
+		ch := initChannel(t, c, membersID...)
 		resp, err := c.CreateChannel(ctx, ch.Type, ch.ID, userID, nil)
 		require.NoError(t, err, "create channel", ch)
 
@@ -77,12 +77,12 @@ func TestClient_CreateChannel(t *testing.T) {
 		{"create channel without ID and members", "messaging", "", userID, nil, nil, true},
 		{
 			"create channel without ID but with members", "messaging", "", userID,
-			&ChannelRequest{Members: randomUsersChannelMember(t, c, 2)},
+			&ChannelRequest{Members: randomUsersID(t, c, 2)},
 			nil, false,
 		},
 		{
 			"create channel with HideForCreator", "messaging", "", userID,
-			&ChannelRequest{Members: []ChannelMember{ChannelMember{UserID: userID}, randomUsersChannelMember(t, c, 1)[0]}},
+			&ChannelRequest{Members: []string{userID, randomUsersID(t, c, 1)[0]}},
 			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
@@ -115,7 +115,7 @@ func TestChannel_GetManyMessages(t *testing.T) {
 	c := initClient(t)
 	userA := randomUser(t, c)
 	userB := randomUser(t, c)
-	ch := initChannel(t, c, userA, userB)
+	ch := initChannel(t, c, userA.ID, userB.ID)
 
 	msg := &Message{Text: "test message"}
 	messageResp, err := ch.SendMessage(ctx, msg, userB.ID)
@@ -137,14 +137,11 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	assert.Empty(t, ch.Members, "members are empty")
 
-	user := randomUsersChannelMember(t, c, 1)
+	user := randomUser(t, c)
 
-	msg := &Message{
-		Text: "some members",
-		User: &User{ID: user[0].UserID},
-	}
+	msg := &Message{Text: "some members", User: &User{ID: user.ID}}
 	_, err = ch.AddMembers(ctx,
-		user,
+		[]string{user.ID},
 		AddMembersWithMessage(msg),
 		AddMembersWithHideHistory(),
 	)
@@ -152,7 +149,7 @@ func TestChannel_AddMembers(t *testing.T) {
 
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
-	assert.Equal(t, user[0].UserID, ch.Members[0].User.ID, "members contain user id")
+	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
 func TestChannel_AssignRoles(t *testing.T) {
@@ -190,9 +187,7 @@ func TestChannel_QueryMembers(t *testing.T) {
 		id := prefix + name
 		_, err := c.UpsertUser(ctx, &User{ID: id, Name: id})
 		require.NoError(t, err)
-		_, err = ch.AddMembers(ctx, []ChannelMember{
-			{UserID: id, User: &User{ID: id, Name: id}},
-		})
+		_, err = ch.AddMembers(ctx, []string{id})
 		require.NoError(t, err)
 	}
 
@@ -490,9 +485,9 @@ func TestChannel_PartialUpdate(t *testing.T) {
 	users := randomUsers(t, c, 5)
 	ctx := context.Background()
 
-	members := make([]ChannelMember, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, ChannelMember{UserID: users[i].ID})
+		members = append(members, users[i].ID)
 	}
 
 	req := &ChannelRequest{Members: members, ExtraData: map[string]interface{}{"color": "blue", "age": 30}}
@@ -521,9 +516,9 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	users := randomUsers(t, c, 5)
 	ctx := context.Background()
 
-	members := make([]ChannelMember, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, ChannelMember{UserID: users[i].ID})
+		members = append(members, users[i].ID)
 	}
 
 	req := &ChannelRequest{Members: members}
@@ -531,7 +526,7 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	ch := resp.Channel
-	member, err := ch.PartialUpdateMember(ctx, members[0].UserID, PartialUpdate{
+	member, err := ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
 		Set: map[string]interface{}{
 			"color": "red",
 		},
@@ -540,7 +535,7 @@ func TestChannel_MemberPartialUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "red", member.ChannelMember.ExtraData["color"])
 
-	member, err = ch.PartialUpdateMember(ctx, members[0].UserID, PartialUpdate{
+	member, err = ch.PartialUpdateMember(ctx, members[0], PartialUpdate{
 		Set: map[string]interface{}{
 			"age": "18",
 		},
@@ -627,16 +622,16 @@ func TestChannel_AcceptInvite(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]ChannelMember, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, ChannelMember{UserID: users[i].ID})
+		members = append(members, users[i].ID)
 	}
 
-	req := &ChannelRequest{Members: members, Invites: []string{members[0].UserID}}
+	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
 	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
-	_, err = resp.Channel.AcceptInvite(ctx, members[0].UserID, &Message{Text: "accepted", User: &User{ID: members[0].UserID}})
+	_, err = resp.Channel.AcceptInvite(ctx, members[0], &Message{Text: "accepted", User: &User{ID: members[0]}})
 	require.NoError(t, err, "accept invite")
 }
 
@@ -645,16 +640,16 @@ func TestChannel_RejectInvite(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]ChannelMember, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, ChannelMember{UserID: users[i].ID})
+		members = append(members, users[i].ID)
 	}
 
-	req := &ChannelRequest{Members: members, Invites: []string{members[0].UserID}}
+	req := &ChannelRequest{Members: members, Invites: []string{members[0]}}
 	resp, err := c.CreateChannel(ctx, "team", randomString(12), randomUser(t, c).ID, req)
 
 	require.NoError(t, err, "create channel")
-	_, err = resp.Channel.RejectInvite(ctx, members[0].UserID, &Message{Text: "rejected", User: &User{ID: members[0].UserID}})
+	_, err = resp.Channel.RejectInvite(ctx, members[0], &Message{Text: "rejected", User: &User{ID: members[0]}})
 	require.NoError(t, err, "reject invite")
 }
 
@@ -663,21 +658,21 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]*User, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, users[i])
+		members = append(members, users[i].ID)
 	}
 	ch := initChannel(t, c, members...)
 
 	// mute the channel
-	mute, err := ch.Mute(ctx, members[0].ID, nil)
+	mute, err := ch.Mute(ctx, members[0], nil)
 	require.NoError(t, err, "mute channel")
 
 	require.Equal(t, ch.CID, mute.ChannelMute.Channel.CID)
-	require.Equal(t, members[0].ID, mute.ChannelMute.User.ID)
+	require.Equal(t, members[0], mute.ChannelMute.User.ID)
 	// query for muted the channel
 	queryChannResp, err := c.QueryChannels(ctx, &QueryOption{
-		UserID: members[0].ID,
+		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": true,
 			"cid":   ch.CID,
@@ -690,12 +685,12 @@ func TestChannel_Mute_Unmute(t *testing.T) {
 	require.Equal(t, channels[0].CID, ch.CID)
 
 	// unmute the channel
-	_, err = ch.Unmute(ctx, members[0].ID)
+	_, err = ch.Unmute(ctx, members[0])
 	require.NoError(t, err, "mute channel")
 
 	// query for unmuted the channel should return 1 results
 	queryChannResp, err = c.QueryChannels(ctx, &QueryOption{
-		UserID: members[0].ID,
+		UserID: members[0],
 		Filter: map[string]interface{}{
 			"muted": false,
 			"cid":   ch.CID,
@@ -711,9 +706,9 @@ func TestChannel_Pin(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]*User, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, users[i])
+		members = append(members, users[i].ID)
 	}
 	ch := initChannel(t, c, members...)
 
@@ -762,9 +757,9 @@ func TestChannel_Archive(t *testing.T) {
 	ctx := context.Background()
 	users := randomUsers(t, c, 5)
 
-	members := make([]*User, 0, len(users))
+	members := make([]string, 0, len(users))
 	for i := range users {
-		members = append(members, users[i])
+		members = append(members, users[i].ID)
 	}
 	ch := initChannel(t, c, members...)
 

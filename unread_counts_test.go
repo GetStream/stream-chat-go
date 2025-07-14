@@ -11,7 +11,7 @@ import (
 func TestUnreadCounts(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 
 	ctx := context.Background()
 	msg := &Message{Text: "test message"}
@@ -51,7 +51,7 @@ func TestUnreadCountsBatch(t *testing.T) {
 	c := initClient(t)
 	user1 := randomUser(t, c)
 	user2 := randomUser(t, c)
-	ch := initChannel(t, c, user1, user2)
+	ch := initChannel(t, c, user1.ID, user2.ID)
 
 	ctx := context.Background()
 	msg := &Message{Text: "test message"}

@@ -12,7 +12,7 @@ import (
 func TestClient_TranslateMessage(t *testing.T) {
 	c := initClient(t)
 	u := randomUser(t, c)
-	ch := initChannel(t, c, u)
+	ch := initChannel(t, c, u.ID)
 	ctx := context.Background()
 
 	msg := &Message{Text: "test message"}
@@ -30,7 +30,7 @@ func TestClient_SendMessage(t *testing.T) {
 
 	ctx := context.Background()
 
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 
 	ctx := context.Background()
 
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 
@@ -75,7 +75,7 @@ func TestClient_SendMessage_WithPendingFalse(t *testing.T) {
 
 	ctx := context.Background()
 
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 
@@ -99,7 +99,7 @@ func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {
 
 	ctx := context.Background()
 
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 
@@ -120,7 +120,7 @@ func TestClient_PinMessage(t *testing.T) {
 	userB := randomUser(t, c)
 	ctx := context.Background()
 
-	ch := initChannel(t, c, userA, userB)
+	ch := initChannel(t, c, userA.ID, userB.ID)
 	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, userA.ID, nil)
 	require.NoError(t, err)
 
@@ -174,7 +174,7 @@ func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
 
 	ctx := context.Background()
 
-	ch := initChannel(t, c, user)
+	ch := initChannel(t, c, user.ID)
 	resp, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
 	require.NoError(t, err)
 

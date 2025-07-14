@@ -13,7 +13,7 @@ func TestClient_QueryThreads(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("basic query", func(t *testing.T) {
-		members, ch, parentMsg, replyMsg := testThreadSetup(t, c, 3)
+		membersID, ch, parentMsg, replyMsg := testThreadSetup(t, c, 3)
 
 		limit := 10
 		query := &QueryThreadsRequest{
@@ -31,7 +31,7 @@ func TestClient_QueryThreads(t *testing.T) {
 			PagerRequest: PagerRequest{
 				Limit: &limit,
 			},
-			UserID: members[0].ID,
+			UserID: membersID[0],
 		}
 
 		resp, err := c.QueryThreads(ctx, query)
@@ -47,7 +47,7 @@ func TestClient_QueryThreads(t *testing.T) {
 	})
 
 	t.Run("with pagination", func(t *testing.T) {
-		members, ch, parentMsg1, replyMsg1 := testThreadSetup(t, c, 3)
+		membersID, ch, parentMsg1, replyMsg1 := testThreadSetup(t, c, 3)
 		limit := 1
 
 		// Create a second thread
@@ -76,7 +76,7 @@ func TestClient_QueryThreads(t *testing.T) {
 			PagerRequest: PagerRequest{
 				Limit: &limit,
 			},
-			UserID: members[0].ID,
+			UserID: membersID[0],
 		}
 
 		resp, err := c.QueryThreads(ctx, query)
@@ -105,7 +105,7 @@ func TestClient_QueryThreads(t *testing.T) {
 				Limit: &limit,
 				Next:  resp.Next,
 			},
-			UserID: members[0].ID,
+			UserID: membersID[0],
 		}
 
 		resp, err = c.QueryThreads(ctx, query2)
@@ -120,9 +120,9 @@ func TestClient_QueryThreads(t *testing.T) {
 }
 
 // testThreadSetup creates a channel with members and returns necessary test data
-func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]*User, *Channel, *MessageResponse, *MessageResponse) {
-	members := randomUsers(t, c, numMembers)
-	ch := initChannel(t, c, members...)
+func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]string, *Channel, *MessageResponse, *MessageResponse) {
+	membersID := randomUsersID(t, c, numMembers)
+	ch := initChannel(t, c, membersID...)
 
 	// Create a parent message
 	parentMsg, err := ch.SendMessage(context.Background(), &Message{Text: "Parent message for thread"}, ch.CreatedBy.ID)
@@ -135,7 +135,7 @@ func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]*User, *Channel
 	}, ch.CreatedBy.ID)
 	require.NoError(t, err, "send reply message")
 
-	return members, ch, parentMsg, replyMsg
+	return membersID, ch, parentMsg, replyMsg
 }
 
 // assertThreadData validates common thread data fields
