@@ -86,6 +86,11 @@ func TestClient_CreateChannel(t *testing.T) {
 			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
+		{"create channel with ChannelMembers", "messaging", "", userID,
+			&ChannelRequest{
+				ChannelMembers: NewChannelMembersFromStrings([]string{userID, randomUsersID(t, c, 1)[0]}),
+			}, nil, false,
+		},
 	}
 
 	for _, tt := range tests {
