@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.13.0](https://github.com/GetStream/stream-chat-go/compare/v7.12.0...v7.13.0) (2025-07-10)
+
+
+### Features
+
+* add SizeLimit support to FileUploadConfig ([#330](https://github.com/GetStream/stream-chat-go/issues/330)) ([5f4e213](https://github.com/GetStream/stream-chat-go/commit/5f4e213427d2eb6e0f79a1616b3f07dce1393200))
+
 ## [7.12.0](https://github.com/GetStream/stream-chat-go/compare/v7.11.0...v7.12.0) (2025-07-03)
 
 ## [7.11.0](https://github.com/GetStream/stream-chat-go/compare/v7.10.0...v7.11.0) (2025-06-17)
