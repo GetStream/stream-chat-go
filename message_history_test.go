@@ -14,7 +14,7 @@ func TestMessageHistory(t *testing.T) {
 	user1 := users[0]
 	user2 := users[1]
 
-	ch := initChannel(t, client, user1)
+	ch := initChannel(t, client, user1.ID)
 
 	ctx := context.Background()
 	initialText := "initial text"

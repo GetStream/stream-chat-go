@@ -155,7 +155,7 @@ type ChannelRequest struct {
 	AutoTranslationLanguage string                 `json:"auto_translation_language,omitempty"`
 	Frozen                  *bool                  `json:"frozen,omitempty"`
 	Disabled                *bool                  `json:"disabled,omitempty"`
-	Members                 []ChannelMember        `json:"members,omitempty"`
+	Members                 []string               `json:"members,omitempty"`
 	Invites                 []string               `json:"invites,omitempty"`
 	ExtraData               map[string]interface{} `json:"-"`
 }
@@ -374,7 +374,7 @@ func (ch *Channel) GetMessages(ctx context.Context, messageIDs []string) (*GetMe
 }
 
 type addMembersOptions struct {
-	Members []ChannelMember `json:"add_members"`
+	MemberIDs []string `json:"add_members"`
 
 	RolesAssignement []*RoleAssignment `json:"assign_roles"`
 	HideHistory      bool              `json:"hide_history"`
@@ -402,13 +402,13 @@ func AddMembersWithRolesAssignment(assignements []*RoleAssignment) func(*addMemb
 }
 
 // AddMembers adds members with given user IDs to the channel.
-func (ch *Channel) AddMembers(ctx context.Context, members []ChannelMember, options ...AddMembersOptions) (*Response, error) {
-	if len(members) == 0 {
+func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...AddMembersOptions) (*Response, error) {
+	if len(userIDs) == 0 {
 		return nil, errors.New("user IDs are empty")
 	}
 
 	opts := &addMembersOptions{
-		Members: members,
+		MemberIDs: userIDs,
 	}
 
 	for _, fn := range options {
@@ -810,8 +810,8 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 }
 
 // CreateChannelWithMembers creates new channel of given type and id or returns already created one.
-func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, members ...ChannelMember) (*CreateChannelResponse, error) {
-	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: members})
+func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...string) (*CreateChannelResponse, error) {
+	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
 }
 
 type SendFileRequest struct {
