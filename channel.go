@@ -827,14 +827,7 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 
 // CreateChannelWithMembers creates new channel of given type and id or returns already created one.
 func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...string) (*CreateChannelResponse, error) {
-	return c.CreateChannel(ctx, chanType, chanID, userID, NewChannelRequest(memberIDs))
-}
-
-// NewChannelRequest creates a new ChannelRequest with string members
-func NewChannelRequest(members []string) *ChannelRequest {
-	return &ChannelRequest{
-		ChannelMembers: NewChannelMembersFromStrings(members),
-	}
+	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
 }
 
 type SendFileRequest struct {
