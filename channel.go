@@ -42,6 +42,17 @@ type ChannelMember struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
+// NewChannelMembersFromStrings creates a ChannelMembers from a slice of strings
+func NewChannelMembersFromStrings(members []string) []*ChannelMember {
+	channelMembers := make([]*ChannelMember, len(members))
+	for i, m := range members {
+		channelMembers[i] = &ChannelMember{
+			UserID: m,
+		}
+	}
+	return channelMembers
+}
+
 type channelMemberForJSON ChannelMember
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -155,7 +166,8 @@ type ChannelRequest struct {
 	AutoTranslationLanguage string                 `json:"auto_translation_language,omitempty"`
 	Frozen                  *bool                  `json:"frozen,omitempty"`
 	Disabled                *bool                  `json:"disabled,omitempty"`
-	Members                 []string               `json:"members,omitempty"`
+	ChannelMembers          []*ChannelMember       `json:"members,omitempty"`
+	Members                 []string               `json:"-"`
 	Invites                 []string               `json:"invites,omitempty"`
 	ExtraData               map[string]interface{} `json:"-"`
 }
@@ -374,7 +386,8 @@ func (ch *Channel) GetMessages(ctx context.Context, messageIDs []string) (*GetMe
 }
 
 type addMembersOptions struct {
-	MemberIDs []string `json:"add_members"`
+	MemberIDs      []string         `json:"-"`
+	ChannelMembers []*ChannelMember `json:"add_members"`
 
 	RolesAssignement []*RoleAssignment `json:"assign_roles"`
 	HideHistory      bool              `json:"hide_history"`
@@ -408,7 +421,7 @@ func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...
 	}
 
 	opts := &addMembersOptions{
-		MemberIDs: userIDs,
+		ChannelMembers: NewChannelMembersFromStrings(userIDs),
 	}
 
 	for _, fn := range options {
@@ -770,7 +783,7 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 	switch {
 	case chanType == "":
 		return nil, errors.New("channel type is empty")
-	case chanID == "" && (data == nil || len(data.Members) == 0):
+	case chanID == "" && (data == nil || (len(data.Members) == 0 && len(data.ChannelMembers) == 0)):
 		return nil, errors.New("either channel ID or members must be provided")
 	case userID == "":
 		return nil, errors.New("user ID is empty")
@@ -792,6 +805,9 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 		data = &ChannelRequest{CreatedBy: &User{ID: userID}}
 	} else {
 		data.CreatedBy = &User{ID: userID}
+		if len(data.ChannelMembers) == 0 {
+			data.ChannelMembers = NewChannelMembersFromStrings(data.Members)
+		}
 	}
 
 	q := &QueryRequest{
@@ -811,7 +827,14 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 
 // CreateChannelWithMembers creates new channel of given type and id or returns already created one.
 func (c *Client) CreateChannelWithMembers(ctx context.Context, chanType, chanID, userID string, memberIDs ...string) (*CreateChannelResponse, error) {
-	return c.CreateChannel(ctx, chanType, chanID, userID, &ChannelRequest{Members: memberIDs})
+	return c.CreateChannel(ctx, chanType, chanID, userID, NewChannelRequest(memberIDs))
+}
+
+// NewChannelRequest creates a new ChannelRequest with string members
+func NewChannelRequest(members []string) *ChannelRequest {
+	return &ChannelRequest{
+		ChannelMembers: NewChannelMembersFromStrings(members),
+	}
 }
 
 type SendFileRequest struct {
