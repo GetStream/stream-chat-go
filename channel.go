@@ -414,7 +414,7 @@ func AddMembersWithRolesAssignment(assignements []*RoleAssignment) func(*addMemb
 	}
 }
 
-// AddMembers adds members with given user IDs to the channel.
+// AddMembers adds members with given user IDs to the channel. If you want to add members with ChannelMember objects, use AddChannelMembers instead.
 func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...AddMembersOptions) (*Response, error) {
 	if len(userIDs) == 0 {
 		return nil, errors.New("user IDs are empty")
@@ -422,6 +422,27 @@ func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...
 
 	opts := &addMembersOptions{
 		ChannelMembers: NewChannelMembersFromStrings(userIDs),
+	}
+
+	for _, fn := range options {
+		fn(opts)
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	return &resp, err
+}
+
+// AddChannelMembers adds members with given []*ChannelMember to the channel.
+func (ch *Channel) AddChannelMembers(ctx context.Context, members []*ChannelMember, options ...AddMembersOptions) (*Response, error) {
+	if len(members) == 0 {
+		return nil, errors.New("members are empty")
+	}
+
+	opts := &addMembersOptions{
+		ChannelMembers: members,
 	}
 
 	for _, fn := range options {
