@@ -160,13 +160,7 @@ func TestChannel_AddMembers(t *testing.T) {
 func TestChannel_AddChannelMembers(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
-	chanID := randomString(12)
 	AddChannelMemberUser := randomUser(t, c)
-	resp, err := c.CreateChannel(ctx, "messaging", chanID, AddChannelMemberUser.ID, nil)
-	require.NoError(t, err, "create channel")
-	ch := resp.Channel
-
-	assert.Empty(t, ch.Members, "members are empty")
 
 	channelModeratorID := randomUser(t, c).ID
 	channelAdminID := randomUser(t, c).ID
@@ -219,8 +213,14 @@ func TestChannel_AddChannelMembers(t *testing.T) {
 				userIDs[i] = member.UserID
 			}
 
+			chanID := randomString(12)
+			resp, err := c.CreateChannel(ctx, "messaging", chanID, AddChannelMemberUser.ID, nil)
+			require.NoError(t, err, "create channel")
+			ch := resp.Channel
+			assert.Empty(t, ch.Members, "members are empty")
+
 			// Add members
-			_, err := ch.AddChannelMembers(ctx, tt.members, tt.options...)
+			_, err = ch.AddChannelMembers(ctx, tt.members, tt.options...)
 			require.NoError(t, err, "add channel members")
 
 			// Refresh channel state
