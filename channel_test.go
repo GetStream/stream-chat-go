@@ -157,6 +157,99 @@ func TestChannel_AddMembers(t *testing.T) {
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
 }
 
+func TestChannel_AddChannelMembers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	chanID := randomString(12)
+	AddChannelMemberUser := randomUser(t, c)
+	resp, err := c.CreateChannel(ctx, "messaging", chanID, AddChannelMemberUser.ID, nil)
+	require.NoError(t, err, "create channel")
+	ch := resp.Channel
+
+	assert.Empty(t, ch.Members, "members are empty")
+
+	channelModeratorID := randomUser(t, c).ID
+	channelAdminID := randomUser(t, c).ID
+
+	tests := []struct {
+		name          string
+		members       []*ChannelMember
+		options       []AddMembersOptions
+		expectedCount int
+		expectedRoles map[string]string // userID -> expected role
+		expectedUsers []string          // expected user IDs
+	}{
+		{
+			name: "Add members with ID only",
+			members: []*ChannelMember{
+				{UserID: randomUser(t, c).ID},
+				{UserID: randomUser(t, c).ID},
+			},
+			options: []AddMembersOptions{
+				AddMembersWithMessage(&Message{Text: "adding members with ID only", User: AddChannelMemberUser}),
+				AddMembersWithHideHistory(),
+			},
+			expectedCount: 2,
+			expectedRoles: map[string]string{},
+			expectedUsers: []string{},
+		},
+		{
+			name: "Add members with ID and role",
+			members: []*ChannelMember{
+				{UserID: randomUser(t, c).ID, ChannelRole: "channel_moderator"},
+				{UserID: randomUser(t, c).ID, ChannelRole: "channel_member"},
+			},
+			options: []AddMembersOptions{
+				AddMembersWithMessage(&Message{Text: "adding members with roles", User: AddChannelMemberUser}),
+			},
+			expectedCount: 2,
+			expectedRoles: map[string]string{
+				channelModeratorID: "channel_moderator",
+				channelAdminID:     "channel_member",
+			},
+			expectedUsers: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Store user IDs for verification
+			userIDs := make([]string, len(tt.members))
+			for i, member := range tt.members {
+				userIDs[i] = member.UserID
+			}
+
+			// Add members
+			_, err := ch.AddChannelMembers(ctx, tt.members, tt.options...)
+			require.NoError(t, err, "add channel members")
+
+			// Refresh channel state
+			require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+			// Verify member count
+			assert.Len(t, ch.Members, tt.expectedCount, "member count should match")
+
+			// Verify each member
+			for i, userID := range userIDs {
+				found := false
+				for _, member := range ch.Members {
+					if member.User.ID == userID {
+						found = true
+
+						// Check role if expected
+						if tt.members[i].ChannelRole != "" {
+							assert.Equal(t, tt.members[i].ChannelRole, member.ChannelRole,
+								"user %s should have role %s", userID, tt.members[i].ChannelRole)
+						}
+						break
+					}
+				}
+				assert.True(t, found, "user %s should be found in members", userID)
+			}
+		})
+	}
+}
+
 func TestChannel_AssignRoles(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
