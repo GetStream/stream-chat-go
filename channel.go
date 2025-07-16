@@ -42,8 +42,8 @@ type ChannelMember struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
-// NewChannelMembersFromStrings creates a ChannelMembers from a slice of strings
-func NewChannelMembersFromStrings(members []string) []*ChannelMember {
+// newChannelMembersFromStrings creates a ChannelMembers from a slice of strings
+func newChannelMembersFromStrings(members []string) []*ChannelMember {
 	channelMembers := make([]*ChannelMember, len(members))
 	for i, m := range members {
 		channelMembers[i] = &ChannelMember{
@@ -421,7 +421,7 @@ func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...
 	}
 
 	opts := &addMembersOptions{
-		ChannelMembers: NewChannelMembersFromStrings(userIDs),
+		MemberIDs: userIDs,
 	}
 
 	for _, fn := range options {
@@ -827,7 +827,7 @@ func (c *Client) CreateChannel(ctx context.Context, chanType, chanID, userID str
 	} else {
 		data.CreatedBy = &User{ID: userID}
 		if len(data.ChannelMembers) == 0 {
-			data.ChannelMembers = NewChannelMembersFromStrings(data.Members)
+			data.ChannelMembers = newChannelMembersFromStrings(data.Members)
 		}
 	}
 
