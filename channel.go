@@ -421,7 +421,7 @@ func (ch *Channel) AddMembers(ctx context.Context, userIDs []string, options ...
 	}
 
 	opts := &addMembersOptions{
-		MemberIDs: userIDs,
+		ChannelMembers: newChannelMembersFromStrings(userIDs),
 	}
 
 	for _, fn := range options {
