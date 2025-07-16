@@ -88,7 +88,10 @@ func TestClient_CreateChannel(t *testing.T) {
 		},
 		{"create channel with ChannelMembers", "messaging", "", userID,
 			&ChannelRequest{
-				ChannelMembers: newChannelMembersFromStrings([]string{userID, randomUsersID(t, c, 1)[0]}),
+				ChannelMembers: []*ChannelMember{
+					{UserID: userID},
+					{UserID: randomUsersID(t, c, 1)[0]},
+				},
 			}, nil, false,
 		},
 	}
@@ -195,10 +198,6 @@ func TestChannel_AddChannelMembers(t *testing.T) {
 			},
 			options: []AddMembersOptions{
 				AddMembersWithMessage(&Message{Text: "adding members with roles", User: AddChannelMemberUser}),
-				AddMembersWithRolesAssignment([]*RoleAssignment{
-					{UserID: channelModeratorID, ChannelRole: "channel_moderator"},
-					{UserID: channelAdminID, ChannelRole: "channel_member"},
-				}),
 			},
 			expectedCount: 2,
 			expectedRoles: map[string]string{
