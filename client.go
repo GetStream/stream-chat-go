@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -203,7 +202,7 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 		return nil, errors.New("user is nil")
 	}
 
-	tmpfile, err := ioutil.TempFile("", opts.FileName)
+	tmpfile, err := os.CreateTemp("", opts.FileName)
 	if err != nil {
 		return nil, err
 	}
