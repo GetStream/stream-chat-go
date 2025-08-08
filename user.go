@@ -404,7 +404,8 @@ type deactivateUsersOptions struct {
 }
 
 // DeactivateUsers deactivates the users with the given target user IDs.
-func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, options ...DeactivateUserOptions) (*Response, error) {
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be checked with client.GetTask method.
+func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, options ...DeactivateUserOptions) (*AsyncTaskResponse, error) {
 	if len(targetIDs) == 0 {
 		return nil, errors.New("target IDs is empty")
 	}
@@ -418,7 +419,7 @@ func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, option
 
 	p := path.Join("users", "deactivate")
 
-	var resp Response
+	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
@@ -480,7 +481,8 @@ type reactivateUsersOptions struct {
 }
 
 // ReactivateUsers reactivates deactivated users with the given target user IDs.
-func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, options ...ReactivateUserOptions) (*Response, error) {
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be checked with client.GetTask method.
+func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, options ...ReactivateUserOptions) (*AsyncTaskResponse, error) {
 	if len(targetIDs) == 0 {
 		return nil, errors.New("target IDs is empty")
 	}
@@ -494,7 +496,7 @@ func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, option
 
 	p := path.Join("users", "reactivate")
 
-	var resp Response
+	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
