@@ -41,7 +41,7 @@ func TestClient_QueryThreads(t *testing.T) {
 
 		thread := resp.Threads[0]
 		assertThreadData(t, thread, ch, parentMsg, replyMsg)
-		assertThreadParticipants(t, thread, ch.CreatedBy.ID)
+		assertThreadParticipants(t, thread, membersID[0])
 
 		assert.Empty(t, resp.PagerResponse)
 	})
@@ -51,13 +51,13 @@ func TestClient_QueryThreads(t *testing.T) {
 		limit := 1
 
 		// Create a second thread
-		parentMsg2, err := ch.SendMessage(ctx, &Message{Text: "Parent message for thread 2"}, ch.CreatedBy.ID)
+		parentMsg2, err := ch.SendMessage(ctx, &Message{Text: "Parent message for thread 2"}, membersID[0])
 		require.NoError(t, err, "send second parent message")
 
 		replyMsg2, err := ch.SendMessage(ctx, &Message{
 			Text:     "Reply message 2",
 			ParentID: parentMsg2.Message.ID,
-		}, ch.CreatedBy.ID)
+		}, membersID[0])
 		require.NoError(t, err, "send second reply message")
 
 		// First page query
@@ -86,7 +86,7 @@ func TestClient_QueryThreads(t *testing.T) {
 
 		thread := resp.Threads[0]
 		assertThreadData(t, thread, ch, parentMsg1, replyMsg1)
-		assertThreadParticipants(t, thread, ch.CreatedBy.ID)
+		assertThreadParticipants(t, thread, membersID[0])
 
 		// Second page query
 		query2 := &QueryThreadsRequest{
@@ -115,7 +115,7 @@ func TestClient_QueryThreads(t *testing.T) {
 
 		thread = resp.Threads[0]
 		assertThreadData(t, thread, ch, parentMsg2, replyMsg2)
-		assertThreadParticipants(t, thread, ch.CreatedBy.ID)
+		assertThreadParticipants(t, thread, membersID[0])
 	})
 }
 
@@ -125,14 +125,14 @@ func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]string, *Channe
 	ch := initChannel(t, c, membersID...)
 
 	// Create a parent message
-	parentMsg, err := ch.SendMessage(context.Background(), &Message{Text: "Parent message for thread"}, ch.CreatedBy.ID)
+	parentMsg, err := ch.SendMessage(context.Background(), &Message{Text: "Parent message for thread"}, membersID[0])
 	require.NoError(t, err, "send parent message")
 
 	// Create a thread by sending a reply
 	replyMsg, err := ch.SendMessage(context.Background(), &Message{
 		Text:     "Reply message",
 		ParentID: parentMsg.Message.ID,
-	}, ch.CreatedBy.ID)
+	}, membersID[0])
 	require.NoError(t, err, "send reply message")
 
 	return membersID, ch, parentMsg, replyMsg
@@ -142,7 +142,7 @@ func testThreadSetup(t *testing.T, c *Client, numMembers int) ([]string, *Channe
 func assertThreadData(t *testing.T, thread ThreadResponse, ch *Channel, parentMsg, replyMsg *MessageResponse) {
 	assert.Equal(t, ch.CID, thread.ChannelCID, "channel CID should match")
 	assert.Equal(t, parentMsg.Message.ID, thread.ParentMessageID, "parent message ID should match")
-	assert.Equal(t, ch.CreatedBy.ID, thread.CreatedByUserID, "created by user ID should match")
+	assert.Equal(t, replyMsg.Message.User.ID, thread.CreatedByUserID, "created by user ID should match")
 	assert.Equal(t, 1, thread.ReplyCount, "reply count should be 1")
 	assert.Equal(t, 1, thread.ParticipantCount, "participant count should be 1")
 	assert.Equal(t, parentMsg.Message.Text, thread.Title, "title should not be empty")
