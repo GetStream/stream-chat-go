@@ -27,6 +27,7 @@ type ChannelConfig struct {
 	Uploads           bool `json:"uploads"`
 	URLEnrichment     bool `json:"url_enrichment"`
 	CustomEvents      bool `json:"custom_events"`
+	CountMessages     bool `json:"count_messages"`
 
 	// number of days to keep messages, must be MessageRetentionForever or numeric string
 	MessageRetention    string `json:"message_retention"`

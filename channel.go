@@ -91,6 +91,7 @@ type Channel struct {
 	MemberCount int              `json:"member_count"`
 	Members     []*ChannelMember `json:"members"`
 
+	MessageCount    *int           `json:"message_count"`
 	Messages        []*Message     `json:"messages"`
 	PinnedMessages  []*Message     `json:"pinned_messages"`
 	PendingMessages []*Message     `json:"pending_messages"`
