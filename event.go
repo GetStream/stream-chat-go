@@ -87,6 +87,7 @@ type Event struct {
 	UserID       string           `json:"user_id,omitempty"`
 	OwnUser      *User            `json:"me,omitempty"`
 	WatcherCount int              `json:"watcher_count,omitempty"`
+	DeletedForMe bool             `json:"deleted_for_me,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
 
