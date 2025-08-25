@@ -60,9 +60,10 @@ type Message struct {
 	MML  string            `json:"mml,omitempty"`
 	I18n map[string]string `json:"i18n,omitempty"`
 
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	CreatedAt    *time.Time `json:"created_at,omitempty"`
+	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
+	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
+	DeletedForMe bool       `json:"deleted_for_me,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
 
