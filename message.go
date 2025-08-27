@@ -413,25 +413,66 @@ func (c *Client) CommitMessage(ctx context.Context, msgID string) (*Response, er
 	return &resp, err
 }
 
+// DeleteMessageOptions contains options for deleting a message.
+type DeleteMessageOptions struct {
+	Hard        bool `json:"hard,omitempty"`
+	DeleteForMe bool `json:"delete_for_me,omitempty"`
+}
+
+// DeleteMessageOption is a function type for configuring delete message options.
+type DeleteMessageOption func(*DeleteMessageOptions)
+
+// DeleteMessageWithHard sets the hard delete option.
+func DeleteMessageWithHard() DeleteMessageOption {
+	return func(opts *DeleteMessageOptions) {
+		opts.Hard = true
+	}
+}
+
+// DeleteMessageWithDeleteForMe sets the delete_for_me option.
+func DeleteMessageWithDeleteForMe() DeleteMessageOption {
+	return func(opts *DeleteMessageOptions) {
+		opts.DeleteForMe = true
+	}
+}
+
 // DeleteMessage soft deletes the message with given msgID.
 func (c *Client) DeleteMessage(ctx context.Context, msgID string) (*Response, error) {
-	return c.deleteMessage(ctx, msgID, false)
+	return c.deleteMessage(ctx, msgID, "", false, false)
 }
 
 // HardDeleteMessage deletes the message with given msgID. This is permanent.
 func (c *Client) HardDeleteMessage(ctx context.Context, msgID string) (*Response, error) {
-	return c.deleteMessage(ctx, msgID, true)
+	return c.deleteMessage(ctx, msgID, "", true, false)
 }
 
-func (c *Client) deleteMessage(ctx context.Context, msgID string, hard bool) (*Response, error) {
+// DeleteMessageWithOptions deletes the message with given msgID using the provided options.
+// For delete_for_me functionality, userID must be provided to specify which user the message should be deleted for.
+func (c *Client) DeleteMessageWithOptions(ctx context.Context, msgID string, userID string, options ...DeleteMessageOption) (*Response, error) {
+	opts := &DeleteMessageOptions{}
+	for _, fn := range options {
+		fn(opts)
+	}
+	return c.deleteMessage(ctx, msgID, userID, opts.Hard, opts.DeleteForMe)
+}
+
+func (c *Client) deleteMessage(ctx context.Context, msgID string, userID string, hard bool, deleteForMe bool) (*Response, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID must be not empty")
 	}
+
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	params := map[string][]string{}
 	if hard {
 		params["hard"] = []string{"true"}
+	}
+	if deleteForMe {
+		if userID == "" {
+			return nil, errors.New("user ID must be not empty for delete_for_me functionality")
+		}
+		params["delete_for_me"] = []string{"true"}
+		params["deleted_by"] = []string{userID}
 	}
 
 	var resp Response
