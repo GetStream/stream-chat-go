@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.14.2](https://github.com/GetStream/stream-chat-go/compare/v7.14.1...v7.14.2) (2025-08-27)
+
+### [7.14.1](https://github.com/GetStream/stream-chat-go/compare/v7.14.0...v7.14.1) (2025-08-22)
+
+
+### Features
+
+* Add avg response time to app setting and user response ([#332](https://github.com/GetStream/stream-chat-go/issues/332)) ([452a078](https://github.com/GetStream/stream-chat-go/commit/452a0782bb9838cb9d48602e76d657f001a42160))
+* Return AsyncTaskResponse for DeactivateUsers and ReactivateUsers ([#339](https://github.com/GetStream/stream-chat-go/issues/339)) ([8e5dfe7](https://github.com/GetStream/stream-chat-go/commit/8e5dfe76b561d731935581bcfdaa3c999b2febe8))
+
 ## [7.14.0](https://github.com/GetStream/stream-chat-go/compare/v7.13.0...v7.14.0) (2025-07-16)
 
 ## [7.13.0](https://github.com/GetStream/stream-chat-go/compare/v7.12.0...v7.13.0) (2025-07-10)
