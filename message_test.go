@@ -246,3 +246,22 @@ func TestClient_PartialUpdateRestrictedVisibilityMessage(t *testing.T) {
 	require.NoError(t, err, "send message")
 	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
 }
+
+func TestClient_DeleteMessageWithOptions_DeleteForMe(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	// Send a message to delete
+	msg := &Message{Text: "test message to delete for me"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+
+	// Test delete for me only
+	_, err = c.DeleteMessageWithOptions(ctx, messageResp.Message.ID, user.ID, DeleteMessageWithDeleteForMe())
+	require.NoError(t, err)
+}
