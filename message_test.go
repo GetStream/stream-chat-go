@@ -271,14 +271,14 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	respMember, err := ch.SendMessage(ctx, msgMember, userMember.ID)
 	require.NoError(t, err, "send message member")
 	require.NotNil(t, respMember.Message.Member)
-	assert.Equal(t, "channel_member", respMember.Message.Member.ChannelMember.ChannelRole)
+	assert.Equal(t, "channel_member", respMember.Message.Member.ChannelRole)
 
 	// Send a message as the custom-role member
 	msgCustom := &Message{Text: "message from custom_role"}
 	respCustom, err := ch.SendMessage(ctx, msgCustom, userCustom.ID)
 	require.NoError(t, err, "send message custom role")
 	require.NotNil(t, respCustom.Message.Member)
-	assert.Equal(t, "custom_role", respCustom.Message.Member.ChannelMember.ChannelRole)
+	assert.Equal(t, "custom_role", respCustom.Message.Member.ChannelRole)
 
 	// Fetch channel state and verify both messages retain the correct channel_role
 	queryResp, err := c.QueryChannels(ctx, &QueryOption{
@@ -298,7 +298,7 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 			continue // skip system messages or others
 		}
 		require.NotNil(t, m.Member)
-		assert.Equal(t, expectedRole, m.Member.ChannelMember.ChannelRole,
+		assert.Equal(t, expectedRole, m.Member.ChannelRole,
 			"user %s should have role %s", m.User.ID, expectedRole)
 	}
 }

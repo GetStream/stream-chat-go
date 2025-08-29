@@ -67,8 +67,8 @@ type Message struct {
 
 	ExtraData map[string]interface{} `json:"-"`
 
-	SharedLocation *SharedLocation        `json:"shared_location,omitempty"`
-	Member         *ChannelMemberResponse `json:"member,omitempty"`
+	SharedLocation *SharedLocation `json:"shared_location,omitempty"`
+	Member         *ChannelMember  `json:"member,omitempty"`
 }
 
 type messageForJSON Message
