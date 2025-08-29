@@ -943,3 +943,52 @@ func ExampleChannel_Query() {
 	}
 	_, _ = channel.Query(ctx, q)
 }
+
+// TestChannel_MessageCount_DefaultEnabled verifies that message_count is returned and equals the
+// amount of messages sent when the CountMessages feature is enabled (default behaviour).
+func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+
+	// Send a single message to the channel
+	user := randomUser(t, c)
+	_, err := ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	require.NoError(t, err, "send message")
+
+	// Refresh the channel state to get the updated message_count field
+	require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+	// message_count should be present and equal to 1
+	require.NotNil(t, ch.MessageCount, "message_count should not be nil when CountMessages is enabled")
+	assert.Equal(t, 1, *ch.MessageCount)
+}
+
+// TestChannel_MessageCount_Disabled verifies that message_count is omitted when the
+// CountMessages feature is disabled via config_override.
+func TestChannel_MessageCount_Disabled(t *testing.T) {
+	c := initClient(t)
+	ch := initChannel(t, c)
+	ctx := context.Background()
+
+	// Disable the count_messages feature for this channel via partial update
+	_, err := ch.PartialUpdate(ctx, PartialUpdate{
+		Set: map[string]interface{}{
+			"config_overrides": map[string]interface{}{
+				"count_messages": false,
+			},
+		},
+	})
+	require.NoError(t, err, "disable count_messages via config_override")
+
+	// Send a single message to the channel
+	user := randomUser(t, c)
+	_, err = ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	require.NoError(t, err, "send message")
+
+	// Refresh the channel state to get the updated message_count field
+	require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+	// message_count should be nil when CountMessages is disabled
+	assert.Nil(t, ch.MessageCount, "message_count should be nil when CountMessages is disabled")
+}
