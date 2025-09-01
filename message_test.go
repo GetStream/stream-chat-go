@@ -262,6 +262,6 @@ func TestClient_DeleteMessageWithOptions_DeleteForMe(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test delete for me only
-	_, err = c.DeleteMessageWithOptions(ctx, messageResp.Message.ID, user.ID, DeleteMessageWithDeleteForMe())
+	_, err = c.DeleteMessageWithOptions(ctx, messageResp.Message.ID, DeleteMessageWithDeleteForMe(user.ID))
 	require.NoError(t, err)
 }
