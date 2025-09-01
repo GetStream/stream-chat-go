@@ -301,4 +301,22 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 		assert.Equal(t, expectedRole, m.Member.ChannelRole,
 			"user %s should have role %s", m.User.ID, expectedRole)
 	}
+
+func TestClient_DeleteMessageWithOptions_DeleteForMe(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	// Send a message to delete
+	msg := &Message{Text: "test message to delete for me"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+
+	// Test delete for me only
+	_, err = c.DeleteMessageWithOptions(ctx, messageResp.Message.ID, DeleteMessageWithDeleteForMe(user.ID))
+	require.NoError(t, err)
 }
