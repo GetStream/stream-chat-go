@@ -251,11 +251,9 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 
-	// Create two users: one default member and one with a custom channel role
 	userMember := randomUser(t, c)
 	userCustom := randomUser(t, c)
 
-	// Create a channel and assign the custom role to the second user
 	chanID := randomString(12)
 	chResp, err := c.CreateChannel(ctx, "messaging", chanID, userMember.ID, &ChannelRequest{
 		ChannelMembers: []*ChannelMember{
@@ -266,21 +264,18 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	require.NoError(t, err, "create channel")
 	ch := chResp.Channel
 
-	// Send a message as the default member
 	msgMember := &Message{Text: "message from channel_member"}
 	respMember, err := ch.SendMessage(ctx, msgMember, userMember.ID)
 	require.NoError(t, err, "send message member")
 	require.NotNil(t, respMember.Message.Member)
 	assert.Equal(t, "channel_member", respMember.Message.Member.ChannelRole)
 
-	// Send a message as the custom-role member
 	msgCustom := &Message{Text: "message from custom_role"}
 	respCustom, err := ch.SendMessage(ctx, msgCustom, userCustom.ID)
 	require.NoError(t, err, "send message custom role")
 	require.NotNil(t, respCustom.Message.Member)
 	assert.Equal(t, "custom_role", respCustom.Message.Member.ChannelRole)
 
-	// Fetch channel state and verify both messages retain the correct channel_role
 	queryResp, err := c.QueryChannels(ctx, &QueryOption{
 		Filter: map[string]interface{}{"cid": ch.CID},
 		UserID: userMember.ID,
