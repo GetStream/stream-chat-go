@@ -456,7 +456,7 @@ func (c *Client) DeleteMessageWithOptions(ctx context.Context, msgID string, use
 	return c.deleteMessage(ctx, msgID, userID, opts.Hard, opts.DeleteForMe)
 }
 
-func (c *Client) deleteMessage(ctx context.Context, msgID string, userID string, hard bool, deleteForMe bool) (*Response, error) {
+func (c *Client) deleteMessage(ctx context.Context, msgID string, userID string, hard, deleteForMe bool) (*Response, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID must be not empty")
 	}
