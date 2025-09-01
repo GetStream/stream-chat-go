@@ -296,6 +296,7 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 		assert.Equal(t, expectedRole, m.Member.ChannelRole,
 			"user %s should have role %s", m.User.ID, expectedRole)
 	}
+}
 
 func TestClient_DeleteMessageWithOptions_DeleteForMe(t *testing.T) {
 	c := initClient(t)
