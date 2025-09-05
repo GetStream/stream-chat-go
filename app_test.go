@@ -208,6 +208,13 @@ func TestClientUpdateEventHooks(t *testing.T) {
 			EventTypes: []string{"message.new"},
 			WebhookURL: "http://test-webhook-url",
 		},
+		{
+			HookType:   WebhookHook,
+			Enabled:    true,
+			EventTypes: []string{"message.new"},
+			WebhookURL: "http://test-webhook-chat-url",
+			Product:    ProductChat,
+		},
 	}
 
 	settings := NewAppSettings().SetEventHooks(eventHooks)
