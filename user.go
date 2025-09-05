@@ -32,6 +32,7 @@ type ChannelMute struct {
 type PrivacySettings struct {
 	TypingIndicators *TypingIndicators `json:"typing_indicators,omitempty"`
 	ReadReceipts     *ReadReceipts     `json:"read_receipts,omitempty"`
+	DeliveryReceipts *DeliveryReceipts `json:"delivery_receipts,omitempty"`
 }
 
 type TypingIndicators struct {
@@ -39,6 +40,10 @@ type TypingIndicators struct {
 }
 
 type ReadReceipts struct {
+	Enabled bool `json:"enabled"`
+}
+
+type DeliveryReceipts struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -64,7 +69,7 @@ type User struct {
 	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
 	ExtraData                map[string]interface{} `json:"-"`
 	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
-	AvgResponseTime          *int               	`json:"avg_response_time,omitempty"`
+	AvgResponseTime          *int                   `json:"avg_response_time,omitempty"`
 }
 
 type userForJSON User
