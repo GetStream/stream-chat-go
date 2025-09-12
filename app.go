@@ -206,6 +206,7 @@ type Policy struct {
 
 type HookType string
 type CallbackMode string
+type Product string
 
 const (
 	WebhookHook    HookType = "webhook"
@@ -216,6 +217,12 @@ const (
 	CallbackModeNone  CallbackMode = "CALLBACK_MODE_NONE"
 	CallbackModeREST  CallbackMode = "CALLBACK_MODE_REST"
 	CallbackModeTwirp CallbackMode = "CALLBACK_MODE_TWIRP"
+
+	ProductAll        Product = "all"
+	ProductChat       Product = "chat"
+	ProductVideo      Product = "video"
+	ProductModeration Product = "moderation"
+	ProductFeeds      Product = "feeds"
 )
 
 type Callback struct {
@@ -227,6 +234,7 @@ type EventHook struct {
 	HookType    HookType `json:"hook_type"`
 	Enabled     bool     `json:"enabled"`
 	EventTypes  []string `json:"event_types"`
+	Product     Product  `json:"product,omitempty"`
 	WebhookURL  string   `json:"webhook_url,omitempty"`
 	SQSQueueURL string   `json:"sqs_queue_url,omitempty"`
 	SQSRegion   string   `json:"sqs_region,omitempty"`
