@@ -23,17 +23,18 @@ func TestChannel_MarkDelivered(t *testing.T) {
 
 	t.Run("successful mark delivered with full options", func(t *testing.T) {
 		userID := membersID[0]
-		clientID := "test-client-123"
-		connectionID := "test-connection-456"
 
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{ch.cid(): msg.Message.ID},
-			UserID:                  userID,
-			ClientID:                &clientID,
-			ConnectionID:            &connectionID,
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: ch.cid(),
+					MessageID:  msg.Message.ID,
+				},
+			},
+			UserID: userID,
 		}
 
-		resp, err := ch.MarkDelivered(ctx, options)
+		resp, err := c.MarkDelivered(ctx, options)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 	})
@@ -42,11 +43,16 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		userID := membersID[1]
 
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{ch.cid(): msg.Message.ID},
-			UserID:                  userID,
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: ch.cid(),
+					MessageID:  msg.Message.ID,
+				},
+			},
+			UserID: userID,
 		}
 
-		resp, err := ch.MarkDelivered(ctx, options)
+		resp, err := c.MarkDelivered(ctx, options)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 	})
@@ -55,17 +61,22 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		user := &User{ID: membersID[0]}
 
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{ch.cid(): msg.Message.ID},
-			User:                    user,
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: ch.cid(),
+					MessageID:  msg.Message.ID,
+				},
+			},
+			User: user,
 		}
 
-		resp, err := ch.MarkDelivered(ctx, options)
+		resp, err := c.MarkDelivered(ctx, options)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 	})
 
 	t.Run("error when options is nil", func(t *testing.T) {
-		resp, err := ch.MarkDelivered(ctx, nil)
+		resp, err := c.MarkDelivered(ctx, nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "options must not be nil")
@@ -75,11 +86,11 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		userID := membersID[0]
 
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{},
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{},
 			UserID:                  userID,
 		}
 
-		resp, err := ch.MarkDelivered(ctx, options)
+		resp, err := c.MarkDelivered(ctx, options)
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "channel_delivered_message must not be empty")
@@ -94,14 +105,20 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		userID := membersID[0]
 
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{
-				ch.cid():  msg.Message.ID,
-				ch2.cid(): msg2.Message.ID,
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: ch.cid(),
+					MessageID:  msg.Message.ID,
+				},
+				{
+					ChannelCID: ch2.cid(),
+					MessageID:  msg2.Message.ID,
+				},
 			},
 			UserID: userID,
 		}
 
-		resp, err := ch.MarkDelivered(ctx, options)
+		resp, err := c.MarkDelivered(ctx, options)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 	})
@@ -123,13 +140,13 @@ func TestChannel_MarkDeliveredSimple(t *testing.T) {
 		userID := membersID[0]
 		messageID := msg.Message.ID
 
-		resp, err := ch.MarkDeliveredSimple(ctx, userID, messageID)
+		resp, err := c.MarkDeliveredSimple(ctx, userID, messageID, ch.cid())
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 	})
 
 	t.Run("error when userID is empty", func(t *testing.T) {
-		resp, err := ch.MarkDeliveredSimple(ctx, "", msg.Message.ID)
+		resp, err := c.MarkDeliveredSimple(ctx, "", msg.Message.ID, ch.cid())
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "user ID must not be empty")
@@ -138,14 +155,14 @@ func TestChannel_MarkDeliveredSimple(t *testing.T) {
 	t.Run("error when messageID is empty", func(t *testing.T) {
 		userID := membersID[0]
 
-		resp, err := ch.MarkDeliveredSimple(ctx, userID, "")
+		resp, err := c.MarkDeliveredSimple(ctx, userID, "", ch.cid())
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "message ID must not be empty")
 	})
 
 	t.Run("error when both userID and messageID are empty", func(t *testing.T) {
-		resp, err := ch.MarkDeliveredSimple(ctx, "", "")
+		resp, err := c.MarkDeliveredSimple(ctx, "", "", ch.cid())
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "user ID must not be empty")
@@ -169,28 +186,31 @@ func TestChannel_MarkDelivered_Integration(t *testing.T) {
 
 	t.Run("mark different messages as delivered for different users", func(t *testing.T) {
 		// Mark message 1 as delivered for user 1
-		resp1, err := ch.MarkDeliveredSimple(ctx, membersID[0], msg1.Message.ID)
+		resp1, err := c.MarkDeliveredSimple(ctx, membersID[0], msg1.Message.ID, ch.cid())
 		require.NoError(t, err)
 		require.NotNil(t, resp1)
 
 		// Mark message 2 as delivered for user 2
-		resp2, err := ch.MarkDeliveredSimple(ctx, membersID[1], msg2.Message.ID)
+		resp2, err := c.MarkDeliveredSimple(ctx, membersID[1], msg2.Message.ID, ch.cid())
 		require.NoError(t, err)
 		require.NotNil(t, resp2)
 
 		// Mark both messages as delivered for user 3
 		options := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{
-				ch.cid(): msg1.Message.ID,
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: ch.cid(),
+					MessageID:  msg1.Message.ID,
+				},
 			},
 			UserID: membersID[2],
 		}
-		resp3, err := ch.MarkDelivered(ctx, options)
+		resp3, err := c.MarkDelivered(ctx, options)
 		require.NoError(t, err)
 		require.NotNil(t, resp3)
 
 		// Mark message 2 as delivered for user 3 as well
-		resp4, err := ch.MarkDeliveredSimple(ctx, membersID[2], msg2.Message.ID)
+		resp4, err := c.MarkDeliveredSimple(ctx, membersID[2], msg2.Message.ID, ch.cid())
 		require.NoError(t, err)
 		require.NotNil(t, resp4)
 	})
@@ -199,19 +219,21 @@ func TestChannel_MarkDelivered_Integration(t *testing.T) {
 func TestMarkDeliveredOptions_JSON(t *testing.T) {
 	t.Run("marshal and unmarshal MarkDeliveredOptions", func(t *testing.T) {
 		userID := "test-user-123"
-		clientID := "test-client-456"
-		connectionID := "test-connection-789"
 		user := &User{ID: userID, Name: "Test User"}
 
 		original := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{
-				"messaging:general": "msg-123",
-				"messaging:private": "msg-456",
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: "messaging:general",
+					MessageID:  "msg-123",
+				},
+				{
+					ChannelCID: "messaging:private",
+					MessageID:  "msg-456",
+				},
 			},
-			ClientID:     &clientID,
-			ConnectionID: &connectionID,
-			User:         user,
-			UserID:       userID,
+			User:   user,
+			UserID: userID,
 		}
 
 		// Marshal to JSON
@@ -224,9 +246,7 @@ func TestMarkDeliveredOptions_JSON(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the data
-		require.Equal(t, original.ChannelDeliveredMessage, unmarshaled.ChannelDeliveredMessage)
-		require.Equal(t, *original.ClientID, *unmarshaled.ClientID)
-		require.Equal(t, *original.ConnectionID, *unmarshaled.ConnectionID)
+		require.Equal(t, original.LatestDeliveredMessages, unmarshaled.LatestDeliveredMessages)
 		require.Equal(t, original.UserID, unmarshaled.UserID)
 		require.Equal(t, original.User.ID, unmarshaled.User.ID)
 		require.Equal(t, original.User.Name, unmarshaled.User.Name)
@@ -236,8 +256,11 @@ func TestMarkDeliveredOptions_JSON(t *testing.T) {
 		userID := "test-user-123"
 
 		original := &MarkDeliveredOptions{
-			ChannelDeliveredMessage: map[string]string{
-				"messaging:general": "msg-123",
+			LatestDeliveredMessages: []DeliveredMessageConfirmation{
+				{
+					ChannelCID: "messaging:general",
+					MessageID:  "msg-123",
+				},
 			},
 			UserID: userID,
 		}
@@ -252,10 +275,8 @@ func TestMarkDeliveredOptions_JSON(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the data
-		require.Equal(t, original.ChannelDeliveredMessage, unmarshaled.ChannelDeliveredMessage)
+		require.Equal(t, original.LatestDeliveredMessages, unmarshaled.LatestDeliveredMessages)
 		require.Equal(t, original.UserID, unmarshaled.UserID)
-		require.Nil(t, unmarshaled.ClientID)
-		require.Nil(t, unmarshaled.ConnectionID)
 		require.Nil(t, unmarshaled.User)
 	})
 }
