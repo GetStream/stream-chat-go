@@ -57,6 +57,36 @@ type AppSettings struct {
 	UserResponseTimeEnabled   *bool                         `json:"user_response_time_enabled,omitempty"`
 }
 
+type EnforceUniqueUsernames int64
+
+const (
+	No EnforceUniqueUsernames = iota
+	App
+	Team
+)
+
+// check allowed values for enforce_unique_usernames here
+// https://getstream.io/chat/docs/rest/#settings-updateapp
+func (s EnforceUniqueUsernames) String() *string {
+	var result string
+	switch s {
+	case No:
+		result = "no"
+	case App:
+		result = "app"
+	case Team:
+		result = "team"
+	default:
+		result = "app"
+	}
+	return &result
+}
+
+func (a *AppSettings) SetEnforceUniqueUsernames(e EnforceUniqueUsernames) *AppSettings {
+	a.EnforceUniqueUsernames = e.String()
+	return a
+}
+
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
 	a.DisableAuth = &b
 	return a
