@@ -499,10 +499,10 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 
 func TestChannel_SendRestrictedVisibilityMessage(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
+	user := randomUser(t, c)
+	ch := initChannel(t, c, user.ID)
 	ctx := context.Background()
 	adminUser := randomUserWithRole(t, c, "admin")
-	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		RestrictedVisibility: []string{
