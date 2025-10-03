@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -252,4 +253,68 @@ func (c *Client) sendFile(ctx context.Context, link string, opts SendFileRequest
 	}
 
 	return &resp, err
+}
+
+type DeliveredMessageConfirmation struct {
+	ChannelCID string `json:"cid"`
+	MessageID  string `json:"id"`
+}
+
+// MarkDeliveredOptions represents the options for marking messages as delivered.
+type MarkDeliveredOptions struct {
+	LatestDeliveredMessages []DeliveredMessageConfirmation `json:"latest_delivered_messages"`
+	User                    *User                          `json:"user,omitempty"`
+	UserID                  string                         `json:"user_id,omitempty"`
+}
+
+// MarkDelivered sends the mark delivered event for this user, only works if the `delivery_receipts` setting is enabled.
+// Note: Unlike the JavaScript SDK, this method doesn't automatically check delivery receipts settings
+// as the Go SDK doesn't maintain user state. You should check this manually if needed.
+func (c *Client) MarkDelivered(ctx context.Context, options *MarkDeliveredOptions) (*Response, error) {
+	if options == nil {
+		return nil, errors.New("options must not be nil")
+	}
+
+	if len(options.LatestDeliveredMessages) == 0 {
+		return nil, errors.New("latest_delivered_messages must not be empty")
+	}
+
+	params := url.Values{}
+	if options.User == nil && options.UserID == "" {
+		return nil, errors.New("either user or user_id must be provided")
+	}
+	if options.User == nil {
+		params.Set("user_id", options.UserID)
+	} else {
+		params.Set("user_id", options.User.ID)
+	}
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, "channels/delivered", params, options, &resp)
+	return &resp, err
+}
+
+// MarkDeliveredSimple is a convenience method to mark a message as delivered for a specific user.
+func (c *Client) MarkDeliveredSimple(ctx context.Context, userID, messageID, channelCID string) (*Response, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must not be empty")
+	}
+	if messageID == "" {
+		return nil, errors.New("message ID must not be empty")
+	}
+	if channelCID == "" {
+		return nil, errors.New("channel CID must not be empty")
+	}
+
+	options := &MarkDeliveredOptions{
+		LatestDeliveredMessages: []DeliveredMessageConfirmation{
+			{
+				ChannelCID: channelCID,
+				MessageID:  messageID,
+			},
+		},
+		UserID: userID,
+	}
+
+	return c.MarkDelivered(ctx, options)
 }

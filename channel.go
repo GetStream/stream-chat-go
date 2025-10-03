@@ -13,9 +13,11 @@ import (
 )
 
 type ChannelRead struct {
-	User           *User     `json:"user"`
-	LastRead       time.Time `json:"last_read"`
-	UnreadMessages int       `json:"unread_messages"`
+	User                   *User      `json:"user"`
+	LastRead               time.Time  `json:"last_read"`
+	UnreadMessages         int        `json:"unread_messages"`
+	LastDeliveredAt        *time.Time `json:"last_delivered_at,omitempty"`
+	LastDeliveredMessageID *string    `json:"last_delivered_message_id,omitempty"`
 }
 
 type ChannelMember struct {
