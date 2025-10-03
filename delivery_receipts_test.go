@@ -82,7 +82,7 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		require.Contains(t, err.Error(), "options must not be nil")
 	})
 
-	t.Run("error when channel_delivered_message is empty", func(t *testing.T) {
+	t.Run("error when latest_delivered_messages is empty", func(t *testing.T) {
 		userID := membersID[0]
 
 		options := &MarkDeliveredOptions{
@@ -93,7 +93,7 @@ func TestChannel_MarkDelivered(t *testing.T) {
 		resp, err := c.MarkDelivered(ctx, options)
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "channel_delivered_message must not be empty")
+		require.Contains(t, err.Error(), "latest_delivered_messages must not be empty")
 	})
 
 	t.Run("mark delivered for multiple channels", func(t *testing.T) {
