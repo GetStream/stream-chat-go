@@ -5,7 +5,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -99,63 +98,6 @@ func TestClient_GetAppSettingsWithFileUploadConfig(t *testing.T) {
 	require.Equal(t, sizeLimit, *resp.App.FileUploadConfig.SizeLimit)
 }
 
-func TestClient_CheckAsyncModeConfig(t *testing.T) {
-	c := initClient(t)
-	ctx := context.Background()
-
-	settings := NewAppSettings().
-		SetAsyncModerationConfig(
-			AsyncModerationConfiguration{
-				Callback: &AsyncModerationCallback{
-					Mode:      "CALLBACK_MODE_REST",
-					ServerURL: "https://example.com/gosdk",
-				},
-				Timeout: 10000,
-			},
-		)
-
-	_, err := c.UpdateAppSettings(ctx, settings)
-	require.NoError(t, err)
-}
-
-func TestClient_UpdateAppSettingsClearing(t *testing.T) {
-	c := initClient(t)
-	ctx := context.Background()
-
-	sqsURL := "https://example.com"
-	sqsKey := "some key"
-	sqsSecret := "some secret"
-
-	settings := NewAppSettings()
-	settings.SqsURL = &sqsURL
-	settings.SqsKey = &sqsKey
-	settings.SqsSecret = &sqsSecret
-
-	_, err := c.UpdateAppSettings(ctx, settings)
-	if err != nil {
-		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
-		return
-	}
-	require.NoError(t, err)
-
-	sqsURL = ""
-	settings.SqsURL = &sqsURL
-	_, err = c.UpdateAppSettings(ctx, settings)
-	if err != nil {
-		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
-		return
-	}
-	require.NoError(t, err)
-
-	s, err := c.GetAppSettings(ctx)
-	if err != nil {
-		assert.Equal(t, err.Error(), `UpdateApp failed with error: "Cannot set webhook URL, webhook events, SQS URL, SQS key, SQS secret, SNS topic ARN, SNS key, SNS secret, or async moderation config in new hook v2 system. Use the event_hooks field to configure webhooks."`)
-		return
-	}
-	require.NoError(t, err)
-	require.Equal(t, *settings.SqsURL, *s.App.SqsURL)
-}
-
 func TestClient_CheckSqs(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -201,29 +143,108 @@ func TestClientUpdateEventHooks(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 
-	eventHooks := []EventHook{
-		{
-			HookType:   WebhookHook,
-			Enabled:    true,
-			EventTypes: []string{"message.new"},
-			WebhookURL: "http://test-webhook-url",
-		},
-		{
-			HookType:   WebhookHook,
-			Enabled:    true,
-			EventTypes: []string{"message.new"},
-			WebhookURL: "http://test-webhook-chat-url",
-			Product:    ProductChat,
-		},
-	}
+	t.Run("webhook event hooks", func(t *testing.T) {
+		eventHooks := []EventHook{
+			{
+				HookType:   WebhookHook,
+				Enabled:    true,
+				EventTypes: []string{"message.new"},
+				WebhookURL: "http://google.com",
+			},
+			{
+				HookType:   WebhookHook,
+				Enabled:    true,
+				EventTypes: []string{"message.new"},
+				WebhookURL: "http://google.nl",
+				Product:    ProductChat,
+			},
+		}
 
-	settings := NewAppSettings().SetEventHooks(eventHooks)
-	_, err := c.UpdateAppSettings(ctx, settings)
-	if err != nil {
-		assert.Equal(t, err.Error(), `UpdateApp failed with error: "cannot set event hooks in hook v1 system"`)
-		return
-	}
-	require.NoError(t, err)
+		settings := NewAppSettings().SetEventHooks(eventHooks)
+		_, err := c.UpdateAppSettings(ctx, settings)
+		require.NoError(t, err)
+	})
+
+	t.Run("pending message async moderation config", func(t *testing.T) {
+		eventHooks := []EventHook{
+			{
+				HookType:   PendingMessage,
+				Enabled:    true,
+				EventTypes: []string{"*"},
+				TimeoutMs:  10000,
+				Callback: &Callback{
+					Mode: CallbackModeREST,
+				},
+			},
+		}
+
+		settings := NewAppSettings().SetEventHooks(eventHooks)
+		_, err := c.UpdateAppSettings(ctx, settings)
+		require.NoError(t, err)
+	})
+
+	t.Run("SQS event hooks", func(t *testing.T) {
+		eventHooks := []EventHook{
+			{
+				HookType:    SQSHook,
+				Enabled:     true,
+				EventTypes:  []string{"message.new"},
+				SQSQueueURL: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+				SQSRegion:   "us-east-1",
+				SQSAuthType: "iam",
+				SQSKey:      "some key",
+				SQSSecret:   "some secret",
+			},
+		}
+
+		settings := NewAppSettings().SetEventHooks(eventHooks)
+		_, err := c.UpdateAppSettings(ctx, settings)
+		require.NoError(t, err)
+	})
+
+	t.Run("SNS event hooks", func(t *testing.T) {
+		eventHooks := []EventHook{
+			{
+				HookType:    SNSHook,
+				Enabled:     true,
+				EventTypes:  []string{"message.new"},
+				SNSTopicARN: "arn:aws:sns:us-east-1:123456789012:my-topic",
+				SNSRegion:   "us-east-1",
+				SNSAuthType: "iam",
+				SNSKey:      "some key",
+				SNSSecret:   "some secret",
+			},
+		}
+
+		settings := NewAppSettings().SetEventHooks(eventHooks)
+		_, err := c.UpdateAppSettings(ctx, settings)
+		require.NoError(t, err)
+	})
+
+	t.Run("clear event hooks", func(t *testing.T) {
+		// First set some event hooks
+		eventHooks := []EventHook{
+			{
+				HookType:   WebhookHook,
+				Enabled:    true,
+				EventTypes: []string{"message.new"},
+				WebhookURL: "http://example.com",
+			},
+		}
+		settings := NewAppSettings().SetEventHooks(eventHooks)
+		_, err := c.UpdateAppSettings(ctx, settings)
+		require.NoError(t, err)
+
+		// Now clear them with empty array
+		emptySettings := NewAppSettings().SetEventHooks([]EventHook{})
+		_, err = c.UpdateAppSettings(ctx, emptySettings)
+		require.NoError(t, err)
+
+		// Verify they are cleared
+		s, err := c.GetAppSettings(ctx)
+		require.NoError(t, err)
+		require.Empty(t, s.App.EventHooks)
+	})
 }
 
 // See https://getstream.io/chat/docs/app_settings_auth/ for
