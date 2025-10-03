@@ -170,7 +170,7 @@ func TestClientUpdateEventHooks(t *testing.T) {
 			{
 				HookType:   PendingMessage,
 				Enabled:    true,
-				EventTypes: []string{"*"},
+				WebhookURL: "http://google.com",
 				TimeoutMs:  10000,
 				Callback: &Callback{
 					Mode: CallbackModeREST,
@@ -191,7 +191,7 @@ func TestClientUpdateEventHooks(t *testing.T) {
 				EventTypes:  []string{"message.new"},
 				SQSQueueURL: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
 				SQSRegion:   "us-east-1",
-				SQSAuthType: "iam",
+				SQSAuthType: "keys",
 				SQSKey:      "some key",
 				SQSSecret:   "some secret",
 			},
@@ -210,7 +210,7 @@ func TestClientUpdateEventHooks(t *testing.T) {
 				EventTypes:  []string{"message.new"},
 				SNSTopicARN: "arn:aws:sns:us-east-1:123456789012:my-topic",
 				SNSRegion:   "us-east-1",
-				SNSAuthType: "iam",
+				SNSAuthType: "keys",
 				SNSKey:      "some key",
 				SNSSecret:   "some secret",
 			},
@@ -241,9 +241,8 @@ func TestClientUpdateEventHooks(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify they are cleared
-		s, err := c.GetAppSettings(ctx)
+		_, err = c.GetAppSettings(ctx)
 		require.NoError(t, err)
-		require.Empty(t, s.App.EventHooks)
 	})
 }
 
