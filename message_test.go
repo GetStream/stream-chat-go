@@ -195,11 +195,11 @@ func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
 
 func TestClient_UpdateRestrictedVisibilityMessage(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
-	ctx := context.Background()
 	adminUser := randomUserWithRole(t, c, "admin")
 	user1 := randomUser(t, c)
 	user2 := randomUser(t, c)
+	ch := initChannel(t, c, adminUser.ID, user1.ID, user2.ID)
+	ctx := context.Background()
 	msg := &Message{
 		Text: "test message",
 		RestrictedVisibility: []string{
@@ -220,11 +220,11 @@ func TestClient_UpdateRestrictedVisibilityMessage(t *testing.T) {
 
 func TestClient_PartialUpdateRestrictedVisibilityMessage(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
-	ctx := context.Background()
 	adminUser := randomUserWithRole(t, c, "admin")
 	user1 := randomUser(t, c)
 	user2 := randomUser(t, c)
+	ch := initChannel(t, c, adminUser.ID, user1.ID, user2.ID)
+	ctx := context.Background()
 	msg := &Message{
 		Text: "test message",
 		RestrictedVisibility: []string{
