@@ -949,16 +949,11 @@ func ExampleChannel_Query() {
 func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
-
-	_, err := c.UpdateChannelType(ctx, "team", map[string]interface{}{"count_messages": true})
-	require.NoError(t, err)
-
-	time.Sleep(500 * time.Millisecond)
-	ch := initChannel(t, c)
+	ch := initChannelWithType(t, c, "message_counting")
 
 	// Send a single message to the channel
 	user := randomUser(t, c)
-	_, err = ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	_, err := ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
 	require.NoError(t, err, "send message")
 
 	// Refresh the channel state to get the updated message_count field
@@ -967,10 +962,6 @@ func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	// message_count should be present and equal to 1
 	require.NotNil(t, ch.MessageCount, "message_count should not be nil when CountMessages is enabled")
 	assert.Equal(t, 1, *ch.MessageCount)
-
-	// Clean up: reset the CountMessages feature to false
-	_, err = c.UpdateChannelType(ctx, "team", map[string]interface{}{"count_messages": false})
-	require.NoError(t, err)
 }
 
 // TestChannel_MessageCount_Disabled verifies that message_count is omitted when the
