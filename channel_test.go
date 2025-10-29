@@ -948,12 +948,16 @@ func ExampleChannel_Query() {
 // amount of messages sent when the CountMessages feature is enabled (default behaviour).
 func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
 	ctx := context.Background()
+
+	_, err := c.UpdateChannelType(ctx, "team", map[string]interface{}{"count_messages": true})
+	require.NoError(t, err)
+
+	ch := initChannel(t, c)
 
 	// Send a single message to the channel
 	user := randomUser(t, c)
-	_, err := ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	_, err = ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
 	require.NoError(t, err, "send message")
 
 	// Refresh the channel state to get the updated message_count field
