@@ -967,6 +967,10 @@ func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	// message_count should be present and equal to 1
 	require.NotNil(t, ch.MessageCount, "message_count should not be nil when CountMessages is enabled")
 	assert.Equal(t, 1, *ch.MessageCount)
+
+	// Clean up: reset the CountMessages feature to false
+	_, err = c.UpdateChannelType(ctx, "team", map[string]interface{}{"count_messages": false})
+	require.NoError(t, err)
 }
 
 // TestChannel_MessageCount_Disabled verifies that message_count is omitted when the
