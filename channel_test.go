@@ -953,6 +953,7 @@ func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	_, err := c.UpdateChannelType(ctx, "team", map[string]interface{}{"count_messages": true})
 	require.NoError(t, err)
 
+	time.Sleep(1 * time.Second) // wait for the setting to propagate
 	ch := initChannel(t, c)
 
 	// Send a single message to the channel
