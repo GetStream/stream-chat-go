@@ -949,6 +949,7 @@ func ExampleChannel_Query() {
 func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
+	// team channel type has CountMessages enabled by default
 	ch := initChannel(t, c)
 
 	// Send a single message to the channel
