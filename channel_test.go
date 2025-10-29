@@ -948,8 +948,9 @@ func ExampleChannel_Query() {
 // amount of messages sent when the CountMessages feature is enabled (default behaviour).
 func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
 	ctx := context.Background()
+	// team channel type has CountMessages enabled by default
+	ch := initChannel(t, c)
 
 	// Send a single message to the channel
 	user := randomUser(t, c)
@@ -968,7 +969,7 @@ func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
 // CountMessages feature is disabled via config_override.
 func TestChannel_MessageCount_Disabled(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
+	ch := initChannelWithType(t, c, "messaging")
 	ctx := context.Background()
 
 	// Disable the count_messages feature for this channel via partial update
