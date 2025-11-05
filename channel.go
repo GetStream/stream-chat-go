@@ -392,9 +392,10 @@ type addMembersOptions struct {
 	MemberIDs      []string         `json:"-"`
 	ChannelMembers []*ChannelMember `json:"add_members"`
 
-	RolesAssignement []*RoleAssignment `json:"assign_roles"`
-	HideHistory      bool              `json:"hide_history"`
-	Message          *Message          `json:"message,omitempty"`
+	RolesAssignement  []*RoleAssignment `json:"assign_roles"`
+	HideHistory       bool              `json:"hide_history"`
+	HideHistoryBefore *time.Time        `json:"hide_history_before"`
+	Message           *Message          `json:"message,omitempty"`
 }
 
 type AddMembersOptions func(*addMembersOptions)
@@ -408,6 +409,12 @@ func AddMembersWithMessage(message *Message) func(*addMembersOptions) {
 func AddMembersWithHideHistory() func(*addMembersOptions) {
 	return func(opt *addMembersOptions) {
 		opt.HideHistory = true
+	}
+}
+
+func AddMembersWithHideHistoryBefore(before time.Time) func(*addMembersOptions) {
+	return func(opt *addMembersOptions) {
+		opt.HideHistoryBefore = &before
 	}
 }
 
