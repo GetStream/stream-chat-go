@@ -30,14 +30,14 @@ func TestChannel_AddFilterTags(t *testing.T) {
 		// read body
 		var body map[string]interface{}
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
-		assert.Equal(t, tags, body["add_filter_tags"])
+		assert.Equal(t, tags, toStringSlice(body["add_filter_tags"]))
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"duration":"0.01"}`))
 	}))
 	defer srv.Close()
 
 	// redirect client's baseURL to mock server
-	ch.client.BaseURL = srv.URL + "/"
+	ch.client.BaseURL = srv.URL
 
 	_, err = ch.AddFilterTags(ctx, tags, nil)
 	require.NoError(t, err)
@@ -60,14 +60,31 @@ func TestChannel_RemoveFilterTags(t *testing.T) {
 
 		var body map[string]interface{}
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
-		assert.Equal(t, tags, body["remove_filter_tags"])
+		assert.Equal(t, tags, toStringSlice(body["remove_filter_tags"]))
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"duration":"0.01", "members":[], "messages":[]}`))
 	}))
 	defer srv.Close()
 
-	ch.client.BaseURL = srv.URL + "/"
+	ch.client.BaseURL = srv.URL
 
 	_, err = ch.RemoveFilterTags(ctx, tags, nil)
 	require.NoError(t, err)
+}
+
+func toStringSlice(v interface{}) []string {
+	if v == nil {
+		return nil
+	}
+	if s, ok := v.([]string); ok {
+		return s
+	}
+	if arr, ok := v.([]interface{}); ok {
+		out := make([]string, len(arr))
+		for i, a := range arr {
+			out[i] = a.(string)
+		}
+		return out
+	}
+	return nil
 }
