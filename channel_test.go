@@ -993,3 +993,70 @@ func TestChannel_MessageCount_Disabled(t *testing.T) {
 	// message_count should be nil when CountMessages is disabled
 	assert.Nil(t, ch.MessageCount, "message_count should be nil when CountMessages is disabled")
 }
+
+func TestChannel_MarkUnread(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	user1 := randomUser(t, c)
+	user2 := randomUser(t, c)
+	ch := initChannel(t, c, user1.ID, user2.ID)
+
+	t.Run("successful mark unread with userID only", func(t *testing.T) {
+		resp, err := ch.MarkUnread(ctx, user1.ID)
+		require.NoError(t, err, "mark unread should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("successful mark unread with message ID", func(t *testing.T) {
+		// Send a message first
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "test message"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+
+		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromMessage(msgResp.Message.ID))
+		require.NoError(t, err, "mark unread with message ID should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("successful mark unread with thread ID", func(t *testing.T) {
+		// Send a message first
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "parent message"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+
+		// Send a reply to create a thread
+		replyResp, err := ch.SendMessage(ctx, &Message{Text: "reply", ParentID: msgResp.Message.ID}, user1.ID)
+		require.NoError(t, err, "send reply should not return an error")
+		require.NotEmpty(t, replyResp.Message.ID, "reply should have an ID")
+
+		resp, err := ch.MarkUnread(ctx, user2.ID, MarkUnreadThread(msgResp.Message.ID))
+		require.NoError(t, err, "mark unread with thread ID should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("successful mark unread with timestamp", func(t *testing.T) {
+		timestamp := time.Now().Add(-1 * time.Hour)
+		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromTimestamp(timestamp))
+		require.NoError(t, err, "mark unread with timestamp should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("error when userID is empty", func(t *testing.T) {
+		resp, err := ch.MarkUnread(ctx, "")
+		require.Error(t, err, "mark unread with empty userID should return an error")
+		require.Nil(t, resp, "response should be nil on error")
+		require.Contains(t, err.Error(), "user ID must be not empty", "error message should mention user ID")
+	})
+
+	t.Run("successful mark unread with multiple options", func(t *testing.T) {
+		// Send a message first
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "test message"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+
+		timestamp := time.Now().Add(-30 * time.Minute)
+		resp, err := ch.MarkUnread(ctx, user1.ID,
+			MarkUnreadFromMessage(msgResp.Message.ID),
+			MarkUnreadFromTimestamp(timestamp),
+		)
+		require.NoError(t, err, "mark unread with multiple options should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+}
