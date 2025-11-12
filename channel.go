@@ -173,6 +173,7 @@ type ChannelRequest struct {
 	Members                 []string               `json:"-"`
 	Invites                 []string               `json:"invites,omitempty"`
 	ExtraData               map[string]interface{} `json:"-"`
+	FilterTags              []string               `json:"filter_tags,omitempty"`
 }
 
 type channelRequestForJSON ChannelRequest
@@ -1231,4 +1232,48 @@ func (c *Client) QueryDrafts(ctx context.Context, options *QueryDraftsOptions) (
 	var resp QueryDraftsResponse
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, options, &resp)
 	return &resp, err
+}
+
+// AddFilterTags adds filter tags to the channel.
+func (ch *Channel) AddFilterTags(ctx context.Context, tags []string, message *Message) (*Response, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("tags are empty")
+	}
+
+	data := map[string]interface{}{
+		"add_filter_tags": tags,
+	}
+	if message != nil {
+		data["message"] = message
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	var resp Response
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
+	return &resp, err
+}
+
+// RemoveFilterTags removes filter tags from the channel and refreshes channel state.
+func (ch *Channel) RemoveFilterTags(ctx context.Context, tags []string, message *Message) (*Response, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("tags are empty")
+	}
+
+	data := map[string]interface{}{
+		"remove_filter_tags": tags,
+	}
+	if message != nil {
+		data["message"] = message
+	}
+
+	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
+
+	var resp QueryResponse
+	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, data, &resp)
+	if err != nil {
+		return nil, err
+	}
+	resp.updateChannel(ch)
+	return &resp.Response, nil
 }

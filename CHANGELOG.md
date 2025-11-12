@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.15.1](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.15.1) (2025-11-12)
+
+
+### Features
+
+* [CHA-1149] add channel message count ([#340](https://github.com/GetStream/stream-chat-go/issues/340)) ([0aad5c3](https://github.com/GetStream/stream-chat-go/commit/0aad5c35dcf8db246bf49e7436c181b21eb51201))
+* [CHA-1462] Added filter tags to channel ([#357](https://github.com/GetStream/stream-chat-go/issues/357)) ([2f34759](https://github.com/GetStream/stream-chat-go/commit/2f347590347831364319e6029a42c40821b6e4fa))
+
 ## [7.15.0](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.15.0) (2025-09-01)
 
 
