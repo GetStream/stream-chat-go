@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -724,7 +725,9 @@ func MarkUnreadThread(id string) func(*markUnreadOption) {
 }
 
 func MarkUnreadFromTimestamp(timestamp time.Time) func(*markUnreadOption) {
+	log.Println("Got timestamp", timestamp)
 	return func(opt *markUnreadOption) {
+		log.Println("Mark unread option func called", opt)
 		opt.MessageTimestamp = timestamp
 	}
 }
@@ -740,13 +743,16 @@ func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...Mar
 	opts := &markUnreadOption{
 		UserID: userID,
 	}
-
-	for _, fn := range options {
+	log.Println("Length of options: ", len(options))
+	for i, fn := range options {
+		log.Println("Calling option number", i)
 		fn(opts)
 	}
 
 	var resp Response
+	log.Println("Making request", opts)
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	log.Println("Got response", resp, err)
 	return &resp, err
 }
 
