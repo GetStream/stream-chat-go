@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -57,12 +58,17 @@ func NewClientFromEnvVars() (*Client, error) {
 
 // NewClient creates new stream chat api client.
 func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, error) {
+	log.Println("=== NewClient Debug ===")
+	log.Println("apiKey:", apiKey)
 	switch {
 	case apiKey == "":
+		log.Println("ERROR: API key is empty!")
 		return nil, errors.New("API key is empty")
 	case apiSecret == "":
+		log.Println("ERROR: API secret is empty!")
 		return nil, errors.New("API secret is empty")
 	}
+	log.Println("API key and secret are valid, continuing with client creation")
 
 	baseURL := DefaultBaseURL
 	if baseURLEnv := os.Getenv("STREAM_CHAT_URL"); strings.HasPrefix(baseURLEnv, "http") {
