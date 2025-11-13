@@ -1029,7 +1029,7 @@ func TestChannel_MarkUnread(t *testing.T) {
 	t.Run("successful mark unread with timestamp", func(t *testing.T) {
 		timestamp := time.Now().Add(-1 * time.Hour)
 		log.Println("Timestamp", timestamp)
-		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromTimestamp(timestamp))
+		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromTimestamp(&timestamp))
 		require.NoError(t, err, "mark unread with timestamp should not return an error")
 		require.NotNil(t, resp, "response should not be nil")
 	})
