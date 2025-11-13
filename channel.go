@@ -752,6 +752,8 @@ func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...Mar
 	var resp Response
 	log.Println("Making request", opts)
 	log.Println("Making path", p)
+	log.Println("Hostname", ch.client.BaseURL)
+
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	log.Println("Got response", resp, err)
 	return &resp, err
