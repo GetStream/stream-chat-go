@@ -727,7 +727,7 @@ func MarkUnreadThread(id string) func(*markUnreadOption) {
 func MarkUnreadFromTimestamp(timestamp time.Time) func(*markUnreadOption) {
 	log.Println("Got timestamp", timestamp)
 	return func(opt *markUnreadOption) {
-		log.Println("Mark unread option func called", opt)
+		log.Println("Mark unread option func called", timestamp)
 		opt.MessageTimestamp = timestamp
 	}
 }
@@ -751,6 +751,7 @@ func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...Mar
 
 	var resp Response
 	log.Println("Making request", opts)
+	log.Println("Making path", p)
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	log.Println("Got response", resp, err)
 	return &resp, err
