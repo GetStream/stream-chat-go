@@ -1027,12 +1027,18 @@ func TestChannel_MarkUnread(t *testing.T) {
 	})
 
 	t.Run("successful mark unread with timestamp", func(t *testing.T) {
-		timestamp := time.Now().Add(-1 * time.Hour)
+		// Send a message first to get a valid timestamp
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "test message for timestamp"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+		require.NotNil(t, msgResp.Message.CreatedAt, "message should have a created_at timestamp")
+
+		timestamp := *msgResp.Message.CreatedAt
 		log.Println("=== Test: successful mark unread with timestamp ===")
 		log.Println("Test timestamp:", timestamp)
 		log.Println("  - IsZero:", timestamp.IsZero())
 		log.Println("  - Unix:", timestamp.Unix())
 		log.Println("  - Format RFC3339:", timestamp.Format(time.RFC3339))
+
 		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromTimestamp(timestamp))
 		require.NoError(t, err, "mark unread with timestamp should not return an error")
 		require.NotNil(t, resp, "response should not be nil")
