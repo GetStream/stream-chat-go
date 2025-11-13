@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -701,8 +702,9 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkR
 }
 
 type markUnreadOption struct {
-	MessageID string `json:"message_id"`
-	ThreadID  string `json:"thread_id"`
+	MessageID        string     `json:"message_id,omitempty"`
+	ThreadID         string     `json:"thread_id,omitempty"`
+	MessageTimestamp *time.Time `json:"message_timestamp,omitempty"`
 
 	UserID string `json:"user_id"`
 }
@@ -722,6 +724,21 @@ func MarkUnreadThread(id string) func(*markUnreadOption) {
 	}
 }
 
+func MarkUnreadFromTimestamp(timestamp time.Time) func(*markUnreadOption) {
+	log.Println("MarkUnreadFromTimestamp called with:", timestamp)
+	log.Println("  - IsZero:", timestamp.IsZero())
+	log.Println("  - Unix:", timestamp.Unix())
+	return func(opt *markUnreadOption) {
+		log.Println("Setting MessageTimestamp pointer")
+		opt.MessageTimestamp = &timestamp
+		log.Println("  - Pointer is nil?", opt.MessageTimestamp == nil)
+		if opt.MessageTimestamp != nil {
+			log.Println("  - Dereferenced value:", *opt.MessageTimestamp)
+			log.Println("  - Dereferenced IsZero:", (*opt.MessageTimestamp).IsZero())
+		}
+	}
+}
+
 // MarkUnread message or thread (not both) for specified user.
 func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...MarkUnreadOption) (*Response, error) {
 	if userID == "" {
@@ -733,13 +750,40 @@ func (ch *Channel) MarkUnread(ctx context.Context, userID string, options ...Mar
 	opts := &markUnreadOption{
 		UserID: userID,
 	}
+	log.Println("=== MarkUnread Debug ===")
+	log.Println("Initial opts state:")
+	log.Println("  - MessageID:", opts.MessageID)
+	log.Println("  - ThreadID:", opts.ThreadID)
+	log.Println("  - MessageTimestamp nil?:", opts.MessageTimestamp == nil)
+	log.Println("  - UserID:", opts.UserID)
 
-	for _, fn := range options {
+	log.Println("Number of options to apply:", len(options))
+	for i, fn := range options {
+		log.Println("Applying option", i)
 		fn(opts)
 	}
 
+	log.Println("After applying options:")
+	log.Println("  - MessageID:", opts.MessageID)
+	log.Println("  - ThreadID:", opts.ThreadID)
+	log.Println("  - MessageTimestamp nil?:", opts.MessageTimestamp == nil)
+	if opts.MessageTimestamp != nil {
+		log.Println("  - MessageTimestamp value:", *opts.MessageTimestamp)
+		log.Println("  - MessageTimestamp IsZero:", (*opts.MessageTimestamp).IsZero())
+	}
+	log.Println("  - UserID:", opts.UserID)
+
 	var resp Response
+
+	// Debug: log the JSON that will be sent
+	if jsonBytes, err := json.Marshal(opts); err == nil {
+		log.Println("JSON payload that will be sent:", string(jsonBytes))
+	} else {
+		log.Println("ERROR marshaling JSON:", err)
+	}
+
 	err := ch.client.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
+	log.Println("Got response", resp, err)
 	return &resp, err
 }
 
