@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/hmac"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -53,15 +54,16 @@ func WithTimeout(t time.Duration) func(c *Client) {
 // is retrieved from STREAM_KEY and the secret from STREAM_SECRET
 // environmental variables.
 func NewClientFromEnvVars() (*Client, error) {
+	apiKey := os.Getenv("STREAM_KEY")
 	log.Println("=== NewClientFromEnvVars Debug ===")
-	log.Println("STREAM:", os.Getenv("STREAM_KEY"))
-	return NewClient(os.Getenv("STREAM_KEY"), os.Getenv("STREAM_SECRET"))
+	log.Println("STREAM_KEY (base64):", base64.StdEncoding.EncodeToString([]byte(apiKey)))
+	return NewClient(apiKey, os.Getenv("STREAM_SECRET"))
 }
 
 // NewClient creates new stream chat api client.
 func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, error) {
 	log.Println("=== NewClient Debug ===")
-	log.Println("asd:", apiKey)
+	log.Println("apiKey (base64):", base64.StdEncoding.EncodeToString([]byte(apiKey)))
 	switch {
 	case apiKey == "":
 		log.Println("ERROR: API key is empty!")
