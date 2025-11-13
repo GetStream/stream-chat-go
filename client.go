@@ -64,6 +64,9 @@ func NewClientFromEnvVars() (*Client, error) {
 func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, error) {
 	log.Println("=== NewClient Debug ===")
 	log.Println("apiKey (base64):", base64.StdEncoding.EncodeToString([]byte(apiKey)))
+	for i := range apiKey {
+		log.Println(apiKey[i])
+	}
 	switch {
 	case apiKey == "":
 		log.Println("ERROR: API key is empty!")
