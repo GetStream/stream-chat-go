@@ -5,14 +5,12 @@ import (
 	"context"
 	"crypto"
 	"crypto/hmac"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -54,28 +52,17 @@ func WithTimeout(t time.Duration) func(c *Client) {
 // is retrieved from STREAM_KEY and the secret from STREAM_SECRET
 // environmental variables.
 func NewClientFromEnvVars() (*Client, error) {
-	apiKey := os.Getenv("STREAM_KEY")
-	log.Println("=== NewClientFromEnvVars Debug ===")
-	log.Println("STREAM_KEY (base64):", base64.StdEncoding.EncodeToString([]byte(apiKey)))
-	return NewClient(apiKey, os.Getenv("STREAM_SECRET"))
+	return NewClient(os.Getenv("STREAM_KEY"), os.Getenv("STREAM_SECRET"))
 }
 
 // NewClient creates new stream chat api client.
 func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, error) {
-	log.Println("=== NewClient Debug ===")
-	log.Println("apiKey (base64):", base64.StdEncoding.EncodeToString([]byte(apiKey)))
-	for i := range apiKey {
-		log.Println(apiKey[i])
-	}
 	switch {
 	case apiKey == "":
-		log.Println("ERROR: API key is empty!")
 		return nil, errors.New("API key is empty")
 	case apiSecret == "":
-		log.Println("ERROR: API secret is empty!")
 		return nil, errors.New("API secret is empty")
 	}
-	log.Println("API key and secret are valid, continuing with client creation")
 
 	baseURL := DefaultBaseURL
 	if baseURLEnv := os.Getenv("STREAM_CHAT_URL"); strings.HasPrefix(baseURLEnv, "http") {

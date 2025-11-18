@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -133,25 +132,6 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, params ur
 	if err != nil {
 		return err
 	}
-
-	// Debug: log the HTTP request
-	log.Println("=== HTTP Request Debug ===")
-	log.Println("Method:", r.Method)
-	log.Println("URL:", r.URL.String())
-	log.Println("Headers:")
-	for key, values := range r.Header {
-		for _, value := range values {
-			log.Printf("  %s: %s\n", key, value)
-		}
-	}
-	if r.Body != nil {
-		// Read body for logging, then restore it
-		bodyBytes, _ := io.ReadAll(r.Body)
-		r.Body.Close()
-		r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-		log.Println("Body:", string(bodyBytes))
-	}
-	log.Println("=========================")
 
 	resp, err := c.HTTP.Do(r)
 	if err != nil {
