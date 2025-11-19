@@ -145,9 +145,9 @@ func (c *Client) QueryReminders(ctx context.Context, userID string, filterCondit
 	}
 
 	data := map[string]interface{}{
-		"user_id":           userID,
-		"filter_conditions": filterConditions,
-		"sort":              sort,
+		"user_id": userID,
+		"filter":  filterConditions,
+		"sort":    sort,
 	}
 
 	// Add additional options
