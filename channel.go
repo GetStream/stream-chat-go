@@ -701,8 +701,9 @@ func (ch *Channel) MarkRead(ctx context.Context, userID string, options ...MarkR
 }
 
 type markUnreadOption struct {
-	MessageID string `json:"message_id"`
-	ThreadID  string `json:"thread_id"`
+	MessageID        string     `json:"message_id,omitempty"`
+	ThreadID         string     `json:"thread_id,omitempty"`
+	MessageTimestamp *time.Time `json:"message_timestamp,omitempty"`
 
 	UserID string `json:"user_id"`
 }
@@ -719,6 +720,12 @@ func MarkUnreadFromMessage(id string) func(*markUnreadOption) {
 func MarkUnreadThread(id string) func(*markUnreadOption) {
 	return func(opt *markUnreadOption) {
 		opt.ThreadID = id
+	}
+}
+
+func MarkUnreadFromTimestamp(timestamp time.Time) func(*markUnreadOption) {
+	return func(opt *markUnreadOption) {
+		opt.MessageTimestamp = &timestamp
 	}
 }
 
