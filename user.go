@@ -87,6 +87,7 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(u.ExtraData, *u)
+	flattenExtraData(u.ExtraData)
 	return nil
 }
 
