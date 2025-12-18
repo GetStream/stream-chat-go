@@ -16,10 +16,8 @@ func randomExtraData(in interface{}) {
 	}
 	f := v.FieldByName("ExtraData")
 	f.Set(reflect.ValueOf(map[string]interface{}{
-		"extra_data": map[string]interface{}{
-			"mystring": randomString(10),
-			"mybool":   rand.Float64() < 0.5,
-		},
+		"mystring":    randomString(10),
+		"mybool":      rand.Float64() < 0.5,
 		"data":        "custom",
 		"custom_data": "really_custom",
 		"extra": map[string]interface{}{
