@@ -108,6 +108,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(e.ExtraData, *e)
+	flattenExtraData(e.ExtraData)
 	return nil
 }
 
@@ -161,6 +162,7 @@ func (e *UserCustomEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(e.ExtraData, *e)
+	flattenExtraData(e.ExtraData)
 	return nil
 }
 

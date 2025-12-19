@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	stream_chat "github.com/GetStream/stream-chat-go/v7"
+	stream_chat "github.com/GetStream/stream-chat-go/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

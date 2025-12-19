@@ -27,6 +27,22 @@ func removeFromMap(m map[string]interface{}, obj interface{}) {
 	}
 }
 
+// flattenExtraData flattens the nested "extra_data" key if it exists.
+// The API may return custom fields nested under an "extra_data" key,
+// which should be flattened to the root level of the ExtraData map.
+func flattenExtraData(m map[string]interface{}) {
+	if extraData, ok := m["extra_data"]; ok {
+		if extraDataMap, ok := extraData.(map[string]interface{}); ok {
+			// Copy all fields from nested extra_data to root level
+			for k, v := range extraDataMap {
+				m[k] = v
+			}
+			// Remove the nested extra_data key
+			delete(m, "extra_data")
+		}
+	}
+}
+
 func addToMapAndMarshal(m map[string]interface{}, obj interface{}) ([]byte, error) {
 	m2 := copyMap(m)
 

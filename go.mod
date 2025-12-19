@@ -1,6 +1,6 @@
-module github.com/GetStream/stream-chat-go/v7
+module github.com/GetStream/stream-chat-go/v8
 
-go 1.22
+go 1.23
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.1

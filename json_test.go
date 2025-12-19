@@ -16,10 +16,8 @@ func randomExtraData(in interface{}) {
 	}
 	f := v.FieldByName("ExtraData")
 	f.Set(reflect.ValueOf(map[string]interface{}{
-		"extra_data": map[string]interface{}{
-			"mystring": randomString(10),
-			"mybool":   rand.Float64() < 0.5,
-		},
+		"mystring":    randomString(10),
+		"mybool":      rand.Float64() < 0.5,
 		"data":        "custom",
 		"custom_data": "really_custom",
 		"extra": map[string]interface{}{
@@ -68,4 +66,66 @@ func TestJSON(t *testing.T) {
 
 	var r, r2 Reaction
 	testInvariantJSON(t, &r, &r2)
+}
+
+// TestFlattenExtraData tests the flattenExtraData function directly
+func TestFlattenExtraData(t *testing.T) {
+	t.Run("Flatten nested extra_data", func(t *testing.T) {
+		m := map[string]interface{}{
+			"field1": "value1",
+			"extra_data": map[string]interface{}{
+				"custom_field": "custom_value",
+				"another_field": 123,
+			},
+		}
+
+		flattenExtraData(m)
+
+		// Fields should be flattened
+		require.Equal(t, "custom_value", m["custom_field"])
+		require.Equal(t, 123, m["another_field"])
+		require.Equal(t, "value1", m["field1"])
+		// The nested "extra_data" key should not exist
+		require.NotContains(t, m, "extra_data")
+	})
+
+	t.Run("No extra_data key", func(t *testing.T) {
+		m := map[string]interface{}{
+			"field1": "value1",
+			"field2": 123,
+		}
+
+		flattenExtraData(m)
+
+		// Map should be unchanged
+		require.Equal(t, "value1", m["field1"])
+		require.Equal(t, 123, m["field2"])
+		require.Len(t, m, 2)
+	})
+
+	t.Run("extra_data is not a map", func(t *testing.T) {
+		m := map[string]interface{}{
+			"field1":     "value1",
+			"extra_data": "not_a_map",
+		}
+
+		flattenExtraData(m)
+
+		// extra_data should remain unchanged if it's not a map
+		require.Equal(t, "not_a_map", m["extra_data"])
+		require.Equal(t, "value1", m["field1"])
+	})
+
+	t.Run("Empty extra_data map", func(t *testing.T) {
+		m := map[string]interface{}{
+			"field1":     "value1",
+			"extra_data": map[string]interface{}{},
+		}
+
+		flattenExtraData(m)
+
+		// Empty extra_data should be removed
+		require.NotContains(t, m, "extra_data")
+		require.Equal(t, "value1", m["field1"])
+	})
 }
