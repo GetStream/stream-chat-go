@@ -32,6 +32,7 @@ func (s *Reaction) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(s.ExtraData, *s)
+	flattenExtraData(s.ExtraData)
 	return nil
 }
 

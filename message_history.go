@@ -45,6 +45,7 @@ func (m *MessageHistoryEntry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	removeFromMap(m.ExtraData, *m)
+	flattenExtraData(m.ExtraData)
 	return nil
 }
 

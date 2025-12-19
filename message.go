@@ -85,6 +85,7 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	removeFromMap(m.ExtraData, *m)
+	flattenExtraData(m.ExtraData)
 	return nil
 }
 
@@ -168,6 +169,7 @@ func (s *messageRequestMessage) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(s.ExtraData, *s)
+	flattenExtraData(s.ExtraData)
 	return nil
 }
 
@@ -206,6 +208,7 @@ func (a *Attachment) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(a.ExtraData, *a)
+	flattenExtraData(a.ExtraData)
 	return nil
 }
 

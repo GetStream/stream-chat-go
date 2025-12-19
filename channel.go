@@ -70,6 +70,7 @@ func (m *ChannelMember) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(m.ExtraData, *m)
+	flattenExtraData(m.ExtraData)
 	return nil
 }
 
@@ -144,6 +145,7 @@ func (ch *Channel) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(ch.ExtraData, *ch)
+	flattenExtraData(ch.ExtraData)
 	return nil
 }
 
@@ -191,6 +193,7 @@ func (c *ChannelRequest) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(c.ExtraData, *c)
+	flattenExtraData(c.ExtraData)
 	return nil
 }
 
