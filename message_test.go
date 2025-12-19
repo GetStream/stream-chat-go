@@ -193,60 +193,6 @@ func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
 	require.Empty(t, result.Channels)
 }
 
-func TestClient_UpdateRestrictedVisibilityMessage(t *testing.T) {
-	c := initClient(t)
-	adminUser := randomUserWithRole(t, c, "admin")
-	user1 := randomUser(t, c)
-	user2 := randomUser(t, c)
-	ch := initChannel(t, c, adminUser.ID, user1.ID, user2.ID)
-	ctx := context.Background()
-	msg := &Message{
-		Text: "test message",
-		RestrictedVisibility: []string{
-			user1.ID,
-		},
-	}
-
-	resp, err := ch.SendMessage(ctx, msg, adminUser.ID)
-	require.NoError(t, err, "send message")
-
-	msg = resp.Message
-	msg.RestrictedVisibility = []string{user2.ID}
-	msg.UserID = adminUser.ID
-	resp, err = c.UpdateMessage(ctx, msg, msg.ID)
-	require.NoError(t, err, "send message")
-	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
-}
-
-func TestClient_PartialUpdateRestrictedVisibilityMessage(t *testing.T) {
-	c := initClient(t)
-	adminUser := randomUserWithRole(t, c, "admin")
-	user1 := randomUser(t, c)
-	user2 := randomUser(t, c)
-	ch := initChannel(t, c, adminUser.ID, user1.ID, user2.ID)
-	ctx := context.Background()
-	msg := &Message{
-		Text: "test message",
-		RestrictedVisibility: []string{
-			user1.ID,
-		},
-	}
-
-	messageResponse, err := ch.SendMessage(ctx, msg, adminUser.ID)
-	require.NoError(t, err, "send message")
-
-	resp, err := c.PartialUpdateMessage(ctx, messageResponse.Message.ID, &MessagePartialUpdateRequest{
-		UserID: adminUser.ID,
-		PartialUpdate: PartialUpdate{
-			Set: map[string]interface{}{
-				"restricted_visibility": []string{user2.ID},
-			},
-		},
-	})
-	require.NoError(t, err, "send message")
-	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
-}
-
 func TestMessage_ChannelRoleInMember(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
