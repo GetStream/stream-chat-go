@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.0.0](https://github.com/GetStream/stream-chat-go/compare/v7.15.1...v8.0.0) (2025-12-19)
+
+
+### Features
+
+* Fix QueryReminders to use filter parameter instead of filter_conditions ([#360](https://github.com/GetStream/stream-chat-go/issues/360)) ([d00843e](https://github.com/GetStream/stream-chat-go/commit/d00843eff6fc2067b9671e609c6c0f2a15140194))
+* support option to mark messages unread by message timestamp ([#358](https://github.com/GetStream/stream-chat-go/issues/358)) ([6cb57a2](https://github.com/GetStream/stream-chat-go/commit/6cb57a2c06727ab867182c88841cf27f749a769a))
+
 ### [7.15.1](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.15.1) (2025-11-12)
 
 
