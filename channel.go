@@ -1280,3 +1280,56 @@ func (ch *Channel) RemoveFilterTags(ctx context.Context, tags []string, message 
 	resp.updateChannel(ch)
 	return &resp.Response, nil
 }
+
+// BatchUpdateOperation represents the type of batch update operation.
+type BatchUpdateOperation string
+
+const (
+	BatchUpdateOperationAddMembers       BatchUpdateOperation = "addMembers"
+	BatchUpdateOperationRemoveMembers    BatchUpdateOperation = "removeMembers"
+	BatchUpdateOperationInvites          BatchUpdateOperation = "invites"
+	BatchUpdateOperationAssignRoles      BatchUpdateOperation = "assignRoles"
+	BatchUpdateOperationAddModerators    BatchUpdateOperation = "addModerators"
+	BatchUpdateOperationDemoteModerators BatchUpdateOperation = "demoteModerators"
+	BatchUpdateOperationHide             BatchUpdateOperation = "hide"
+	BatchUpdateOperationShow             BatchUpdateOperation = "show"
+	BatchUpdateOperationArchive          BatchUpdateOperation = "archive"
+	BatchUpdateOperationUnarchive        BatchUpdateOperation = "unarchive"
+	BatchUpdateOperationUpdateData       BatchUpdateOperation = "updateData"
+	BatchUpdateOperationAddFilterTags    BatchUpdateOperation = "addFilterTags"
+	BatchUpdateOperationRemoveFilterTags BatchUpdateOperation = "removeFilterTags"
+)
+
+// BatchChannelDataUpdate represents data that can be updated on channels in batch.
+type BatchChannelDataUpdate struct {
+	Frozen                  *bool                  `json:"frozen,omitempty"`
+	Disabled                *bool                  `json:"disabled,omitempty"`
+	Custom                  map[string]interface{} `json:"custom,omitempty"`
+	Team                    string                 `json:"team,omitempty"`
+	ConfigOverrides         map[string]interface{} `json:"config_overrides,omitempty"`
+	AutoTranslationEnabled  *bool                  `json:"auto_translation_enabled,omitempty"`
+	AutoTranslationLanguage string                 `json:"auto_translation_language,omitempty"`
+}
+
+// UpdateChannelsBatchFilters represents filters for batch channel updates.
+type UpdateChannelsBatchFilters struct {
+	CIDs       interface{} `json:"cids,omitempty"`
+	Types      interface{} `json:"types,omitempty"`
+	FilterTags interface{} `json:"filter_tags,omitempty"`
+}
+
+// UpdateChannelsBatchOptions represents options for batch channel updates.
+type UpdateChannelsBatchOptions struct {
+	Operation        BatchUpdateOperation       `json:"operation"`
+	Filter           UpdateChannelsBatchFilters `json:"filter"`
+	Members          interface{}                `json:"members,omitempty"`
+	Data             *BatchChannelDataUpdate    `json:"data,omitempty"`
+	FilterTagsUpdate []string                   `json:"filter_tags_update,omitempty"`
+}
+
+// UpdateChannelsBatchResponse represents the response from batch channel update.
+type UpdateChannelsBatchResponse struct {
+	Result map[string]string `json:"result"`
+	TaskID string            `json:"task_id,omitempty"`
+	Response
+}

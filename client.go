@@ -318,3 +318,19 @@ func (c *Client) MarkDeliveredSimple(ctx context.Context, userID, messageID, cha
 
 	return c.MarkDelivered(ctx, options)
 }
+
+// UpdateChannelsBatch updates channels in batch based on the provided options.
+func (c *Client) UpdateChannelsBatch(ctx context.Context, options *UpdateChannelsBatchOptions) (*UpdateChannelsBatchResponse, error) {
+	if options == nil {
+		return nil, errors.New("options must not be nil")
+	}
+
+	var resp UpdateChannelsBatchResponse
+	err := c.makeRequest(ctx, http.MethodPut, "channels/batch", nil, options, &resp)
+	return &resp, err
+}
+
+// ChannelBatchUpdater returns a ChannelBatchUpdater instance for batch channel operations.
+func (c *Client) ChannelBatchUpdater() *ChannelBatchUpdater {
+	return &ChannelBatchUpdater{client: c}
+}
