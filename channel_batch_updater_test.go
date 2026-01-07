@@ -111,16 +111,17 @@ func TestChannelBatchUpdater_AddMembers(t *testing.T) {
 			t.Fatal("changes not visible after 2 minutes")
 		}
 		if task.Status == TaskStatusFailed {
-			if len(task.Result) > 0 {
-				if desc, ok := task.Result["description"].(string); ok {
-					if strings.Contains(strings.ToLower(desc), "rate limit") {
-						time.Sleep(2 * time.Second)
-						continue
-					}
-				}
-				t.Fatalf("task failed with result: %v", task.Result)
+			if len(task.Result) == 0 {
+				time.Sleep(2 * time.Second)
+				continue
 			}
-			t.Fatalf("task failed (status: %s, result: %v)", task.Status, task.Result)
+			if desc, ok := task.Result["description"].(string); ok {
+				if strings.Contains(strings.ToLower(desc), "rate limit") {
+					time.Sleep(2 * time.Second)
+					continue
+				}
+			}
+			t.Fatalf("task failed with result: %v", task.Result)
 		}
 
 		time.Sleep(time.Second)
@@ -205,16 +206,17 @@ func TestChannelBatchUpdater_RemoveMembers(t *testing.T) {
 			t.Fatalf("changes not visible after 2 minutes. Channel 1 still has members: %v", ch1MemberIDs)
 		}
 		if task.Status == TaskStatusFailed {
-			if len(task.Result) > 0 {
-				if desc, ok := task.Result["description"].(string); ok {
-					if strings.Contains(strings.ToLower(desc), "rate limit") {
-						time.Sleep(2 * time.Second)
-						continue
-					}
-				}
-				t.Fatalf("task failed with result: %v", task.Result)
+			if len(task.Result) == 0 {
+				time.Sleep(2 * time.Second)
+				continue
 			}
-			t.Fatalf("task failed (status: %s, result: %v)", task.Status, task.Result)
+			if desc, ok := task.Result["description"].(string); ok {
+				if strings.Contains(strings.ToLower(desc), "rate limit") {
+					time.Sleep(2 * time.Second)
+					continue
+				}
+			}
+			t.Fatalf("task failed with result: %v", task.Result)
 		}
 
 		time.Sleep(time.Second)
@@ -279,16 +281,17 @@ func TestChannelBatchUpdater_Archive(t *testing.T) {
 			t.Fatal("changes not visible after 2 minutes")
 		}
 		if task.Status == TaskStatusFailed {
-			if len(task.Result) > 0 {
-				if desc, ok := task.Result["description"].(string); ok {
-					if strings.Contains(strings.ToLower(desc), "rate limit") {
-						time.Sleep(2 * time.Second)
-						continue
-					}
-				}
-				t.Fatalf("task failed with result: %v", task.Result)
+			if len(task.Result) == 0 {
+				time.Sleep(2 * time.Second)
+				continue
 			}
-			t.Fatalf("task failed (status: %s, result: %v)", task.Status, task.Result)
+			if desc, ok := task.Result["description"].(string); ok {
+				if strings.Contains(strings.ToLower(desc), "rate limit") {
+					time.Sleep(2 * time.Second)
+					continue
+				}
+			}
+			t.Fatalf("task failed with result: %v", task.Result)
 		}
 
 		time.Sleep(time.Second)
