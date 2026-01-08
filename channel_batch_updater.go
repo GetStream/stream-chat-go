@@ -38,7 +38,7 @@ func (u *ChannelBatchUpdater) RemoveMembers(ctx context.Context, filter Channels
 // InviteMembers invites members to channels matching the filter.
 func (u *ChannelBatchUpdater) InviteMembers(ctx context.Context, filter ChannelsBatchFilters, members []ChannelBatchMemberRequest) (*AsyncTaskResponse, error) {
 	options := &ChannelsBatchOptions{
-		Operation: BatchUpdateOperationInvites,
+		Operation: BatchUpdateOperationInviteMembers,
 		Filter:    filter,
 		Members:   members,
 	}
