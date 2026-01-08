@@ -1287,7 +1287,7 @@ type ChannelBatchOperation string
 const (
 	BatchUpdateOperationAddMembers       ChannelBatchOperation = "addMembers"
 	BatchUpdateOperationRemoveMembers    ChannelBatchOperation = "removeMembers"
-	BatchUpdateOperationInvites          ChannelBatchOperation = "invites"
+	BatchUpdateOperationInviteMembers    ChannelBatchOperation = "inviteMembers"
 	BatchUpdateOperationAssignRoles      ChannelBatchOperation = "assignRoles"
 	BatchUpdateOperationAddModerators    ChannelBatchOperation = "addModerators"
 	BatchUpdateOperationDemoteModerators ChannelBatchOperation = "demoteModerators"
