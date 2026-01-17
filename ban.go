@@ -33,13 +33,21 @@ func (c *Client) BanUser(ctx context.Context, targetID, bannedBy string, options
 }
 
 // UnBanUser removes the ban for targetID.
-func (c *Client) UnBanUser(ctx context.Context, targetID string) (*Response, error) {
+func (c *Client) UnBanUser(ctx context.Context, targetID string, options ...UnbanOption) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("targetID should not be empty")
 	}
 
+	opts := &unbanOptions{}
+	for _, fn := range options {
+		fn(opts)
+	}
+
 	params := url.Values{}
 	params.Set("target_user_id", targetID)
+	if opts.RemoveFutureChannelsBan {
+		params.Set("remove_future_channels_ban", "true")
+	}
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
@@ -59,15 +67,23 @@ func (ch *Channel) BanUser(ctx context.Context, targetID, bannedBy string, optio
 }
 
 // UnBanUser removes the ban for targetID from the channel ch.
-func (ch *Channel) UnBanUser(ctx context.Context, targetID string) (*Response, error) {
+func (ch *Channel) UnBanUser(ctx context.Context, targetID string, options ...UnbanOption) (*Response, error) {
 	if targetID == "" {
 		return nil, errors.New("targetID should not be empty")
+	}
+
+	opts := &unbanOptions{}
+	for _, fn := range options {
+		fn(opts)
 	}
 
 	params := url.Values{}
 	params.Set("target_user_id", targetID)
 	params.Set("id", ch.ID)
 	params.Set("type", ch.Type)
+	if opts.RemoveFutureChannelsBan {
+		params.Set("remove_future_channels_ban", "true")
+	}
 
 	var resp Response
 	err := ch.client.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
@@ -130,13 +146,18 @@ type banOptions struct {
 	Reason     string `json:"reason,omitempty"`
 	Expiration int    `json:"timeout,omitempty"`
 
-	TargetUserID string `json:"target_user_id"`
-	BannedBy     string `json:"user_id"`
-	Shadow       bool   `json:"shadow"`
+	TargetUserID          string `json:"target_user_id"`
+	BannedBy              string `json:"user_id"`
+	Shadow                bool   `json:"shadow"`
+	BanFromFutureChannels bool   `json:"ban_from_future_channels,omitempty"`
 
 	// ID and Type of the channel when acting on a channel member.
 	ID   string `json:"id"`
 	Type string `json:"type"`
+}
+
+type unbanOptions struct {
+	RemoveFutureChannelsBan bool `json:"remove_future_channels_ban,omitempty"`
 }
 
 type BanOption func(*banOptions)
@@ -166,4 +187,62 @@ func banFromChannel(_type, id string) func(*banOptions) {
 		opt.Type = _type
 		opt.ID = id
 	}
+}
+
+// BanWithBanFromFutureChannels when set to true, the user will be automatically
+// banned from all future channels created by the user who issued the ban.
+func BanWithBanFromFutureChannels() func(*banOptions) {
+	return func(opt *banOptions) {
+		opt.BanFromFutureChannels = true
+	}
+}
+
+type UnbanOption func(*unbanOptions)
+
+// UnbanWithRemoveFutureChannelsBan when set to true, also removes the future
+// channel ban, so the user will no longer be auto-banned in new channels.
+func UnbanWithRemoveFutureChannelsBan() func(*unbanOptions) {
+	return func(opt *unbanOptions) {
+		opt.RemoveFutureChannelsBan = true
+	}
+}
+
+// FutureChannelBan represents a future channel ban entry.
+type FutureChannelBan struct {
+	User      *User      `json:"user"`
+	Expires   *time.Time `json:"expires,omitempty"`
+	Reason    string     `json:"reason,omitempty"`
+	Shadow    bool       `json:"shadow,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+// QueryFutureChannelBansOptions contains options for querying future channel bans.
+type QueryFutureChannelBansOptions struct {
+	UserID             string `json:"user_id,omitempty"`
+	ExcludeExpiredBans bool   `json:"exclude_expired_bans,omitempty"`
+	Limit              int    `json:"limit,omitempty"`
+	Offset             int    `json:"offset,omitempty"`
+}
+
+// QueryFutureChannelBansResponse is the response from QueryFutureChannelBans.
+type QueryFutureChannelBansResponse struct {
+	Bans []*FutureChannelBan `json:"bans"`
+	Response
+}
+
+// QueryFutureChannelBans queries future channel bans.
+// Future channel bans are automatically applied when a user creates a new channel
+// or adds a member to an existing channel.
+func (c *Client) QueryFutureChannelBans(ctx context.Context, opts *QueryFutureChannelBansOptions) (*QueryFutureChannelBansResponse, error) {
+	data, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	values := url.Values{}
+	values.Set("payload", string(data))
+
+	var resp QueryFutureChannelBansResponse
+	err = c.makeRequest(ctx, http.MethodGet, "query_future_channel_bans", values, nil, &resp)
+	return &resp, err
 }
