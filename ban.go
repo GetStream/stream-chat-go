@@ -219,6 +219,7 @@ type FutureChannelBan struct {
 // QueryFutureChannelBansOptions contains options for querying future channel bans.
 type QueryFutureChannelBansOptions struct {
 	UserID             string `json:"user_id,omitempty"`
+	TargetUserID       string `json:"target_user_id,omitempty"`
 	ExcludeExpiredBans bool   `json:"exclude_expired_bans,omitempty"`
 	Limit              int    `json:"limit,omitempty"`
 	Offset             int    `json:"offset,omitempty"`
