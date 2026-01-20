@@ -131,6 +131,52 @@ func TestChannelBanUnban(t *testing.T) {
 	require.Empty(t, resp.Bans)
 }
 
+func TestQueryFutureChannelBans(t *testing.T) {
+	c := initClient(t)
+	creator := randomUser(t, c)
+	target1 := randomUser(t, c)
+	target2 := randomUser(t, c)
+	ctx := context.Background()
+
+	// Ban both targets from future channels created by creator
+	_, err := c.BanUser(ctx, target1.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithReason("test ban 1"))
+	require.NoError(t, err)
+
+	_, err = c.BanUser(ctx, target2.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithReason("test ban 2"))
+	require.NoError(t, err)
+
+	// Query all future channel bans by creator
+	resp, err := c.QueryFutureChannelBans(ctx, &QueryFutureChannelBansOptions{
+		UserID: creator.ID,
+	})
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(resp.Bans), 2)
+
+	// Query with target_user_id filter - should only return the specific target
+	resp, err = c.QueryFutureChannelBans(ctx, &QueryFutureChannelBansOptions{
+		UserID:       creator.ID,
+		TargetUserID: target1.ID,
+	})
+	require.NoError(t, err)
+	require.Len(t, resp.Bans, 1)
+	require.Equal(t, target1.ID, resp.Bans[0].User.ID)
+
+	// Query for the other target
+	resp, err = c.QueryFutureChannelBans(ctx, &QueryFutureChannelBansOptions{
+		UserID:       creator.ID,
+		TargetUserID: target2.ID,
+	})
+	require.NoError(t, err)
+	require.Len(t, resp.Bans, 1)
+	require.Equal(t, target2.ID, resp.Bans[0].User.ID)
+
+	// Cleanup - unban both users with RemoveFutureChannelsBan
+	_, err = c.UnBanUser(ctx, target1.ID, UnbanWithRemoveFutureChannelsBan())
+	require.NoError(t, err)
+	_, err = c.UnBanUser(ctx, target2.ID, UnbanWithRemoveFutureChannelsBan())
+	require.NoError(t, err)
+}
+
 func ExampleClient_BanUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()
