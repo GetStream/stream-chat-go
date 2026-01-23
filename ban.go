@@ -48,6 +48,9 @@ func (c *Client) UnBanUser(ctx context.Context, targetID string, options ...Unba
 	if opts.RemoveFutureChannelsBan {
 		params.Set("remove_future_channels_ban", "true")
 	}
+	if opts.CreatedBy != "" {
+		params.Set("created_by", opts.CreatedBy)
+	}
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
@@ -157,7 +160,8 @@ type banOptions struct {
 }
 
 type unbanOptions struct {
-	RemoveFutureChannelsBan bool `json:"remove_future_channels_ban,omitempty"`
+	RemoveFutureChannelsBan bool   `json:"remove_future_channels_ban,omitempty"`
+	CreatedBy               string `json:"created_by,omitempty"`
 }
 
 type BanOption func(*banOptions)
@@ -191,9 +195,19 @@ func banFromChannel(_type, id string) func(*banOptions) {
 
 // BanWithBanFromFutureChannels when set to true, the user will be automatically
 // banned from all future channels created by the user who issued the ban.
+// Note: This option requires BanWithChannel to also be set.
 func BanWithBanFromFutureChannels() func(*banOptions) {
 	return func(opt *banOptions) {
 		opt.BanFromFutureChannels = true
+	}
+}
+
+// BanWithChannel sets the channel context for the ban operation.
+// This is required when using BanWithBanFromFutureChannels at the client level.
+func BanWithChannel(channelType, channelID string) func(*banOptions) {
+	return func(opt *banOptions) {
+		opt.Type = channelType
+		opt.ID = channelID
 	}
 }
 
@@ -201,15 +215,24 @@ type UnbanOption func(*unbanOptions)
 
 // UnbanWithRemoveFutureChannelsBan when set to true, also removes the future
 // channel ban, so the user will no longer be auto-banned in new channels.
+// Note: This option requires UnbanWithCreatedBy to also be set.
 func UnbanWithRemoveFutureChannelsBan() func(*unbanOptions) {
 	return func(opt *unbanOptions) {
 		opt.RemoveFutureChannelsBan = true
 	}
 }
 
+// UnbanWithCreatedBy sets the user ID who originally created the ban.
+// This is required when using UnbanWithRemoveFutureChannelsBan.
+func UnbanWithCreatedBy(userID string) func(*unbanOptions) {
+	return func(opt *unbanOptions) {
+		opt.CreatedBy = userID
+	}
+}
+
 // FutureChannelBan represents a future channel ban entry.
 type FutureChannelBan struct {
-	User      *User      `json:"user"`
+	User      *User      `json:"user,omitempty"`
 	Expires   *time.Time `json:"expires,omitempty"`
 	Reason    string     `json:"reason,omitempty"`
 	Shadow    bool       `json:"shadow,omitempty"`

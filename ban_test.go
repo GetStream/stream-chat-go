@@ -138,11 +138,14 @@ func TestQueryFutureChannelBans(t *testing.T) {
 	target2 := randomUser(t, c)
 	ctx := context.Background()
 
+	// Create a channel to use for future channel bans
+	ch := initChannel(t, c, creator.ID)
+
 	// Ban both targets from future channels created by creator
-	_, err := c.BanUser(ctx, target1.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithReason("test ban 1"))
+	_, err := c.BanUser(ctx, target1.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithChannel(ch.Type, ch.ID), BanWithReason("test ban 1"))
 	require.NoError(t, err)
 
-	_, err = c.BanUser(ctx, target2.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithReason("test ban 2"))
+	_, err = c.BanUser(ctx, target2.ID, creator.ID, BanWithBanFromFutureChannels(), BanWithChannel(ch.Type, ch.ID), BanWithReason("test ban 2"))
 	require.NoError(t, err)
 
 	// Query all future channel bans by creator
@@ -153,13 +156,15 @@ func TestQueryFutureChannelBans(t *testing.T) {
 	require.GreaterOrEqual(t, len(resp.Bans), 2)
 
 	// Query with target_user_id filter - should only return the specific target
+	// Note: When filtering by target_user_id, the API doesn't return the user object
+	// since it's already known from the filter
 	resp, err = c.QueryFutureChannelBans(ctx, &QueryFutureChannelBansOptions{
 		UserID:       creator.ID,
 		TargetUserID: target1.ID,
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Bans, 1)
-	require.Equal(t, target1.ID, resp.Bans[0].User.ID)
+	require.Equal(t, "test ban 1", resp.Bans[0].Reason)
 
 	// Query for the other target
 	resp, err = c.QueryFutureChannelBans(ctx, &QueryFutureChannelBansOptions{
@@ -168,12 +173,12 @@ func TestQueryFutureChannelBans(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Bans, 1)
-	require.Equal(t, target2.ID, resp.Bans[0].User.ID)
+	require.Equal(t, "test ban 2", resp.Bans[0].Reason)
 
 	// Cleanup - unban both users with RemoveFutureChannelsBan
-	_, err = c.UnBanUser(ctx, target1.ID, UnbanWithRemoveFutureChannelsBan())
+	_, err = c.UnBanUser(ctx, target1.ID, UnbanWithRemoveFutureChannelsBan(), UnbanWithCreatedBy(creator.ID))
 	require.NoError(t, err)
-	_, err = c.UnBanUser(ctx, target2.ID, UnbanWithRemoveFutureChannelsBan())
+	_, err = c.UnBanUser(ctx, target2.ID, UnbanWithRemoveFutureChannelsBan(), UnbanWithCreatedBy(creator.ID))
 	require.NoError(t, err)
 }
 
