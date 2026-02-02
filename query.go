@@ -94,8 +94,17 @@ func (c *Client) QueryUsers(ctx context.Context, q *QueryUsersOptions, sorters .
 	return &resp, err
 }
 
+// ParsedPredefinedFilterResponse contains the interpolated filter and sort from a predefined filter.
+// This is returned in the QueryChannels response when using a predefined filter.
+type ParsedPredefinedFilterResponse struct {
+	Name   string                 `json:"name"`
+	Filter map[string]interface{} `json:"filter"`
+	Sort   []*SortOption          `json:"sort,omitempty"`
+}
+
 type queryChannelResponse struct {
-	Channels []queryChannelResponseData `json:"channels"`
+	Channels         []queryChannelResponseData      `json:"channels"`
+	PredefinedFilter *ParsedPredefinedFilterResponse `json:"predefined_filter,omitempty"`
 	Response
 }
 
@@ -113,7 +122,8 @@ type queryChannelResponseData struct {
 }
 
 type QueryChannelsResponse struct {
-	Channels []*Channel
+	Channels         []*Channel
+	PredefinedFilter *ParsedPredefinedFilterResponse
 	Response
 }
 
@@ -157,7 +167,11 @@ func (c *Client) QueryChannels(ctx context.Context, q *QueryOption, sort ...*Sor
 		result[i].client = c
 	}
 
-	return &QueryChannelsResponse{Channels: result, Response: resp.Response}, nil
+	return &QueryChannelsResponse{
+		Channels:         result,
+		PredefinedFilter: resp.PredefinedFilter,
+		Response:         resp.Response,
+	}, nil
 }
 
 type SearchRequest struct {
