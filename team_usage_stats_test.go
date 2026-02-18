@@ -8,24 +8,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// initUsageStatsClient creates a client using usage stats credentials.
-// Falls back to standard credentials if usage stats specific ones aren't set.
-func initUsageStatsClient(t *testing.T) *Client {
+// initMultiTenantClient creates a client using multi-tenant app credentials.
+// Requires STREAM_MULTI_TENANT_KEY and STREAM_MULTI_TENANT_SECRET environment variables.
+func initMultiTenantClient(t *testing.T) *Client {
 	t.Helper()
 
-	apiKey := os.Getenv("STREAM_USAGE_STATS_KEY")
-	apiSecret := os.Getenv("STREAM_USAGE_STATS_SECRET")
-
-	// Fall back to standard credentials
-	if apiKey == "" {
-		apiKey = os.Getenv("STREAM_KEY")
-	}
-	if apiSecret == "" {
-		apiSecret = os.Getenv("STREAM_SECRET")
-	}
+	apiKey := os.Getenv("STREAM_MULTI_TENANT_KEY")
+	apiSecret := os.Getenv("STREAM_MULTI_TENANT_SECRET")
 
 	if apiKey == "" || apiSecret == "" {
-		t.Skip("Missing credentials. Set STREAM_USAGE_STATS_KEY/STREAM_USAGE_STATS_SECRET or STREAM_KEY/STREAM_SECRET")
+		t.Fatal("Multi-tenant test app credentials are missing. Set STREAM_MULTI_TENANT_KEY and STREAM_MULTI_TENANT_SECRET environment variables.")
 	}
 
 	c, err := NewClient(apiKey, apiSecret)
@@ -43,7 +35,7 @@ func findTeamByName(teams []TeamUsageStats, teamName string) *TeamUsageStats {
 	return nil
 }
 
-// assertAllMetricsExact verifies all 16 metrics have expected exact values.
+// assertAllMetricsExact verifies all metrics have expected exact values.
 func assertAllMetricsExact(t *testing.T, team *TeamUsageStats, teamName string) {
 	t.Helper()
 
@@ -108,7 +100,7 @@ func findTeamAcrossPages(t *testing.T, c *Client, teamName string) *TeamUsageSta
 // ============================================================================
 
 func TestQueryTeamUsageStats_NoParametersReturnsTeams(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -120,7 +112,7 @@ func TestQueryTeamUsageStats_NoParametersReturnsTeams(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_EmptyRequestReturnsTeams(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{})
@@ -134,7 +126,7 @@ func TestQueryTeamUsageStats_EmptyRequestReturnsTeams(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_ValidMonthWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -147,7 +139,7 @@ func TestQueryTeamUsageStats_ValidMonthWorks(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_PastMonthReturnsEmpty(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -160,7 +152,7 @@ func TestQueryTeamUsageStats_PastMonthReturnsEmpty(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_InvalidMonthThrows(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -171,7 +163,7 @@ func TestQueryTeamUsageStats_InvalidMonthThrows(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_WrongLengthMonthThrows(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -186,7 +178,7 @@ func TestQueryTeamUsageStats_WrongLengthMonthThrows(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_ValidDateRangeWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -200,7 +192,7 @@ func TestQueryTeamUsageStats_ValidDateRangeWorks(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_SingleDayRangeWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -213,7 +205,7 @@ func TestQueryTeamUsageStats_SingleDayRangeWorks(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_InvalidStartDateThrows(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -224,7 +216,7 @@ func TestQueryTeamUsageStats_InvalidStartDateThrows(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_EndBeforeStartThrows(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -240,7 +232,7 @@ func TestQueryTeamUsageStats_EndBeforeStartThrows(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_LimitReturnsCorrectCount(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 3
 
@@ -253,7 +245,7 @@ func TestQueryTeamUsageStats_LimitReturnsCorrectCount(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_LimitReturnsNextCursor(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 3
 
@@ -266,7 +258,7 @@ func TestQueryTeamUsageStats_LimitReturnsNextCursor(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_PaginationReturnsDifferentTeams(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 3
 
@@ -290,7 +282,7 @@ func TestQueryTeamUsageStats_PaginationReturnsDifferentTeams(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_MaxLimitWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 30
 
@@ -303,7 +295,7 @@ func TestQueryTeamUsageStats_MaxLimitWorks(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_OverMaxLimitThrows(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 31
 
@@ -315,7 +307,7 @@ func TestQueryTeamUsageStats_OverMaxLimitThrows(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_LimitWithMonthWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 2
 
@@ -329,7 +321,7 @@ func TestQueryTeamUsageStats_LimitWithMonthWorks(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_LimitWithDateRangeWorks(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 	limit := 2
 
@@ -348,7 +340,7 @@ func TestQueryTeamUsageStats_LimitWithDateRangeWorks(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_TeamsHaveTeamField(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -360,7 +352,7 @@ func TestQueryTeamUsageStats_TeamsHaveTeamField(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_AllMetricsPresent(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -395,7 +387,7 @@ func TestQueryTeamUsageStats_AllMetricsPresent(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_MetricTotalsNonNegative(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -414,7 +406,7 @@ func TestQueryTeamUsageStats_MetricTotalsNonNegative(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_DateRange_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -429,7 +421,7 @@ func TestQueryTeamUsageStats_DateRange_SdkTestTeam1_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_DateRange_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -444,7 +436,7 @@ func TestQueryTeamUsageStats_DateRange_SdkTestTeam2_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_DateRange_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -463,7 +455,7 @@ func TestQueryTeamUsageStats_DateRange_SdkTestTeam3_ExactValues(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_Month_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -477,7 +469,7 @@ func TestQueryTeamUsageStats_Month_SdkTestTeam1_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_Month_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -491,7 +483,7 @@ func TestQueryTeamUsageStats_Month_SdkTestTeam2_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_Month_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
@@ -509,7 +501,7 @@ func TestQueryTeamUsageStats_Month_SdkTestTeam3_ExactValues(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_NoParams_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -521,7 +513,7 @@ func TestQueryTeamUsageStats_NoParams_SdkTestTeam1_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_NoParams_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -533,7 +525,7 @@ func TestQueryTeamUsageStats_NoParams_SdkTestTeam2_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_NoParams_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 	ctx := context.Background()
 
 	resp, err := c.QueryTeamUsageStats(ctx, nil)
@@ -549,7 +541,7 @@ func TestQueryTeamUsageStats_NoParams_SdkTestTeam3_ExactValues(t *testing.T) {
 // ============================================================================
 
 func TestQueryTeamUsageStats_Pagination_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 
 	team := findTeamAcrossPages(t, c, "sdk-test-team-1")
 	require.NotNil(t, team, "sdk-test-team-1 should exist across paginated results")
@@ -557,7 +549,7 @@ func TestQueryTeamUsageStats_Pagination_SdkTestTeam1_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_Pagination_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 
 	team := findTeamAcrossPages(t, c, "sdk-test-team-2")
 	require.NotNil(t, team, "sdk-test-team-2 should exist across paginated results")
@@ -565,7 +557,7 @@ func TestQueryTeamUsageStats_Pagination_SdkTestTeam2_ExactValues(t *testing.T) {
 }
 
 func TestQueryTeamUsageStats_Pagination_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initUsageStatsClient(t)
+	c := initMultiTenantClient(t)
 
 	team := findTeamAcrossPages(t, c, "sdk-test-team-3")
 	require.NotNil(t, team, "sdk-test-team-3 should exist across paginated results")

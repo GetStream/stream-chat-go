@@ -97,7 +97,7 @@ type QueryTeamUsageStatsResponse struct {
 
 // QueryTeamUsageStats queries team-level usage statistics from the warehouse database.
 //
-// Returns all 16 metrics grouped by team with cursor-based pagination.
+// Returns usage metrics grouped by team with cursor-based pagination.
 //
 // Date Range Options (mutually exclusive):
 //   - Use 'Month' parameter (YYYY-MM format) for monthly aggregated values
