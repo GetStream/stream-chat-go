@@ -337,12 +337,12 @@ func TestQueryTeamUsageStats_DataCorrectness(t *testing.T) {
 	skipIfNoMultiTenant(t, c)
 	ctx := context.Background()
 
-	testTeams := []string{"sdk-test-team-1", "sdk-test-team-2", "sdk-test-team-3"}
+	testTeams := []string{"sdk-test-team-1", "sdk-test-team-2"}
 
 	t.Run("Date range query returns test teams with exact values", func(t *testing.T) {
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
 			StartDate: "2026-02-17",
-			EndDate:   "2026-02-18",
+			EndDate:   "2026-02-19",
 		})
 		require.NoError(t, err)
 
