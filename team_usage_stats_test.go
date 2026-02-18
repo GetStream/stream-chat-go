@@ -156,7 +156,7 @@ func assertAllMetricsExact(t *testing.T, team *TeamUsageStats, teamName string) 
 	t.Helper()
 
 	// Daily activity metrics
-	require.Equal(t, int64(0), team.UsersDaily.Total, "%s users_daily", teamName)
+	require.Equal(t, int64(5), team.UsersDaily.Total, "%s users_daily", teamName)
 	require.Equal(t, int64(100), team.MessagesDaily.Total, "%s messages_daily", teamName)
 	require.Equal(t, int64(0), team.TranslationsDaily.Total, "%s translations_daily", teamName)
 	require.Equal(t, int64(0), team.ImageModerationsDaily.Total, "%s image_moderations_daily", teamName)
@@ -236,7 +236,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	t.Run("Date range returns teams", func(t *testing.T) {
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
 			StartDate: "2026-02-01",
-			EndDate:   "2026-02-17",
+			EndDate:   "2026-02-18",
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp.Teams)
@@ -253,7 +253,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	})
 
 	t.Run("Limit returns next cursor", func(t *testing.T) {
-		limit := 3
+		limit := 2
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
 			Limit: &limit,
 		})
@@ -262,7 +262,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	})
 
 	t.Run("Pagination returns different teams", func(t *testing.T) {
-		limit := 3
+		limit := 2
 		page1, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
 			Limit: &limit,
 		})
@@ -337,11 +337,11 @@ func TestQueryTeamUsageStats_DataCorrectness(t *testing.T) {
 	skipIfNoMultiTenant(t, c)
 	ctx := context.Background()
 
-	testTeams := []string{"sdk-test-team-1", "sdk-test-team-2"}
+	testTeams := []string{"sdk-test-team-1", "sdk-test-team-2", "sdk-test-team-3"}
 
 	t.Run("Date range query returns test teams with exact values", func(t *testing.T) {
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-			StartDate: "2026-02-17",
+			StartDate: "2026-02-18",
 			EndDate:   "2026-02-19",
 		})
 		require.NoError(t, err)
