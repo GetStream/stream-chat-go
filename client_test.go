@@ -20,12 +20,16 @@ func initClient(t *testing.T) *Client {
 }
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
+	return initChannelWithType(t, c, "team", membersID...)
+}
+
+func initChannelWithType(t *testing.T, c *Client, channelType string, membersID ...string) *Channel {
 	t.Helper()
 
 	owner := randomUser(t, c)
 	ctx := context.Background()
 
-	resp, err := c.CreateChannelWithMembers(ctx, "team", randomString(12), owner.ID, membersID...)
+	resp, err := c.CreateChannelWithMembers(ctx, channelType, randomString(12), owner.ID, membersID...)
 	require.NoError(t, err, "create channel")
 
 	t.Cleanup(func() {

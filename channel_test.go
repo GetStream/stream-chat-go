@@ -86,6 +86,14 @@ func TestClient_CreateChannel(t *testing.T) {
 			[]CreateChannelOptionFunc{HideForCreator(true)},
 			false,
 		},
+		{"create channel with ChannelMembers", "messaging", "", userID,
+			&ChannelRequest{
+				ChannelMembers: []*ChannelMember{
+					{UserID: userID},
+					{UserID: randomUsersID(t, c, 1)[0]},
+				},
+			}, nil, false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -150,6 +158,99 @@ func TestChannel_AddMembers(t *testing.T) {
 	// refresh channel state
 	require.NoError(t, ch.refresh(ctx), "refresh channel")
 	assert.Equal(t, user.ID, ch.Members[0].User.ID, "members contain user id")
+}
+
+func TestChannel_AddChannelMembers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	AddChannelMemberUser := randomUser(t, c)
+
+	channelModeratorID := randomUser(t, c).ID
+	channelAdminID := randomUser(t, c).ID
+
+	tests := []struct {
+		name          string
+		members       []*ChannelMember
+		options       []AddMembersOptions
+		expectedCount int
+		expectedRoles map[string]string // userID -> expected role
+		expectedUsers []string          // expected user IDs
+	}{
+		{
+			name: "Add members with ID only",
+			members: []*ChannelMember{
+				{UserID: randomUser(t, c).ID},
+				{UserID: randomUser(t, c).ID},
+			},
+			options: []AddMembersOptions{
+				AddMembersWithMessage(&Message{Text: "adding members with ID only", User: AddChannelMemberUser}),
+				AddMembersWithHideHistory(),
+			},
+			expectedCount: 2,
+			expectedRoles: map[string]string{},
+			expectedUsers: []string{},
+		},
+		{
+			name: "Add members with ID and role",
+			members: []*ChannelMember{
+				{UserID: randomUser(t, c).ID, ChannelRole: "channel_moderator"},
+				{UserID: randomUser(t, c).ID, ChannelRole: "channel_member"},
+			},
+			options: []AddMembersOptions{
+				AddMembersWithMessage(&Message{Text: "adding members with roles", User: AddChannelMemberUser}),
+			},
+			expectedCount: 2,
+			expectedRoles: map[string]string{
+				channelModeratorID: "channel_moderator",
+				channelAdminID:     "channel_member",
+			},
+			expectedUsers: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Store user IDs for verification
+			userIDs := make([]string, len(tt.members))
+			for i, member := range tt.members {
+				userIDs[i] = member.UserID
+			}
+
+			chanID := randomString(12)
+			resp, err := c.CreateChannel(ctx, "messaging", chanID, AddChannelMemberUser.ID, nil)
+			require.NoError(t, err, "create channel")
+			ch := resp.Channel
+			assert.Empty(t, ch.Members, "members are empty")
+
+			// Add members
+			_, err = ch.AddChannelMembers(ctx, tt.members, tt.options...)
+			require.NoError(t, err, "add channel members")
+
+			// Refresh channel state
+			require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+			// Verify member count
+			assert.Len(t, ch.Members, tt.expectedCount, "member count should match")
+
+			// Verify each member
+			for i, userID := range userIDs {
+				found := false
+				for _, member := range ch.Members {
+					if member.User.ID == userID {
+						found = true
+
+						// Check role if expected
+						if tt.members[i].ChannelRole != "" {
+							assert.Equal(t, tt.members[i].ChannelRole, member.ChannelRole,
+								"user %s should have role %s", userID, tt.members[i].ChannelRole)
+						}
+						break
+					}
+				}
+				assert.True(t, found, "user %s should be found in members", userID)
+			}
+		})
+	}
 }
 
 func TestChannel_AssignRoles(t *testing.T) {
@@ -398,10 +499,10 @@ func TestChannel_SendSystemMessage(t *testing.T) {
 
 func TestChannel_SendRestrictedVisibilityMessage(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
+	user := randomUser(t, c)
+	ch := initChannel(t, c, user.ID)
 	ctx := context.Background()
 	adminUser := randomUserWithRole(t, c, "admin")
-	user := randomUser(t, c)
 	msg := &Message{
 		Text: "test message",
 		RestrictedVisibility: []string{
@@ -841,4 +942,112 @@ func ExampleChannel_Query() {
 		Watchers: &PaginationParamsRequest{Limit: 1, Offset: 0},
 	}
 	_, _ = channel.Query(ctx, q)
+}
+
+// TestChannel_MessageCount_DefaultEnabled verifies that message_count is returned and equals the
+// amount of messages sent when the CountMessages feature is enabled (default behaviour).
+func TestChannel_MessageCount_DefaultEnabled(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	// team channel type has CountMessages enabled by default
+	ch := initChannel(t, c)
+
+	// Send a single message to the channel
+	user := randomUser(t, c)
+	_, err := ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	require.NoError(t, err, "send message")
+
+	// Refresh the channel state to get the updated message_count field
+	require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+	// message_count should be present and equal to 1
+	require.NotNil(t, ch.MessageCount, "message_count should not be nil when CountMessages is enabled")
+	assert.Equal(t, 1, *ch.MessageCount)
+}
+
+// TestChannel_MessageCount_Disabled verifies that message_count is omitted when the
+// CountMessages feature is disabled via config_override.
+func TestChannel_MessageCount_Disabled(t *testing.T) {
+	c := initClient(t)
+	ch := initChannelWithType(t, c, "messaging")
+	ctx := context.Background()
+
+	// Disable the count_messages feature for this channel via partial update
+	_, err := ch.PartialUpdate(ctx, PartialUpdate{
+		Set: map[string]interface{}{
+			"config_overrides": map[string]interface{}{
+				"count_messages": false,
+			},
+		},
+	})
+	require.NoError(t, err, "disable count_messages via config_override")
+
+	// Send a single message to the channel
+	user := randomUser(t, c)
+	_, err = ch.SendMessage(ctx, &Message{Text: "hello world"}, user.ID)
+	require.NoError(t, err, "send message")
+
+	// Refresh the channel state to get the updated message_count field
+	require.NoError(t, ch.refresh(ctx), "refresh channel")
+
+	// message_count should be nil when CountMessages is disabled
+	assert.Nil(t, ch.MessageCount, "message_count should be nil when CountMessages is disabled")
+}
+
+func TestChannel_MarkUnread(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+	user1 := randomUser(t, c)
+	user2 := randomUser(t, c)
+	ch := initChannel(t, c, user1.ID, user2.ID)
+
+	t.Run("successful mark unread with message ID", func(t *testing.T) {
+		// Send a message first
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "test message"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+
+		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromMessage(msgResp.Message.ID))
+		require.NoError(t, err, "mark unread with message ID should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("successful mark unread with thread ID", func(t *testing.T) {
+		// Send a message first
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "parent message"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+
+		// Send a reply to create a thread
+		replyResp, err := ch.SendMessage(ctx, &Message{Text: "reply", ParentID: msgResp.Message.ID}, user1.ID)
+		require.NoError(t, err, "send reply should not return an error")
+		require.NotEmpty(t, replyResp.Message.ID, "reply should have an ID")
+
+		resp, err := ch.MarkUnread(ctx, user2.ID, MarkUnreadThread(msgResp.Message.ID))
+		require.NoError(t, err, "mark unread with thread ID should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("successful mark unread with timestamp", func(t *testing.T) {
+		// Send a message first to get a valid timestamp
+		msgResp, err := ch.SendMessage(ctx, &Message{Text: "test message for timestamp"}, user2.ID)
+		require.NoError(t, err, "send message should not return an error")
+		require.NotNil(t, msgResp.Message.CreatedAt, "message should have a created_at timestamp")
+
+		timestamp := *msgResp.Message.CreatedAt
+		log.Println("=== Test: successful mark unread with timestamp ===")
+		log.Println("Test timestamp:", timestamp)
+		log.Println("  - IsZero:", timestamp.IsZero())
+		log.Println("  - Unix:", timestamp.Unix())
+		log.Println("  - Format RFC3339:", timestamp.Format(time.RFC3339))
+
+		resp, err := ch.MarkUnread(ctx, user1.ID, MarkUnreadFromTimestamp(timestamp))
+		require.NoError(t, err, "mark unread with timestamp should not return an error")
+		require.NotNil(t, resp, "response should not be nil")
+	})
+
+	t.Run("error when userID is empty", func(t *testing.T) {
+		resp, err := ch.MarkUnread(ctx, "")
+		require.Error(t, err, "mark unread with empty userID should return an error")
+		require.Nil(t, resp, "response should be nil on error")
+		require.Contains(t, err.Error(), "user ID must be not empty", "error message should mention user ID")
+	})
 }

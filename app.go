@@ -52,6 +52,9 @@ type AppSettings struct {
 	EnforceUniqueUsernames    *string                       `json:"enforce_unique_usernames,omitempty"`
 	ChannelHideMembersOnly    *bool                         `json:"channel_hide_members_only,omitempty"`
 	AsyncModerationConfig     *AsyncModerationConfiguration `json:"async_moderation_config,omitempty"`
+	EventHooks                []EventHook                   `json:"event_hooks,omitempty"`
+	SharedLocationsEnabled    *bool                         `json:"shared_locations_enabled,omitempty"`
+	UserResponseTimeEnabled   *bool                         `json:"user_response_time_enabled,omitempty"`
 }
 
 func (a *AppSettings) SetDisableAuth(b bool) *AppSettings {
@@ -94,6 +97,21 @@ func (a *AppSettings) SetAsyncModerationConfig(c AsyncModerationConfiguration) *
 	return a
 }
 
+func (a *AppSettings) SetEventHooks(eventHooks []EventHook) *AppSettings {
+	a.EventHooks = eventHooks
+	return a
+}
+
+func (a *AppSettings) SetSharedLocationsEnabled(b bool) *AppSettings {
+	a.SharedLocationsEnabled = &b
+	return a
+}
+
+func (a *AppSettings) SetUserResponseTimeEnabled(b bool) *AppSettings {
+	a.UserResponseTimeEnabled = &b
+	return a
+}
+
 func NewAppSettings() *AppSettings {
 	return &AppSettings{}
 }
@@ -113,6 +131,7 @@ type FileUploadConfig struct {
 	BlockedFileExtensions []string `json:"blocked_file_extensions,omitempty"`
 	AllowedMimeTypes      []string `json:"allowed_mime_types,omitempty"`
 	BlockedMimeTypes      []string `json:"blocked_mime_types,omitempty"`
+	SizeLimit             *int     `json:"size_limit,omitempty"`
 }
 
 type APNConfig struct {
@@ -181,6 +200,59 @@ type Policy struct {
 	Action    int       `json:"action"` // allow: 1, deny: 0
 	Owner     bool      `json:"owner"`
 	Priority  int       `json:"priority"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type HookType string
+type CallbackMode string
+type Product string
+
+const (
+	WebhookHook    HookType = "webhook"
+	SQSHook        HookType = "sqs"
+	SNSHook        HookType = "sns"
+	PendingMessage HookType = "pending_message"
+
+	CallbackModeNone  CallbackMode = "CALLBACK_MODE_NONE"
+	CallbackModeREST  CallbackMode = "CALLBACK_MODE_REST"
+	CallbackModeTwirp CallbackMode = "CALLBACK_MODE_TWIRP"
+
+	ProductAll        Product = "all"
+	ProductChat       Product = "chat"
+	ProductVideo      Product = "video"
+	ProductModeration Product = "moderation"
+	ProductFeeds      Product = "feeds"
+)
+
+type Callback struct {
+	Mode CallbackMode `json:"mode"`
+}
+
+type EventHook struct {
+	ID          string   `json:"id"`
+	HookType    HookType `json:"hook_type"`
+	Enabled     bool     `json:"enabled"`
+	EventTypes  []string `json:"event_types"`
+	Product     Product  `json:"product,omitempty"`
+	WebhookURL  string   `json:"webhook_url,omitempty"`
+	SQSQueueURL string   `json:"sqs_queue_url,omitempty"`
+	SQSRegion   string   `json:"sqs_region,omitempty"`
+	SQSAuthType string   `json:"sqs_auth_type,omitempty"`
+	SQSKey      string   `json:"sqs_key,omitempty"`
+	SQSSecret   string   `json:"sqs_secret,omitempty"`
+	SQSRoleARN  string   `json:"sqs_role_arn,omitempty"`
+	SNSTopicARN string   `json:"sns_topic_arn,omitempty"`
+	SNSRegion   string   `json:"sns_region,omitempty"`
+	SNSAuthType string   `json:"sns_auth_type,omitempty"`
+	SNSKey      string   `json:"sns_key,omitempty"`
+	SNSSecret   string   `json:"sns_secret,omitempty"`
+	SNSRoleARN  string   `json:"sns_role_arn,omitempty"`
+
+	// pending message config
+	TimeoutMs int       `json:"timeout_ms,omitempty"`
+	Callback  *Callback `json:"callback,omitempty"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

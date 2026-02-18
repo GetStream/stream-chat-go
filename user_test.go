@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -212,6 +213,28 @@ func TestClient_UpsertUsers(t *testing.T) {
 	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
 }
 
+func TestClient_UpsertUsersWithRoleAndTeamsRole(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	user := &User{
+		ID:        randomString(10),
+		Role:      "admin",
+		Teams:     []string{"blue"},
+		TeamsRole: map[string]string{"blue": "admin"},
+	}
+
+	resp, err := c.UpsertUsers(ctx, user)
+	require.NoError(t, err, "update users with role and teams_role")
+
+	assert.Contains(t, resp.Users, user.ID)
+	assert.Equal(t, "admin", resp.Users[user.ID].Role)
+	assert.Equal(t, []string{"blue"}, resp.Users[user.ID].Teams)
+	assert.Equal(t, map[string]string{"blue": "admin"}, resp.Users[user.ID].TeamsRole)
+	assert.NotEmpty(t, resp.Users[user.ID].CreatedAt)
+	assert.NotEmpty(t, resp.Users[user.ID].UpdatedAt)
+}
+
 func TestClient_UpdatePrivacySettings(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
@@ -221,38 +244,39 @@ func TestClient_UpdatePrivacySettings(t *testing.T) {
 	resp, err := c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.Nil(t, resp.User.PrivacySettings)
 
 	user = resp.User
-	user.PrivacySettings = PrivacySettings{
-		TypingIndicators: TypingIndicators{
-			Enabled: true,
+	user.PrivacySettings = &PrivacySettings{
+		TypingIndicators: &TypingIndicators{
+			Enabled: false,
 		},
 	}
 	resp, err = c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.True(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.NotNil(t, resp.User.PrivacySettings)
+	require.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	require.Nil(t, resp.User.PrivacySettings.ReadReceipts)
 
 	user = resp.User
-	user.PrivacySettings = PrivacySettings{
-		ReadReceipts: ReadReceipts{
+	user.PrivacySettings = &PrivacySettings{
+		TypingIndicators: &TypingIndicators{
 			Enabled: true,
+		},
+		ReadReceipts: &ReadReceipts{
+			Enabled: false,
 		},
 	}
 	resp, err = c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, resp.User.ID, user.ID)
-	assert.NotNil(t, resp.User.PrivacySettings)
-	assert.False(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.True(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, resp.User.ID, user.ID)
+	require.NotNil(t, resp.User.PrivacySettings)
+	require.True(t, resp.User.PrivacySettings.TypingIndicators.Enabled)
+	require.False(t, resp.User.PrivacySettings.ReadReceipts.Enabled)
 }
 
 func TestClient_PartialUpdateUsers(t *testing.T) {
@@ -300,10 +324,8 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 	upsertResponse, err := c.UpsertUser(ctx, user)
 	require.NoError(t, err, "update users")
 
-	assert.Equal(t, upsertResponse.User.ID, user.ID)
-	assert.NotNil(t, upsertResponse.User.PrivacySettings)
-	assert.False(t, upsertResponse.User.PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, upsertResponse.User.PrivacySettings.ReadReceipts.Enabled)
+	require.Equal(t, upsertResponse.User.ID, user.ID)
+	require.Nil(t, upsertResponse.User.PrivacySettings)
 
 	update := PartialUserUpdate{
 		ID: user.ID,
@@ -319,8 +341,122 @@ func TestClient_PartialUpdatePrivacySettings(t *testing.T) {
 	partialUpdateResponse, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
 	require.NoError(t, err, "partial update user")
 
-	assert.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
-	assert.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
+	require.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
+	require.Nil(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts)
+
+	update = PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"privacy_settings": map[string]interface{}{
+				"read_receipts": map[string]interface{}{
+					"enabled": false,
+				},
+			},
+		},
+	}
+	partialUpdateResponse, err = c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	require.NoError(t, err, "partial update user")
+	require.True(t, partialUpdateResponse.Users[user.ID].PrivacySettings.TypingIndicators.Enabled)
+	require.False(t, partialUpdateResponse.Users[user.ID].PrivacySettings.ReadReceipts.Enabled)
+}
+
+func TestClient_PartialUpdateUserWithTeam(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	// First create a basic user
+	user := &User{ID: randomString(10)}
+	upsertResp, err := c.UpsertUser(ctx, user)
+	require.NoError(t, err, "create user")
+	assert.Equal(t, upsertResp.User.ID, user.ID)
+
+	// Partially update the user with team and teams_role
+	update := PartialUserUpdate{
+		ID: user.ID,
+		Set: map[string]interface{}{
+			"teams":      []string{"blue"},
+			"teams_role": map[string]string{"blue": "admin"},
+		},
+	}
+
+	partialResp, err := c.PartialUpdateUsers(ctx, []PartialUserUpdate{update})
+	require.NoError(t, err, "partial update user with team")
+
+	// Verify the changes
+	assert.Contains(t, partialResp.Users, user.ID)
+	assert.Equal(t, []string{"blue"}, partialResp.Users[user.ID].Teams)
+	assert.Equal(t, map[string]string{"blue": "admin"}, partialResp.Users[user.ID].TeamsRole)
+}
+
+func TestClient_RestoreUsers(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	userId := randomString(10)
+	users := []*User{
+		{
+			ID: userId,
+		},
+	}
+	// create users
+	_, err := c.UpsertUsers(ctx, users...)
+	require.NoError(t, err, "UpsertUsers should not return an error")
+
+	_, err = c.DeleteUser(ctx, userId)
+	require.NoError(t, err, "DeactivateUsers should not return an error")
+
+	// Test error case: empty userIDs
+	t.Run("Empty userIDs", func(t *testing.T) {
+		_, err := c.RestoreUsers(ctx, []string{})
+		require.Error(t, err, "RestoreUsers should return an error when userIDs is empty")
+		require.Equal(t, "userIDs are empty", err.Error(), "Error message should match")
+	})
+
+	// Test successful case
+	t.Run("Restore deactivated users", func(t *testing.T) {
+		// Get the users to verify they are deactivated
+		resp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": []string{userId},
+					},
+				},
+			},
+		})
+
+		require.NoError(t, err, "QueryUsers should not return an error")
+		require.Empty(t, resp.Users, "Response users should be empty")
+
+		for _, user := range resp.Users {
+			require.Contains(t, userId, user.ID, "User should be in the list of deactivated users")
+		}
+
+		// Restore the users
+		restoreResp, err := c.RestoreUsers(ctx, []string{userId})
+		require.NoError(t, err, "RestoreUsers should not return an error")
+		require.NotNil(t, restoreResp, "Response should not be nil")
+
+		// Verify users are restored by querying them without IncludeDeactivatedUsers
+		verifyResp, err := c.QueryUsers(ctx, &QueryUsersOptions{
+			QueryOption: QueryOption{
+				Filter: map[string]interface{}{
+					"id": map[string]interface{}{
+						"$in": []string{userId},
+					},
+				},
+			},
+		})
+		require.NoError(t, err, "QueryUsers should not return an error")
+		for _, user := range verifyResp.Users {
+			require.Contains(t, []string{userId}, user.ID, "User should be in the list of restored users")
+		}
+	})
+}
+
+// Helper function to create a time pointer
+func timePtr(t time.Time) *time.Time {
+	return &t
 }
 
 func ExampleClient_UpsertUser() {

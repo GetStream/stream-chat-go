@@ -24,6 +24,27 @@ func TestClient_TranslateMessage(t *testing.T) {
 	require.Equal(t, "mensaje de prueba", translated.Message.I18n["es_text"])
 }
 
+func TestClient_SendMessage(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{ID: randomString(10), Text: "test message", MML: "test mml", HTML: "test HTML"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+	require.Equal(t, ch.CID, messageResp.Message.CID)
+	require.Equal(t, user.ID, messageResp.Message.User.ID)
+	require.Equal(t, msg.ID, messageResp.Message.ID)
+	require.Equal(t, msg.Text, messageResp.Message.Text)
+	require.Equal(t, msg.MML, messageResp.Message.MML)
+	require.Equal(t, msg.HTML, messageResp.Message.HTML)
+}
+
 func TestClient_SendMessage_Pending(t *testing.T) {
 	c := initClient(t)
 	user := randomUser(t, c)
@@ -46,6 +67,30 @@ func TestClient_SendMessage_Pending(t *testing.T) {
 
 	_, err = c.CommitMessage(ctx, messageResp.Message.ID)
 	require.NoError(t, err)
+}
+
+func TestClient_SendMessage_WithPendingFalse(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	msg := &Message{Text: "message with WithPending(false) - non-pending message"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID, WithPending(false))
+	require.NoError(t, err)
+
+	// Get the message to verify it's not in pending state
+	gotMsg, err := c.GetMessage(ctx, messageResp.Message.ID)
+	require.NoError(t, err)
+
+	// No need to commit the message as it's already in non-pending state
+	// The message should be immediately available without requiring a commit
+	require.NotNil(t, gotMsg.Message)
+	require.Equal(t, msg.Text, gotMsg.Message.Text)
 }
 
 func TestClient_SendMessage_SkipEnrichURL(t *testing.T) {
@@ -148,56 +193,72 @@ func TestClient_SendMessage_KeepChannelHidden(t *testing.T) {
 	require.Empty(t, result.Channels)
 }
 
-func TestClient_UpdateRestrictedVisibilityMessage(t *testing.T) {
+func TestMessage_ChannelRoleInMember(t *testing.T) {
 	c := initClient(t)
-	ch := initChannel(t, c)
 	ctx := context.Background()
-	adminUser := randomUserWithRole(t, c, "admin")
-	user1 := randomUser(t, c)
-	user2 := randomUser(t, c)
-	msg := &Message{
-		Text: "test message",
-		RestrictedVisibility: []string{
-			user1.ID,
-		},
-	}
 
-	resp, err := ch.SendMessage(ctx, msg, adminUser.ID)
-	require.NoError(t, err, "send message")
+	userMember := randomUser(t, c)
+	userCustom := randomUser(t, c)
 
-	msg = resp.Message
-	msg.RestrictedVisibility = []string{user2.ID}
-	msg.UserID = adminUser.ID
-	resp, err = c.UpdateMessage(ctx, msg, msg.ID)
-	require.NoError(t, err, "send message")
-	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
-}
-
-func TestClient_PartialUpdateRestrictedVisibilityMessage(t *testing.T) {
-	c := initClient(t)
-	ch := initChannel(t, c)
-	ctx := context.Background()
-	adminUser := randomUserWithRole(t, c, "admin")
-	user1 := randomUser(t, c)
-	user2 := randomUser(t, c)
-	msg := &Message{
-		Text: "test message",
-		RestrictedVisibility: []string{
-			user1.ID,
-		},
-	}
-
-	messageResponse, err := ch.SendMessage(ctx, msg, adminUser.ID)
-	require.NoError(t, err, "send message")
-
-	resp, err := c.PartialUpdateMessage(ctx, messageResponse.Message.ID, &MessagePartialUpdateRequest{
-		UserID: adminUser.ID,
-		PartialUpdate: PartialUpdate{
-			Set: map[string]interface{}{
-				"restricted_visibility": []string{user2.ID},
-			},
+	chanID := randomString(12)
+	chResp, err := c.CreateChannel(ctx, "messaging", chanID, userMember.ID, &ChannelRequest{
+		ChannelMembers: []*ChannelMember{
+			{UserID: userMember.ID, ChannelRole: "channel_member"},
+			{UserID: userCustom.ID, ChannelRole: "custom_role"},
 		},
 	})
-	require.NoError(t, err, "send message")
-	assert.Equal(t, []string{user2.ID}, resp.Message.RestrictedVisibility)
+	require.NoError(t, err, "create channel")
+	ch := chResp.Channel
+
+	msgMember := &Message{Text: "message from channel_member"}
+	respMember, err := ch.SendMessage(ctx, msgMember, userMember.ID)
+	require.NoError(t, err, "send message member")
+	require.NotNil(t, respMember.Message.Member)
+	assert.Equal(t, "channel_member", respMember.Message.Member.ChannelRole)
+
+	msgCustom := &Message{Text: "message from custom_role"}
+	respCustom, err := ch.SendMessage(ctx, msgCustom, userCustom.ID)
+	require.NoError(t, err, "send message custom role")
+	require.NotNil(t, respCustom.Message.Member)
+	assert.Equal(t, "custom_role", respCustom.Message.Member.ChannelRole)
+
+	queryResp, err := c.QueryChannels(ctx, &QueryOption{
+		Filter: map[string]interface{}{"cid": ch.CID},
+		UserID: userMember.ID,
+	})
+	require.NoError(t, err, "query channel")
+	require.Len(t, queryResp.Channels, 1, "one channel should match filter")
+
+	roles := map[string]string{
+		userMember.ID: "channel_member",
+		userCustom.ID: "custom_role",
+	}
+	for _, m := range queryResp.Channels[0].Messages {
+		expectedRole, ok := roles[m.User.ID]
+		if !ok {
+			continue // skip system messages or others
+		}
+		require.NotNil(t, m.Member)
+		assert.Equal(t, expectedRole, m.Member.ChannelRole,
+			"user %s should have role %s", m.User.ID, expectedRole)
+	}
+}
+
+func TestClient_DeleteMessageWithOptions_DeleteForMe(t *testing.T) {
+	c := initClient(t)
+	user := randomUser(t, c)
+	ctx := context.Background()
+
+	ch := initChannel(t, c, user.ID)
+	resp1, err := c.CreateChannel(ctx, ch.Type, ch.ID, user.ID, nil)
+	require.NoError(t, err)
+
+	// Send a message to delete
+	msg := &Message{Text: "test message to delete for me"}
+	messageResp, err := resp1.Channel.SendMessage(ctx, msg, user.ID)
+	require.NoError(t, err)
+
+	// Test delete for me only
+	_, err = c.DeleteMessageWithOptions(ctx, messageResp.Message.ID, DeleteMessageWithDeleteForMe(user.ID))
+	require.NoError(t, err)
 }

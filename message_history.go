@@ -27,8 +27,10 @@ type MessageHistoryEntry struct {
 	ExtraData   map[string]interface{} `json:"-"`
 }
 
-var _ json.Unmarshaler = (*MessageHistoryEntry)(nil)
-var _ json.Marshaler = (*MessageHistoryEntry)(nil)
+var (
+	_ json.Unmarshaler = (*MessageHistoryEntry)(nil)
+	_ json.Marshaler   = (*MessageHistoryEntry)(nil)
+)
 
 type messageHistoryJson MessageHistoryEntry
 
@@ -43,6 +45,7 @@ func (m *MessageHistoryEntry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	removeFromMap(m.ExtraData, *m)
+	flattenExtraData(m.ExtraData)
 	return nil
 }
 

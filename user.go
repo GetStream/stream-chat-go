@@ -30,8 +30,9 @@ type ChannelMute struct {
 }
 
 type PrivacySettings struct {
-	TypingIndicators TypingIndicators `json:"typing_indicators,omitempty"`
-	ReadReceipts     ReadReceipts     `json:"read_receipts,omitempty"`
+	TypingIndicators *TypingIndicators `json:"typing_indicators,omitempty"`
+	ReadReceipts     *ReadReceipts     `json:"read_receipts,omitempty"`
+	DeliveryReceipts *DeliveryReceipts `json:"delivery_receipts,omitempty"`
 }
 
 type TypingIndicators struct {
@@ -42,17 +43,22 @@ type ReadReceipts struct {
 	Enabled bool `json:"enabled"`
 }
 
-type User struct {
-	ID       string   `json:"id"`
-	Name     string   `json:"name,omitempty"`
-	Image    string   `json:"image,omitempty"`
-	Role     string   `json:"role,omitempty"`
-	Teams    []string `json:"teams,omitempty"`
-	Language string   `json:"language,omitempty"`
+type DeliveryReceipts struct {
+	Enabled bool `json:"enabled"`
+}
 
-	Online          bool            `json:"online,omitempty"`
-	Invisible       bool            `json:"invisible,omitempty"`
-	PrivacySettings PrivacySettings `json:"privacy_settings,omitempty"`
+type User struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name,omitempty"`
+	Image     string            `json:"image,omitempty"`
+	Role      string            `json:"role,omitempty"`
+	Teams     []string          `json:"teams,omitempty"`
+	TeamsRole map[string]string `json:"teams_role,omitempty"`
+	Language  string            `json:"language,omitempty"`
+
+	Online          bool             `json:"online,omitempty"`
+	Invisible       bool             `json:"invisible,omitempty"`
+	PrivacySettings *PrivacySettings `json:"privacy_settings,omitempty"`
 
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
@@ -63,6 +69,7 @@ type User struct {
 	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
 	ExtraData                map[string]interface{} `json:"-"`
 	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
+	AvgResponseTime          *int                   `json:"avg_response_time,omitempty"`
 }
 
 type userForJSON User
@@ -80,6 +87,7 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(u.ExtraData, *u)
+	flattenExtraData(u.ExtraData)
 	return nil
 }
 
@@ -402,7 +410,8 @@ type deactivateUsersOptions struct {
 }
 
 // DeactivateUsers deactivates the users with the given target user IDs.
-func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, options ...DeactivateUserOptions) (*Response, error) {
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be checked with client.GetTask method.
+func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, options ...DeactivateUserOptions) (*AsyncTaskResponse, error) {
 	if len(targetIDs) == 0 {
 		return nil, errors.New("target IDs is empty")
 	}
@@ -416,7 +425,7 @@ func (c *Client) DeactivateUsers(ctx context.Context, targetIDs []string, option
 
 	p := path.Join("users", "deactivate")
 
-	var resp Response
+	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
@@ -478,7 +487,8 @@ type reactivateUsersOptions struct {
 }
 
 // ReactivateUsers reactivates deactivated users with the given target user IDs.
-func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, options ...ReactivateUserOptions) (*Response, error) {
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be checked with client.GetTask method.
+func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, options ...ReactivateUserOptions) (*AsyncTaskResponse, error) {
 	if len(targetIDs) == 0 {
 		return nil, errors.New("target IDs is empty")
 	}
@@ -492,7 +502,7 @@ func (c *Client) ReactivateUsers(ctx context.Context, targetIDs []string, option
 
 	p := path.Join("users", "reactivate")
 
-	var resp Response
+	var resp AsyncTaskResponse
 	err := c.makeRequest(ctx, http.MethodPost, p, nil, opts, &resp)
 	return &resp, err
 }
@@ -655,4 +665,22 @@ func (c *Client) RevokeUsersTokens(ctx context.Context, userIDs []string, before
 
 	resp, err := c.PartialUpdateUsers(ctx, userUpdates)
 	return &resp.Response, err
+}
+
+type RestoreUserRequest struct {
+	UserIDs []string `json:"user_ids"`
+}
+
+func (c *Client) RestoreUsers(ctx context.Context, userIDs []string) (*Response, error) {
+	if len(userIDs) == 0 {
+		return nil, errors.New("userIDs are empty")
+	}
+
+	path := path.Join("users", "restore")
+
+	req := RestoreUserRequest{UserIDs: userIDs}
+
+	var resp Response
+	err := c.makeRequest(ctx, http.MethodPost, path, nil, req, &resp)
+	return &resp, err
 }

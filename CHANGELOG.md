@@ -2,6 +2,109 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.2.0](https://github.com/GetStream/stream-chat-go/compare/v8.1.1...v8.2.0) (2026-02-04)
+
+### [8.1.1](https://github.com/GetStream/stream-chat-go/compare/v8.1.0...v8.1.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* rename invites to inviteMembers ([#366](https://github.com/GetStream/stream-chat-go/issues/366)) ([65ce7fe](https://github.com/GetStream/stream-chat-go/commit/65ce7fe123339c0d7075478c94aca612b98850ab))
+
+## [8.1.0](https://github.com/GetStream/stream-chat-go/compare/v8.0.0...v8.1.0) (2026-01-08)
+
+## [8.0.0](https://github.com/GetStream/stream-chat-go/compare/v7.15.1...v8.0.0) (2025-12-19)
+
+
+### Features
+
+* Fix QueryReminders to use filter parameter instead of filter_conditions ([#360](https://github.com/GetStream/stream-chat-go/issues/360)) ([d00843e](https://github.com/GetStream/stream-chat-go/commit/d00843eff6fc2067b9671e609c6c0f2a15140194))
+* support option to mark messages unread by message timestamp ([#358](https://github.com/GetStream/stream-chat-go/issues/358)) ([6cb57a2](https://github.com/GetStream/stream-chat-go/commit/6cb57a2c06727ab867182c88841cf27f749a769a))
+
+### [7.15.1](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.15.1) (2025-11-12)
+
+
+### Features
+
+* [CHA-1149] add channel message count ([#340](https://github.com/GetStream/stream-chat-go/issues/340)) ([0aad5c3](https://github.com/GetStream/stream-chat-go/commit/0aad5c35dcf8db246bf49e7436c181b21eb51201))
+* [CHA-1462] Added filter tags to channel ([#357](https://github.com/GetStream/stream-chat-go/issues/357)) ([2f34759](https://github.com/GetStream/stream-chat-go/commit/2f347590347831364319e6029a42c40821b6e4fa))
+
+## [7.15.0](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.15.0) (2025-09-01)
+
+
+### Features
+
+* [CHA-1149] add channel message count ([#340](https://github.com/GetStream/stream-chat-go/issues/340)) ([0aad5c3](https://github.com/GetStream/stream-chat-go/commit/0aad5c35dcf8db246bf49e7436c181b21eb51201))
+
+### [7.14.3](https://github.com/GetStream/stream-chat-go/compare/v7.14.2...v7.14.3) (2025-09-01)
+
+
+### Features
+
+* [CHA-1149] add channel message count ([#340](https://github.com/GetStream/stream-chat-go/issues/340)) ([0aad5c3](https://github.com/GetStream/stream-chat-go/commit/0aad5c35dcf8db246bf49e7436c181b21eb51201))
+
+### [7.14.2](https://github.com/GetStream/stream-chat-go/compare/v7.14.1...v7.14.2) (2025-08-27)
+
+### [7.14.1](https://github.com/GetStream/stream-chat-go/compare/v7.14.0...v7.14.1) (2025-08-22)
+
+
+### Features
+
+* Add avg response time to app setting and user response ([#332](https://github.com/GetStream/stream-chat-go/issues/332)) ([452a078](https://github.com/GetStream/stream-chat-go/commit/452a0782bb9838cb9d48602e76d657f001a42160))
+* Return AsyncTaskResponse for DeactivateUsers and ReactivateUsers ([#339](https://github.com/GetStream/stream-chat-go/issues/339)) ([8e5dfe7](https://github.com/GetStream/stream-chat-go/commit/8e5dfe76b561d731935581bcfdaa3c999b2febe8))
+
+## [7.14.0](https://github.com/GetStream/stream-chat-go/compare/v7.13.0...v7.14.0) (2025-07-16)
+
+## [7.13.0](https://github.com/GetStream/stream-chat-go/compare/v7.12.0...v7.13.0) (2025-07-10)
+
+
+### Features
+
+* add SizeLimit support to FileUploadConfig ([#330](https://github.com/GetStream/stream-chat-go/issues/330)) ([5f4e213](https://github.com/GetStream/stream-chat-go/commit/5f4e213427d2eb6e0f79a1616b3f07dce1393200))
+
+## [7.12.0](https://github.com/GetStream/stream-chat-go/compare/v7.11.0...v7.12.0) (2025-07-03)
+
+## [7.11.0](https://github.com/GetStream/stream-chat-go/compare/v7.10.0...v7.11.0) (2025-06-17)
+
+## [7.10.0](https://github.com/GetStream/stream-chat-go/compare/v7.9.0...v7.10.0) (2025-05-22)
+
+
+### Features
+
+* add optional force_moderation field parameter to the send message request ([#322](https://github.com/GetStream/stream-chat-go/issues/322)) ([208ee0b](https://github.com/GetStream/stream-chat-go/commit/208ee0b4d666d62964df73aa2b4f493380624b5f))
+
+## [7.10.0](https://github.com/GetStream/stream-chat-go/compare/v7.9.0...v7.10.0) (2025-05-22)
+
+
+### Features
+
+* add optional force_moderation field parameter to the send message request ([#322](https://github.com/GetStream/stream-chat-go/issues/322)) ([208ee0b](https://github.com/GetStream/stream-chat-go/commit/208ee0b4d666d62964df73aa2b4f493380624b5f))
+
+## [7.9.0](https://github.com/GetStream/stream-chat-go/compare/v7.8.1...v7.9.0) (2025-05-13)
+
+
+### Features
+
+* **message:** add MessageImmediate option for setting pending=false ([#320](https://github.com/GetStream/stream-chat-go/issues/320)) ([282014f](https://github.com/GetStream/stream-chat-go/commit/282014fd4ae7b15918b6cd2c523d63f1e792fc69))
+
+### [7.8.1](https://github.com/GetStream/stream-chat-go/compare/v7.8.0...v7.8.1) (2025-04-24)
+
+## [7.8.0](https://github.com/GetStream/stream-chat-go/compare/v7.7.0...v7.8.0) (2025-04-11)
+
+## [7.7.0](https://github.com/GetStream/stream-chat-go/compare/v7.6.0...v7.7.0) (2025-04-07)
+
+
+### Features
+
+* Add pending and pinned messages to query channel response ([#313](https://github.com/GetStream/stream-chat-go/issues/313)) ([9036c50](https://github.com/GetStream/stream-chat-go/commit/9036c50891ab32d366283101f2a1117868e6989e))
+
+## [7.6.0](https://github.com/GetStream/stream-chat-go/compare/v7.5.0...v7.6.0) (2025-03-17)
+
+
+### Features
+
+* Add mark unread and update mark read params ([#305](https://github.com/GetStream/stream-chat-go/issues/305)) ([ca4898d](https://github.com/GetStream/stream-chat-go/commit/ca4898d381355f971bdf806fd8459f7e9a8ce3f1))
+
 ## [7.5.0](https://github.com/GetStream/stream-chat-go/compare/v7.4.0...v7.5.0) (2025-03-13)
 
 ## [7.4.0](https://github.com/GetStream/stream-chat-go/compare/v7.3.0...v7.4.0) (2025-02-24)

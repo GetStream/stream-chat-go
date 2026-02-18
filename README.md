@@ -1,7 +1,7 @@
 # Official Go SDK for [Stream Chat](https://getstream.io/chat/)
 
 [![build](https://github.com/GetStream/stream-chat-go/workflows/build/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
-[![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v7?tab=doc)
+[![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v8?tab=doc)
 
 <p align="center">
     <img src="./assets/logo.svg" width="50%" height="50%">
@@ -28,7 +28,7 @@ For the client-side integrations (web and mobile) have a look at the JavaScript,
 ## ⚙️ Installation
 
 ```shell
-go get github.com/GetStream/stream-chat-go/v7
+go get github.com/GetStream/stream-chat-go/v8
 ```
 
 ## ✨ Getting started
@@ -39,7 +39,7 @@ package main
 import (
 	"os"
 
-	stream "github.com/GetStream/stream-chat-go/v7"
+	stream "github.com/GetStream/stream-chat-go/v8"
 )
 
 var APIKey = os.Getenv("STREAM_KEY")

@@ -60,11 +60,15 @@ type Message struct {
 	MML  string            `json:"mml,omitempty"`
 	I18n map[string]string `json:"i18n,omitempty"`
 
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	CreatedAt    *time.Time `json:"created_at,omitempty"`
+	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
+	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
+	DeletedForMe bool       `json:"deleted_for_me,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
+
+	SharedLocation *SharedLocation `json:"shared_location,omitempty"`
+	Member         *ChannelMember  `json:"member,omitempty"`
 }
 
 type messageForJSON Message
@@ -81,6 +85,7 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	removeFromMap(m.ExtraData, *m)
+	flattenExtraData(m.ExtraData)
 	return nil
 }
 
@@ -93,17 +98,21 @@ func (m *Message) toRequest() messageRequest {
 	var req messageRequest
 
 	req.Message = messageRequestMessage{
+		ID:                   m.ID,
 		Text:                 m.Text,
 		Type:                 m.Type,
 		Attachments:          m.Attachments,
 		UserID:               m.UserID,
 		ExtraData:            m.ExtraData,
+		HTML:                 m.HTML,
 		Pinned:               m.Pinned,
 		ParentID:             m.ParentID,
+		MML:                  m.MML,
 		ShowInChannel:        m.ShowInChannel,
 		Silent:               m.Silent,
 		QuotedMessageID:      m.QuotedMessageID,
 		RestrictedVisibility: m.RestrictedVisibility,
+		SharedLocation:       m.SharedLocation,
 	}
 
 	if len(m.MentionedUsers) > 0 {
@@ -120,24 +129,29 @@ type messageRequest struct {
 	Message                messageRequestMessage `json:"message"`
 	SkipPush               bool                  `json:"skip_push,omitempty"`
 	SkipEnrichURL          bool                  `json:"skip_enrich_url,omitempty"`
-	Pending                bool                  `json:"pending,omitempty"`
+	Pending                *bool                 `json:"pending,omitempty"`
 	IsPendingMessage       bool                  `json:"is_pending_message,omitempty"`
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
+	ForceModeration        *bool                 `json:"force_moderation,omitempty"`
 }
 
 type messageRequestMessage struct {
 	Text                 string                 `json:"text"`
+	ID                   string                 `json:"id,omitempty"`
 	Type                 MessageType            `json:"type" validate:"omitempty,oneof=system"`
 	Attachments          []*Attachment          `json:"attachments"`
 	UserID               string                 `json:"user_id"`
 	MentionedUsers       []string               `json:"mentioned_users"`
+	MML                  string                 `json:"mml,omitempty"`
 	ParentID             string                 `json:"parent_id"`
 	ShowInChannel        bool                   `json:"show_in_channel"`
 	Silent               bool                   `json:"silent"`
 	QuotedMessageID      string                 `json:"quoted_message_id"`
-	Pinned               bool                   `json:"pinned"`
+	HTML                 string                 `json:"html,omitempty"`
+	Pinned               bool                   `json:"pinned,omitempty"`
 	RestrictedVisibility []string               `json:"restricted_visibility"`
+	SharedLocation       *SharedLocation        `json:"shared_location,omitempty"`
 	ExtraData            map[string]interface{} `json:"-"`
 }
 
@@ -155,6 +169,7 @@ func (s *messageRequestMessage) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(s.ExtraData, *s)
+	flattenExtraData(s.ExtraData)
 	return nil
 }
 
@@ -194,6 +209,7 @@ func (a *Attachment) UnmarshalJSON(data []byte) error {
 	}
 
 	removeFromMap(a.ExtraData, *a)
+	flattenExtraData(a.ExtraData)
 	return nil
 }
 
@@ -220,10 +236,27 @@ func MessageSkipEnrichURL(r *messageRequest) {
 	}
 }
 
-// MessagePending is a flag that makes this a pending message.
+// MessagePending sets a flag that marks this message as pending.
+// Deprecated: Use WithPending(true) instead.
 func MessagePending(r *messageRequest) {
-	if r != nil {
-		r.Pending = true
+	WithPending(true)(r)
+}
+
+// WithPending returns an option that sets the Pending flag to the specified value.
+func WithPending(pending bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.Pending = &pending
+		}
+	}
+}
+
+// WithForceModeration returns an option that sets the ForceModeration flag to the specified value.
+func WithForceModeration(forceModeration bool) SendMessageOption {
+	return func(r *messageRequest) {
+		if r != nil {
+			r.ForceModeration = &forceModeration
+		}
 	}
 }
 
@@ -385,25 +418,68 @@ func (c *Client) CommitMessage(ctx context.Context, msgID string) (*Response, er
 	return &resp, err
 }
 
+// DeleteMessageOptions contains options for deleting a message.
+type DeleteMessageOptions struct {
+	Hard        bool   `json:"hard,omitempty"`
+	DeleteForMe bool   `json:"delete_for_me,omitempty"`
+	UserID      string `json:"user_id,omitempty"`
+}
+
+// DeleteMessageOption is a function type for configuring delete message options.
+type DeleteMessageOption func(*DeleteMessageOptions)
+
+// DeleteMessageWithHard sets the hard delete option.
+func DeleteMessageWithHard() DeleteMessageOption {
+	return func(opts *DeleteMessageOptions) {
+		opts.Hard = true
+	}
+}
+
+// DeleteMessageWithDeleteForMe sets the delete_for_me option.
+func DeleteMessageWithDeleteForMe(userID string) DeleteMessageOption {
+	return func(opts *DeleteMessageOptions) {
+		opts.DeleteForMe = true
+		opts.UserID = userID
+	}
+}
+
 // DeleteMessage soft deletes the message with given msgID.
 func (c *Client) DeleteMessage(ctx context.Context, msgID string) (*Response, error) {
-	return c.deleteMessage(ctx, msgID, false)
+	return c.deleteMessage(ctx, msgID)
 }
 
 // HardDeleteMessage deletes the message with given msgID. This is permanent.
 func (c *Client) HardDeleteMessage(ctx context.Context, msgID string) (*Response, error) {
-	return c.deleteMessage(ctx, msgID, true)
+	return c.deleteMessage(ctx, msgID, DeleteMessageWithHard())
 }
 
-func (c *Client) deleteMessage(ctx context.Context, msgID string, hard bool) (*Response, error) {
+// DeleteMessageWithOptions deletes the message with given msgID using the provided options.
+func (c *Client) DeleteMessageWithOptions(ctx context.Context, msgID string, options ...DeleteMessageOption) (*Response, error) {
+	return c.deleteMessage(ctx, msgID, options...)
+}
+
+func (c *Client) deleteMessage(ctx context.Context, msgID string, options ...DeleteMessageOption) (*Response, error) {
 	if msgID == "" {
 		return nil, errors.New("message ID must be not empty")
 	}
+
+	opts := &DeleteMessageOptions{}
+	for _, fn := range options {
+		fn(opts)
+	}
+
 	p := path.Join("messages", url.PathEscape(msgID))
 
 	params := map[string][]string{}
-	if hard {
+	if opts.Hard {
 		params["hard"] = []string{"true"}
+	}
+	if opts.DeleteForMe {
+		if opts.UserID == "" {
+			return nil, errors.New("user ID must be not empty for delete_for_me functionality")
+		}
+		params["delete_for_me"] = []string{"true"}
+		params["deleted_by"] = []string{opts.UserID}
 	}
 
 	var resp Response

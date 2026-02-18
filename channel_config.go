@@ -27,6 +27,7 @@ type ChannelConfig struct {
 	Uploads           bool `json:"uploads"`
 	URLEnrichment     bool `json:"url_enrichment"`
 	CustomEvents      bool `json:"custom_events"`
+	CountMessages     bool `json:"count_messages"`
 
 	// number of days to keep messages, must be MessageRetentionForever or numeric string
 	MessageRetention    string `json:"message_retention"`
@@ -45,6 +46,9 @@ type ChannelConfig struct {
 	PartitionTTL  *DurationString `json:"partition_ttl,omitempty"`
 
 	SkipLastMsgUpdateForSystemMsgs bool `json:"skip_last_msg_update_for_system_msgs,omitempty"`
+
+	// UserMessageReminders is a flag to enable user message reminders.
+	UserMessageReminders bool `json:"user_message_reminders,omitempty"`
 }
 
 // DurationString is a duration that's encoded to as a string in JSON.
