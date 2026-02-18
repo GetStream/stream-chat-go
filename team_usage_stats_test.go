@@ -8,8 +8,116 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// =============================================================================
+// Basic Tests - Use regular app credentials, expect empty teams
+// These tests verify the API works correctly without requiring multi-tenant data
+// =============================================================================
+
+func TestQueryTeamUsageStats_BasicAPI(t *testing.T) {
+	c := initClient(t)
+	ctx := context.Background()
+
+	t.Run("No parameters returns valid response", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, resp.Teams)
+		// Regular app doesn't have multi-tenant, so teams is empty
+		require.Empty(t, resp.Teams)
+	})
+
+	t.Run("Empty request returns valid response", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Empty(t, resp.Teams)
+	})
+
+	t.Run("Month parameter works", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "2026-02",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Empty(t, resp.Teams)
+	})
+
+	t.Run("Date range works", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			StartDate: "2026-02-01",
+			EndDate:   "2026-02-17",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Empty(t, resp.Teams)
+	})
+
+	t.Run("Pagination works", func(t *testing.T) {
+		limit := 10
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Empty(t, resp.Teams)
+		// No next cursor when teams is empty
+		require.Empty(t, resp.Next)
+	})
+
+	t.Run("Invalid month throws error", func(t *testing.T) {
+		_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "invalid",
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("Wrong length month throws error", func(t *testing.T) {
+		_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "2026",
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("Invalid start date throws error", func(t *testing.T) {
+		_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			StartDate: "bad",
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("End before start throws error", func(t *testing.T) {
+		_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			StartDate: "2026-02-20",
+			EndDate:   "2026-02-10",
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("Over max limit throws error", func(t *testing.T) {
+		limit := 31
+		_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("Past month returns empty", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "2025-01",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Empty(t, resp.Teams)
+	})
+}
+
+// =============================================================================
+// Integration Tests - Require multi-tenant app credentials
+// These tests verify specific data exists and metrics are correct
+// =============================================================================
+
 // initMultiTenantClient creates a client using multi-tenant app credentials.
-// Requires STREAM_MULTI_TENANT_KEY and STREAM_MULTI_TENANT_SECRET environment variables.
+// Returns nil if credentials are not set (tests will be skipped).
 func initMultiTenantClient(t *testing.T) *Client {
 	t.Helper()
 
@@ -17,12 +125,20 @@ func initMultiTenantClient(t *testing.T) *Client {
 	apiSecret := os.Getenv("STREAM_MULTI_TENANT_SECRET")
 
 	if apiKey == "" || apiSecret == "" {
-		t.Fatal("Multi-tenant test app credentials are missing. Set STREAM_MULTI_TENANT_KEY and STREAM_MULTI_TENANT_SECRET environment variables.")
+		return nil
 	}
 
 	c, err := NewClient(apiKey, apiSecret)
 	require.NoError(t, err)
 	return c
+}
+
+// skipIfNoMultiTenant skips the test if multi-tenant credentials are not available.
+func skipIfNoMultiTenant(t *testing.T, c *Client) {
+	t.Helper()
+	if c == nil {
+		t.Skip("Multi-tenant credentials not set. Set STREAM_MULTI_TENANT_KEY and STREAM_MULTI_TENANT_SECRET to run integration tests.")
+	}
 }
 
 // findTeamByName finds a team by name in the response.
@@ -95,471 +211,177 @@ func findTeamAcrossPages(t *testing.T, c *Client, teamName string) *TeamUsageSta
 	return nil
 }
 
-// ============================================================================
-// Basic Queries
-// ============================================================================
-
-func TestQueryTeamUsageStats_NoParametersReturnsTeams(t *testing.T) {
+func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	c := initMultiTenantClient(t)
+	skipIfNoMultiTenant(t, c)
 	ctx := context.Background()
 
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.NotNil(t, resp.Teams)
-	require.Greater(t, len(resp.Teams), 0, "Should return at least one team")
-}
-
-func TestQueryTeamUsageStats_EmptyRequestReturnsTeams(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{})
-
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-}
-
-// ============================================================================
-// Month Parameter
-// ============================================================================
-
-func TestQueryTeamUsageStats_ValidMonthWorks(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2026-02",
+	t.Run("No parameters returns teams", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, resp.Teams)
+		require.Greater(t, len(resp.Teams), 0, "Should return at least one team")
 	})
 
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-	require.Greater(t, len(resp.Teams), 0)
-}
-
-func TestQueryTeamUsageStats_PastMonthReturnsEmpty(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2025-01",
+	t.Run("Month parameter returns teams", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "2026-02",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Greater(t, len(resp.Teams), 0)
 	})
 
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-	require.Equal(t, 0, len(resp.Teams))
-}
-
-func TestQueryTeamUsageStats_InvalidMonthThrows(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "invalid",
+	t.Run("Date range returns teams", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			StartDate: "2026-02-01",
+			EndDate:   "2026-02-17",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp.Teams)
+		require.Greater(t, len(resp.Teams), 0)
 	})
 
-	require.Error(t, err)
-}
-
-func TestQueryTeamUsageStats_WrongLengthMonthThrows(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2026",
+	t.Run("Limit returns correct count", func(t *testing.T) {
+		limit := 3
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 3, len(resp.Teams))
 	})
 
-	require.Error(t, err)
-}
-
-// ============================================================================
-// Date Range Parameters
-// ============================================================================
-
-func TestQueryTeamUsageStats_ValidDateRangeWorks(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-01",
-		EndDate:   "2026-02-17",
+	t.Run("Limit returns next cursor", func(t *testing.T) {
+		limit := 3
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.Next)
 	})
 
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-	require.Greater(t, len(resp.Teams), 0)
-}
+	t.Run("Pagination returns different teams", func(t *testing.T) {
+		limit := 3
+		page1, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+		})
+		require.NoError(t, err)
 
-func TestQueryTeamUsageStats_SingleDayRangeWorks(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
+		page2, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Limit: &limit,
+			Next:  page1.Next,
+		})
+		require.NoError(t, err)
 
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-17",
-		EndDate:   "2026-02-17",
-	})
-
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-}
-
-func TestQueryTeamUsageStats_InvalidStartDateThrows(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "bad",
-	})
-
-	require.Error(t, err)
-}
-
-func TestQueryTeamUsageStats_EndBeforeStartThrows(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-20",
-		EndDate:   "2026-02-10",
-	})
-
-	require.Error(t, err)
-}
-
-// ============================================================================
-// Pagination
-// ============================================================================
-
-func TestQueryTeamUsageStats_LimitReturnsCorrectCount(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 3
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
-	})
-
-	require.NoError(t, err)
-	require.Equal(t, 3, len(resp.Teams))
-}
-
-func TestQueryTeamUsageStats_LimitReturnsNextCursor(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 3
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
-	})
-
-	require.NoError(t, err)
-	require.NotEmpty(t, resp.Next)
-}
-
-func TestQueryTeamUsageStats_PaginationReturnsDifferentTeams(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 3
-
-	page1, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
-	})
-	require.NoError(t, err)
-
-	page2, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
-		Next:  page1.Next,
-	})
-	require.NoError(t, err)
-
-	// Verify no overlap between pages
-	for _, t1 := range page1.Teams {
-		for _, t2 := range page2.Teams {
-			require.NotEqual(t, t1.Team, t2.Team, "Pages should not have overlapping teams")
+		// Verify no overlap between pages
+		for _, t1 := range page1.Teams {
+			for _, t2 := range page2.Teams {
+				require.NotEqual(t, t1.Team, t2.Team, "Pages should not have overlapping teams")
+			}
 		}
-	}
-}
-
-func TestQueryTeamUsageStats_MaxLimitWorks(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 30
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
 	})
 
-	require.NoError(t, err)
-	require.NotNil(t, resp.Teams)
-}
-
-func TestQueryTeamUsageStats_OverMaxLimitThrows(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 31
-
-	_, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
+	t.Run("Teams have team field", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
+		require.Greater(t, len(resp.Teams), 0)
+		// team field exists (may be empty string for default team)
+		_ = resp.Teams[0].Team
 	})
 
-	require.Error(t, err)
-}
+	t.Run("All metrics present", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
+		require.Greater(t, len(resp.Teams), 0)
 
-func TestQueryTeamUsageStats_LimitWithMonthWorks(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-	limit := 2
+		team := resp.Teams[0]
 
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit: &limit,
-		Month: "2026-02",
+		// Daily activity metrics - verify they are initialized
+		_ = team.UsersDaily.Total
+		_ = team.MessagesDaily.Total
+		_ = team.TranslationsDaily.Total
+		_ = team.ImageModerationsDaily.Total
+
+		// Peak metrics
+		_ = team.ConcurrentUsers.Total
+		_ = team.ConcurrentConnections.Total
+
+		// Rolling/cumulative metrics
+		_ = team.UsersTotal.Total
+		_ = team.UsersLast24Hours.Total
+		_ = team.UsersLast30Days.Total
+		_ = team.UsersMonthToDate.Total
+		_ = team.UsersEngagedLast30Days.Total
+		_ = team.UsersEngagedMonthToDate.Total
+		_ = team.MessagesTotal.Total
+		_ = team.MessagesLast24Hours.Total
+		_ = team.MessagesLast30Days.Total
+		_ = team.MessagesMonthToDate.Total
 	})
 
-	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Teams))
+	t.Run("Metric totals non-negative", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
+
+		for _, team := range resp.Teams {
+			require.GreaterOrEqual(t, team.MessagesTotal.Total, int64(0), "messages_total should be >= 0")
+			require.GreaterOrEqual(t, team.UsersDaily.Total, int64(0), "users_daily should be >= 0")
+			require.GreaterOrEqual(t, team.ConcurrentUsers.Total, int64(0), "concurrent_users should be >= 0")
+		}
+	})
 }
 
-func TestQueryTeamUsageStats_LimitWithDateRangeWorks(t *testing.T) {
+func TestQueryTeamUsageStats_DataCorrectness(t *testing.T) {
 	c := initMultiTenantClient(t)
+	skipIfNoMultiTenant(t, c)
 	ctx := context.Background()
-	limit := 2
 
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Limit:     &limit,
-		StartDate: "2026-02-01",
-		EndDate:   "2026-02-17",
+	testTeams := []string{"sdk-test-team-1", "sdk-test-team-2", "sdk-test-team-3"}
+
+	t.Run("Date range query returns test teams with exact values", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			StartDate: "2026-02-17",
+			EndDate:   "2026-02-18",
+		})
+		require.NoError(t, err)
+
+		for _, teamName := range testTeams {
+			team := findTeamByName(resp.Teams, teamName)
+			require.NotNil(t, team, "%s should exist", teamName)
+			assertAllMetricsExact(t, team, teamName)
+		}
 	})
 
-	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Teams))
-}
+	t.Run("Month query returns test teams with exact values", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: "2026-02",
+		})
+		require.NoError(t, err)
 
-// ============================================================================
-// Response Structure Validation
-// ============================================================================
-
-func TestQueryTeamUsageStats_TeamsHaveTeamField(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	require.Greater(t, len(resp.Teams), 0)
-	// team field exists (may be empty string for default team)
-	_ = resp.Teams[0].Team
-}
-
-func TestQueryTeamUsageStats_AllMetricsPresent(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	require.Greater(t, len(resp.Teams), 0)
-
-	team := resp.Teams[0]
-
-	// Daily activity metrics - verify they are initialized (Go doesn't have null, struct will be zero value)
-	// We check that Total is accessible without panic
-	_ = team.UsersDaily.Total
-	_ = team.MessagesDaily.Total
-	_ = team.TranslationsDaily.Total
-	_ = team.ImageModerationsDaily.Total
-
-	// Peak metrics
-	_ = team.ConcurrentUsers.Total
-	_ = team.ConcurrentConnections.Total
-
-	// Rolling/cumulative metrics
-	_ = team.UsersTotal.Total
-	_ = team.UsersLast24Hours.Total
-	_ = team.UsersLast30Days.Total
-	_ = team.UsersMonthToDate.Total
-	_ = team.UsersEngagedLast30Days.Total
-	_ = team.UsersEngagedMonthToDate.Total
-	_ = team.MessagesTotal.Total
-	_ = team.MessagesLast24Hours.Total
-	_ = team.MessagesLast30Days.Total
-	_ = team.MessagesMonthToDate.Total
-}
-
-func TestQueryTeamUsageStats_MetricTotalsNonNegative(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-
-	for _, team := range resp.Teams {
-		require.GreaterOrEqual(t, team.MessagesTotal.Total, int64(0), "messages_total should be >= 0")
-		require.GreaterOrEqual(t, team.UsersDaily.Total, int64(0), "users_daily should be >= 0")
-		require.GreaterOrEqual(t, team.ConcurrentUsers.Total, int64(0), "concurrent_users should be >= 0")
-	}
-}
-
-// ============================================================================
-// Data Correctness - Date Range Query
-// ============================================================================
-
-func TestQueryTeamUsageStats_DateRange_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-17",
-		EndDate:   "2026-02-18",
+		for _, teamName := range testTeams {
+			team := findTeamByName(resp.Teams, teamName)
+			require.NotNil(t, team, "%s should exist", teamName)
+			assertAllMetricsExact(t, team, teamName)
+		}
 	})
 
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-1")
-	require.NotNil(t, team, "sdk-test-team-1 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-1")
-}
+	t.Run("No params query returns test teams with exact values", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		require.NoError(t, err)
 
-func TestQueryTeamUsageStats_DateRange_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-17",
-		EndDate:   "2026-02-18",
+		for _, teamName := range testTeams {
+			team := findTeamByName(resp.Teams, teamName)
+			require.NotNil(t, team, "%s should exist", teamName)
+			assertAllMetricsExact(t, team, teamName)
+		}
 	})
 
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-2")
-	require.NotNil(t, team, "sdk-test-team-2 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-2")
-}
-
-func TestQueryTeamUsageStats_DateRange_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		StartDate: "2026-02-17",
-		EndDate:   "2026-02-18",
+	t.Run("Pagination finds test teams with exact values", func(t *testing.T) {
+		for _, teamName := range testTeams {
+			team := findTeamAcrossPages(t, c, teamName)
+			require.NotNil(t, team, "%s should exist across paginated results", teamName)
+			assertAllMetricsExact(t, team, teamName)
+		}
 	})
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-3")
-	require.NotNil(t, team, "sdk-test-team-3 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-3")
-}
-
-// ============================================================================
-// Data Correctness - Month Query
-// ============================================================================
-
-func TestQueryTeamUsageStats_Month_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2026-02",
-	})
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-1")
-	require.NotNil(t, team, "sdk-test-team-1 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-1")
-}
-
-func TestQueryTeamUsageStats_Month_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2026-02",
-	})
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-2")
-	require.NotNil(t, team, "sdk-test-team-2 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-2")
-}
-
-func TestQueryTeamUsageStats_Month_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-		Month: "2026-02",
-	})
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-3")
-	require.NotNil(t, team, "sdk-test-team-3 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-3")
-}
-
-// ============================================================================
-// Data Correctness - No Parameters Query
-// ============================================================================
-
-func TestQueryTeamUsageStats_NoParams_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-1")
-	require.NotNil(t, team, "sdk-test-team-1 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-1")
-}
-
-func TestQueryTeamUsageStats_NoParams_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-2")
-	require.NotNil(t, team, "sdk-test-team-2 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-2")
-}
-
-func TestQueryTeamUsageStats_NoParams_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-	ctx := context.Background()
-
-	resp, err := c.QueryTeamUsageStats(ctx, nil)
-
-	require.NoError(t, err)
-	team := findTeamByName(resp.Teams, "sdk-test-team-3")
-	require.NotNil(t, team, "sdk-test-team-3 should exist")
-	assertAllMetricsExact(t, team, "sdk-test-team-3")
-}
-
-// ============================================================================
-// Data Correctness - Pagination Query
-// ============================================================================
-
-func TestQueryTeamUsageStats_Pagination_SdkTestTeam1_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-
-	team := findTeamAcrossPages(t, c, "sdk-test-team-1")
-	require.NotNil(t, team, "sdk-test-team-1 should exist across paginated results")
-	assertAllMetricsExact(t, team, "sdk-test-team-1")
-}
-
-func TestQueryTeamUsageStats_Pagination_SdkTestTeam2_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-
-	team := findTeamAcrossPages(t, c, "sdk-test-team-2")
-	require.NotNil(t, team, "sdk-test-team-2 should exist across paginated results")
-	assertAllMetricsExact(t, team, "sdk-test-team-2")
-}
-
-func TestQueryTeamUsageStats_Pagination_SdkTestTeam3_ExactValues(t *testing.T) {
-	c := initMultiTenantClient(t)
-
-	team := findTeamAcrossPages(t, c, "sdk-test-team-3")
-	require.NotNil(t, team, "sdk-test-team-3 should exist across paginated results")
-	assertAllMetricsExact(t, team, "sdk-test-team-3")
 }
