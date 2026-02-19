@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.2](https://github.com/GetStream/stream-chat-go/compare/v8.2.1...v8.2.2) (2026-02-19)
+
+
+### Features
+
+* add queryTeamUsageStats API endpoint ([#371](https://github.com/GetStream/stream-chat-go/issues/371)) ([d550df9](https://github.com/GetStream/stream-chat-go/commit/d550df995022ea4972b5aa95c043663a4a50e6ae))
+
 ### [8.2.1](https://github.com/GetStream/stream-chat-go/compare/v8.2.0...v8.2.1) (2026-02-18)
 
 ## [8.2.0](https://github.com/GetStream/stream-chat-go/compare/v8.1.1...v8.2.0) (2026-02-04)
