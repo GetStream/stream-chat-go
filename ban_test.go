@@ -33,7 +33,7 @@ func TestShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.False(t, msg.Shadowed)
+	require.True(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestShadowBanUser(t *testing.T) {
 	require.NoError(t, err)
 
 	msg = messageResp.Message
-	require.False(t, msg.Shadowed)
+	require.True(t, msg.Shadowed)
 
 	messageResp, err = c.GetMessage(ctx, msg.ID)
 	require.NoError(t, err)

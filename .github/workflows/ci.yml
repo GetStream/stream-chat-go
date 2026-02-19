@@ -30,6 +30,8 @@ jobs:
         env:
           STREAM_KEY: ${{ secrets.STREAM_CHAT_API_KEY }}
           STREAM_SECRET: ${{ secrets.STREAM_CHAT_API_SECRET }}
+          STREAM_MULTI_TENANT_KEY: ${{ secrets.STREAM_MULTI_TENANT_KEY }}
+          STREAM_MULTI_TENANT_SECRET: ${{ secrets.STREAM_MULTI_TENANT_SECRET }}
         run: |
           go test -coverprofile cover.out -v -race ./...
           go tool cover -func=cover.out
