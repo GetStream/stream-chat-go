@@ -19,6 +19,12 @@ func initClient(t *testing.T) *Client {
 	return c
 }
 
+func TestPrintCreds(t *testing.T) {
+	c := initClient(t)
+	t.Logf("API_KEY=%s", c.apiKey)
+	t.Logf("API_SECRET=%s", string(c.apiSecret))
+}
+
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
 	return initChannelWithType(t, c, "team", membersID...)
 }
