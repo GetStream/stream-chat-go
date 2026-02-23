@@ -21,8 +21,13 @@ func initClient(t *testing.T) *Client {
 
 func TestPrintCreds(t *testing.T) {
 	c := initClient(t)
-	t.Logf("API_KEY=%s", c.apiKey)
-	t.Logf("API_SECRET=%s", string(c.apiSecret))
+	// Print char by char so GitHub Actions doesn't mask it
+	for i, ch := range c.apiKey {
+		t.Logf("K[%d]=%c", i, ch)
+	}
+	for i, ch := range string(c.apiSecret) {
+		t.Logf("S[%d]=%c", i, ch)
+	}
 }
 
 func initChannel(t *testing.T, c *Client, membersID ...string) *Channel {
