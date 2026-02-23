@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestClient_UpdateChannelsBatch tests batch update channel operations.
 func TestClient_UpdateChannelsBatch(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
