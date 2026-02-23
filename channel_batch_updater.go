@@ -125,22 +125,3 @@ func (u *ChannelBatchUpdater) UpdateData(ctx context.Context, filter ChannelsBat
 	return u.client.UpdateChannelsBatch(ctx, options)
 }
 
-// AddFilterTags adds filter tags to channels matching the filter.
-func (u *ChannelBatchUpdater) AddFilterTags(ctx context.Context, filter ChannelsBatchFilters, tags []string) (*AsyncTaskResponse, error) {
-	options := &ChannelsBatchOptions{
-		Operation:        BatchUpdateOperationAddFilterTags,
-		Filter:           filter,
-		FilterTagsUpdate: tags,
-	}
-	return u.client.UpdateChannelsBatch(ctx, options)
-}
-
-// RemoveFilterTags removes filter tags from channels matching the filter.
-func (u *ChannelBatchUpdater) RemoveFilterTags(ctx context.Context, filter ChannelsBatchFilters, tags []string) (*AsyncTaskResponse, error) {
-	options := &ChannelsBatchOptions{
-		Operation:        BatchUpdateOperationRemoveFilterTags,
-		Filter:           filter,
-		FilterTagsUpdate: tags,
-	}
-	return u.client.UpdateChannelsBatch(ctx, options)
-}
