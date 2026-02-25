@@ -2,6 +2,7 @@ package stream_chat
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
@@ -46,4 +47,59 @@ func TestImportsEndToEnd(t *testing.T) {
 	listResp, err := c.ListImports(ctx, &ListImportsOptions{Limit: 1, Offset: 0})
 	require.NoError(t, err)
 	require.NotEmpty(t, listResp.ImportTasks)
+}
+
+func TestCreateImportRequest_MergeCustomJSON(t *testing.T) {
+	t.Run("without merge_custom option", func(t *testing.T) {
+		req := createImportRequest{
+			Path: "some/path.json",
+			Mode: string(UpsertMode),
+		}
+
+		data, err := json.Marshal(req)
+		require.NoError(t, err)
+
+		var m map[string]interface{}
+		require.NoError(t, json.Unmarshal(data, &m))
+
+		require.Equal(t, "some/path.json", m["path"])
+		require.Equal(t, "upsert", m["mode"])
+		require.NotContains(t, m, "merge_custom")
+	})
+
+	t.Run("with merge_custom true", func(t *testing.T) {
+		req := createImportRequest{
+			Path: "some/path.json",
+			Mode: string(UpsertMode),
+		}
+		WithMergeCustom(true)(&req)
+
+		data, err := json.Marshal(req)
+		require.NoError(t, err)
+
+		var m map[string]interface{}
+		require.NoError(t, json.Unmarshal(data, &m))
+
+		require.Equal(t, "some/path.json", m["path"])
+		require.Equal(t, "upsert", m["mode"])
+		require.Equal(t, true, m["merge_custom"])
+	})
+
+	t.Run("with merge_custom false", func(t *testing.T) {
+		req := createImportRequest{
+			Path: "some/path.json",
+			Mode: string(InsertMode),
+		}
+		WithMergeCustom(false)(&req)
+
+		data, err := json.Marshal(req)
+		require.NoError(t, err)
+
+		var m map[string]interface{}
+		require.NoError(t, json.Unmarshal(data, &m))
+
+		require.Equal(t, "some/path.json", m["path"])
+		require.Equal(t, "insert", m["mode"])
+		require.Equal(t, false, m["merge_custom"])
+	})
 }
