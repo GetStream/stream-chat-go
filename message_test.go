@@ -200,6 +200,13 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	userMember := randomUser(t, c)
 	userCustom := randomUser(t, c)
 
+	// Create custom role before using it as a channel member role
+	_, err := c.Permissions().CreateRole(ctx, "custom_role")
+	require.NoError(t, err, "create custom role")
+	t.Cleanup(func() {
+		_, _ = c.Permissions().DeleteRole(ctx, "custom_role")
+	})
+
 	chanID := randomString(12)
 	chResp, err := c.CreateChannel(ctx, "messaging", chanID, userMember.ID, &ChannelRequest{
 		ChannelMembers: []*ChannelMember{
