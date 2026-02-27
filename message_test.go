@@ -198,20 +198,13 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	ctx := context.Background()
 
 	userMember := randomUser(t, c)
-	userCustom := randomUser(t, c)
-
-	// Create custom role before using it as a channel member role
-	_, err := c.Permissions().CreateRole(ctx, "custom_role")
-	require.NoError(t, err, "create custom role")
-	t.Cleanup(func() {
-		_, _ = c.Permissions().DeleteRole(ctx, "custom_role")
-	})
+	userModerator := randomUser(t, c)
 
 	chanID := randomString(12)
 	chResp, err := c.CreateChannel(ctx, "messaging", chanID, userMember.ID, &ChannelRequest{
 		ChannelMembers: []*ChannelMember{
 			{UserID: userMember.ID, ChannelRole: "channel_member"},
-			{UserID: userCustom.ID, ChannelRole: "custom_role"},
+			{UserID: userModerator.ID, ChannelRole: "channel_moderator"},
 		},
 	})
 	require.NoError(t, err, "create channel")
@@ -223,11 +216,11 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	require.NotNil(t, respMember.Message.Member)
 	assert.Equal(t, "channel_member", respMember.Message.Member.ChannelRole)
 
-	msgCustom := &Message{Text: "message from custom_role"}
-	respCustom, err := ch.SendMessage(ctx, msgCustom, userCustom.ID)
-	require.NoError(t, err, "send message custom role")
-	require.NotNil(t, respCustom.Message.Member)
-	assert.Equal(t, "custom_role", respCustom.Message.Member.ChannelRole)
+	msgModerator := &Message{Text: "message from channel_moderator"}
+	respModerator, err := ch.SendMessage(ctx, msgModerator, userModerator.ID)
+	require.NoError(t, err, "send message channel_moderator")
+	require.NotNil(t, respModerator.Message.Member)
+	assert.Equal(t, "channel_moderator", respModerator.Message.Member.ChannelRole)
 
 	queryResp, err := c.QueryChannels(ctx, &QueryOption{
 		Filter: map[string]interface{}{"cid": ch.CID},
@@ -237,8 +230,8 @@ func TestMessage_ChannelRoleInMember(t *testing.T) {
 	require.Len(t, queryResp.Channels, 1, "one channel should match filter")
 
 	roles := map[string]string{
-		userMember.ID: "channel_member",
-		userCustom.ID: "custom_role",
+		userMember.ID:    "channel_member",
+		userModerator.ID: "channel_moderator",
 	}
 	for _, m := range queryResp.Channels[0].Messages {
 		expectedRole, ok := roles[m.User.ID]
