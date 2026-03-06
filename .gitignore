@@ -19,3 +19,4 @@
 
 # vendored dependencies and binaries
 vendor/
+.DS_Store
