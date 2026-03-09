@@ -70,13 +70,36 @@ func (c *Client) CreateImportURL(ctx context.Context, filename string) (*CreateI
 	return &resp, err
 }
 
+type createImportRequest struct {
+	Path        string `json:"path"`
+	Mode        string `json:"mode"`
+	MergeCustom *bool  `json:"merge_custom,omitempty"`
+}
+
+type CreateImportOption func(*createImportRequest)
+
+// WithMergeCustom sets whether custom data should be merged during import.
+func WithMergeCustom(mergeCustom bool) CreateImportOption {
+	return func(r *createImportRequest) {
+		r.MergeCustom = &mergeCustom
+	}
+}
+
 // CreateImport creates a new import task.
 // Note: Do not use this.
 // It is present for internal usage only.
 // This function can, and will, break and/or be removed at any point in time.
-func (c *Client) CreateImport(ctx context.Context, filePath string, mode ImportMode) (*CreateImportResponse, error) {
+func (c *Client) CreateImport(ctx context.Context, filePath string, mode ImportMode, opts ...CreateImportOption) (*CreateImportResponse, error) {
+	req := createImportRequest{
+		Path: filePath,
+		Mode: string(mode),
+	}
+	for _, opt := range opts {
+		opt(&req)
+	}
+
 	var resp CreateImportResponse
-	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, map[string]string{"path": filePath, "mode": string(mode)}, &resp)
+	err := c.makeRequest(ctx, http.MethodPost, "imports", nil, req, &resp)
 
 	return &resp, err
 }

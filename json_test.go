@@ -74,7 +74,7 @@ func TestFlattenExtraData(t *testing.T) {
 		m := map[string]interface{}{
 			"field1": "value1",
 			"extra_data": map[string]interface{}{
-				"custom_field": "custom_value",
+				"custom_field":  "custom_value",
 				"another_field": 123,
 			},
 		}

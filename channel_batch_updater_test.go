@@ -74,7 +74,7 @@ func TestChannelBatchUpdater_AddMembers(t *testing.T) {
 			require.NoError(t, err, "failed to get task status")
 		}
 		require.Equal(t, resp.TaskID, task.TaskID)
-		
+
 		if task.Status == TaskStatusWaiting || task.Status == TaskStatusPending || task.Status == TaskStatusRunning {
 			time.Sleep(time.Second)
 			continue
@@ -179,7 +179,7 @@ func TestChannelBatchUpdater_RemoveMembers(t *testing.T) {
 			require.NoError(t, err, "failed to get task status")
 		}
 		require.Equal(t, resp.TaskID, task.TaskID)
-		
+
 		if task.Status == TaskStatusWaiting || task.Status == TaskStatusPending || task.Status == TaskStatusRunning {
 			time.Sleep(time.Second)
 			continue
@@ -254,7 +254,7 @@ func TestChannelBatchUpdater_Archive(t *testing.T) {
 			require.NoError(t, err, "failed to get task status")
 		}
 		require.Equal(t, resp.TaskID, task.TaskID)
-		
+
 		if task.Status == TaskStatusWaiting || task.Status == TaskStatusPending || task.Status == TaskStatusRunning {
 			time.Sleep(time.Second)
 			continue

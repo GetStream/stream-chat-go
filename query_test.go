@@ -2,6 +2,7 @@ package stream_chat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -318,6 +319,45 @@ func TestClient_QueryMessageFlags(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Len(t, got.Flags, 1)
+}
+
+func TestQueryChannelsResponse_ParsedPredefinedFilter(t *testing.T) {
+	// Test that ParsedPredefinedFilterResponse is correctly unmarshaled from JSON
+	jsonData := `{
+		"channels": [],
+		"predefined_filter": {
+			"name": "user_messaging",
+			"filter": {"type": "messaging", "members": {"$in": ["user123"]}},
+			"sort": [{"field": "last_message_at", "direction": -1}]
+		},
+		"duration": "0.01s"
+	}`
+
+	var resp queryChannelResponse
+	err := json.Unmarshal([]byte(jsonData), &resp)
+	require.NoError(t, err)
+
+	require.NotNil(t, resp.PredefinedFilter)
+	require.Equal(t, "user_messaging", resp.PredefinedFilter.Name)
+	require.NotNil(t, resp.PredefinedFilter.Filter)
+	require.Equal(t, "messaging", resp.PredefinedFilter.Filter["type"])
+	require.Len(t, resp.PredefinedFilter.Sort, 1)
+	require.Equal(t, "last_message_at", resp.PredefinedFilter.Sort[0].Field)
+	require.Equal(t, -1, resp.PredefinedFilter.Sort[0].Direction)
+}
+
+func TestQueryChannelsResponse_NoPredefinedFilter(t *testing.T) {
+	// Test that response without predefined_filter has nil PredefinedFilter
+	jsonData := `{
+		"channels": [],
+		"duration": "0.01s"
+	}`
+
+	var resp queryChannelResponse
+	err := json.Unmarshal([]byte(jsonData), &resp)
+	require.NoError(t, err)
+
+	require.Nil(t, resp.PredefinedFilter)
 }
 
 func TestClient_QueryFlagReportsAndReview(t *testing.T) {

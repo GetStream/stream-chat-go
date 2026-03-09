@@ -1296,8 +1296,6 @@ const (
 	BatchUpdateOperationArchive          ChannelBatchOperation = "archive"
 	BatchUpdateOperationUnarchive        ChannelBatchOperation = "unarchive"
 	BatchUpdateOperationUpdateData       ChannelBatchOperation = "updateData"
-	BatchUpdateOperationAddFilterTags    ChannelBatchOperation = "addFilterTags"
-	BatchUpdateOperationRemoveFilterTags ChannelBatchOperation = "removeFilterTags"
 )
 
 // ChannelDataUpdate represents data that can be updated on channels in batch.
@@ -1313,16 +1311,14 @@ type ChannelDataUpdate struct {
 
 // ChannelsBatchFilters represents filters for batch channel updates.
 type ChannelsBatchFilters struct {
-	CIDs       interface{} `json:"cids,omitempty"`
-	Types      interface{} `json:"types,omitempty"`
-	FilterTags interface{} `json:"filter_tags,omitempty"`
+	CIDs  interface{} `json:"cids,omitempty"`
+	Types interface{} `json:"types,omitempty"`
 }
 
 // ChannelsBatchOptions represents options for batch channel updates.
 type ChannelsBatchOptions struct {
 	Operation        ChannelBatchOperation `json:"operation"`
 	Filter           ChannelsBatchFilters  `json:"filter"`
-	Members          interface{}           `json:"members,omitempty"`
-	Data             *ChannelDataUpdate    `json:"data,omitempty"`
-	FilterTagsUpdate []string              `json:"filter_tags_update,omitempty"`
+	Members interface{}        `json:"members,omitempty"`
+	Data    *ChannelDataUpdate `json:"data,omitempty"`
 }
