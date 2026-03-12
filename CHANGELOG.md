@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.4.1](https://github.com/GetStream/stream-chat-go/compare/v8.4.0...v8.4.1) (2026-03-12)
+
+
+### Bug Fixes
+
+* add omitempty to BlockedUserIDs to prevent clearing on upsert ([#385](https://github.com/GetStream/stream-chat-go/issues/385)) ([b1713b9](https://github.com/GetStream/stream-chat-go/commit/b1713b9496e05d22c89b7ecd17c310755f1761ae))
+
 ## [8.4.0](https://github.com/GetStream/stream-chat-go/compare/v8.3.0...v8.4.0) (2026-02-25)
 
 
