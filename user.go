@@ -65,7 +65,7 @@ type User struct {
 	LastActive *time.Time `json:"last_active,omitempty"`
 
 	Mutes                    []*Mute                `json:"mutes,omitempty"`
-	BlockedUserIDs           []string               `json:"blocked_user_ids"`
+	BlockedUserIDs           []string               `json:"blocked_user_ids,omitempty"`
 	ChannelMutes             []*ChannelMute         `json:"channel_mutes,omitempty"`
 	ExtraData                map[string]interface{} `json:"-"`
 	RevokeTokensIssuedBefore *time.Time             `json:"revoke_tokens_issued_before,omitempty"`
