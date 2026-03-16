@@ -343,8 +343,10 @@ func (c *Client) CreateGuestUser(ctx context.Context, user *User) (*GuestUserRes
 }
 
 type ExportUserResponse struct {
-	*User
-	Response
+	User      *User       `json:"user"`
+	Messages  []*Message  `json:"messages"`
+	Reactions []*Reaction `json:"reactions"`
+	Duration  string      `json:"duration"`
 }
 
 // ExportUser exports the user with the given target user ID.
