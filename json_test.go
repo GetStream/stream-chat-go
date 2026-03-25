@@ -129,3 +129,61 @@ func TestFlattenExtraData(t *testing.T) {
 		require.Equal(t, "value1", m["field1"])
 	})
 }
+
+func TestExportUserResponse_UnmarshalJSON(t *testing.T) {
+	// This is the actual response format returned by the API.
+	// Previously, ExportUserResponse embedded *User directly, which caused
+	// User.UnmarshalJSON to consume the entire response body, losing the
+	// user, messages, and reactions data.
+	apiResponse := `{
+		"user": {
+			"id": "103415720",
+			"name": "Batman",
+			"language": "",
+			"role": "user",
+			"teams": [],
+			"created_at": "2025-05-06T19:41:07.894092Z",
+			"updated_at": "2025-05-06T20:15:52.812595Z",
+			"banned": false,
+			"online": false,
+			"last_active": "2026-03-10T14:09:24.664584Z",
+			"blocked_user_ids": [],
+			"shadow_banned": false,
+			"invisible": false
+		},
+		"messages": [
+			{
+				"id": "msg1",
+				"cid": "messaging:general",
+				"text": "Hello world",
+				"user": {"id": "103415720"},
+				"user_id": "103415720"
+			}
+		],
+		"reactions": [
+			{
+				"message_id": "msg1",
+				"user_id": "103415720",
+				"type": "like"
+			}
+		],
+		"duration": "117.63ms"
+	}`
+
+	var resp ExportUserResponse
+	err := json.Unmarshal([]byte(apiResponse), &resp)
+	require.NoError(t, err)
+
+	require.NotNil(t, resp.User)
+	require.Equal(t, "103415720", resp.User.ID)
+	require.Equal(t, "Batman", resp.User.Name)
+	require.Equal(t, "user", resp.User.Role)
+
+	require.Len(t, resp.Messages, 1)
+	require.Equal(t, "msg1", resp.Messages[0].ID)
+	require.Equal(t, "Hello world", resp.Messages[0].Text)
+
+	require.Len(t, resp.Reactions, 1)
+	require.Equal(t, "msg1", resp.Reactions[0].MessageID)
+	require.Equal(t, "like", resp.Reactions[0].Type)
+}
