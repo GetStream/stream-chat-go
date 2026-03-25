@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.4.2](https://github.com/GetStream/stream-chat-go/compare/v8.4.1...v8.4.2) (2026-03-25)
+
+
+### Bug Fixes
+
+* correct ExportUserResponse struct to match API response format ([#387](https://github.com/GetStream/stream-chat-go/issues/387)) ([42b492d](https://github.com/GetStream/stream-chat-go/commit/42b492dd93f2f462c1ef3eec2b83265cc692d180))
+
 ### [8.4.1](https://github.com/GetStream/stream-chat-go/compare/v8.4.0...v8.4.1) (2026-03-12)
 
 
