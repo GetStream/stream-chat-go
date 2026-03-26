@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.5.0](https://github.com/GetStream/stream-chat-go/compare/v8.4.2...v8.5.0) (2026-03-26)
+
+
+### Features
+
+* add delete_reactions support for ban user ([#389](https://github.com/GetStream/stream-chat-go/issues/389)) ([c5e67e6](https://github.com/GetStream/stream-chat-go/commit/c5e67e67a0da6a68b6abd19d687d0b92c01018ba))
+
 ### [8.4.2](https://github.com/GetStream/stream-chat-go/compare/v8.4.1...v8.4.2) (2026-03-25)
 
 
