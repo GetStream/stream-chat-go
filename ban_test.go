@@ -182,6 +182,19 @@ func TestQueryFutureChannelBans(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestBanWithDeleteReactions(t *testing.T) {
+	c := initClient(t)
+	target := randomUser(t, c)
+	user := randomUser(t, c)
+	ctx := context.Background()
+
+	_, err := c.BanUser(ctx, target.ID, user.ID, BanWithDeleteReactions())
+	require.NoError(t, err)
+
+	_, err = c.UnBanUser(ctx, target.ID)
+	require.NoError(t, err)
+}
+
 func ExampleClient_BanUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()

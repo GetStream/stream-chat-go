@@ -153,6 +153,7 @@ type banOptions struct {
 	BannedBy              string `json:"user_id"`
 	Shadow                bool   `json:"shadow"`
 	BanFromFutureChannels bool   `json:"ban_from_future_channels,omitempty"`
+	DeleteReactions       bool   `json:"delete_reactions,omitempty"`
 
 	// ID and Type of the channel when acting on a channel member.
 	ID   string `json:"id"`
@@ -199,6 +200,14 @@ func banFromChannel(_type, id string) func(*banOptions) {
 func BanWithBanFromFutureChannels() func(*banOptions) {
 	return func(opt *banOptions) {
 		opt.BanFromFutureChannels = true
+	}
+}
+
+// BanWithDeleteReactions when set to true, all reactions by the banned user
+// on other users' messages will be deleted.
+func BanWithDeleteReactions() func(*banOptions) {
+	return func(opt *banOptions) {
+		opt.DeleteReactions = true
 	}
 }
 
