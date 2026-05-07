@@ -89,6 +89,51 @@ All webhook requests contain these headers:
 | X-Webhook-Attempt | Number of webhook request attempt starting from 1                                                                    | 1                                                                |
 | X-Api-Key         | Your application’s API key. Should be used to validate request signature                                             | a1b23cdefgh4                                                     |
 | X-Signature       | HMAC signature of the request body. See Signature section                                                            | ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb |
+| Content-Encoding  | Compression algorithm used for the body. Only set when payload compression is enabled (currently `gzip`)             | gzip                                                             |
+
+### Compressed webhook bodies
+
+GZIP compression can be enabled for hooks payloads from the Dashboard. Enabling compression reduces the payload size significantly (often 70–90% smaller) reducing your bandwidth usage on Stream. The computation overhead introduced by the decompression step is usually negligible and offset by the much smaller payload.
+
+When payload compression is enabled, webhook HTTP requests will include the `Content-Encoding: gzip` header and the request body will be compressed with GZIP. Some HTTP servers and middleware (Rails, Django, Laravel, Spring Boot, ASP.NET) handle this transparently and strip the header before your handler runs — in that case the body you see is already raw JSON.
+
+Before enabling compression, make sure that:
+
+* Your backend integration is using a recent version of our official SDKs with compression support
+* If you don't use an official SDK, make sure that your code supports receiving compressed payloads
+* The payload signature check is done on the **uncompressed** payload
+
+Use `VerifyAndDecodeWebhook` to decompress and verify the signature in a single call. The signature is always computed over the uncompressed JSON, so this method works whether compression is on or off.
+
+```go
+client, _ := stream.NewClient(APIKey, APISecret)
+
+// signature comes from the X-Signature header
+// contentEncoding comes from the Content-Encoding header (may be "" if your
+// HTTP framework already decompressed the body or compression is disabled)
+payload, err := client.VerifyAndDecodeWebhook(body, signature, contentEncoding, "")
+if err != nil {
+    if errors.Is(err, stream.ErrInvalidWebhookSignature) {
+        // signature did not match - reject the request
+    }
+    // decompression error or unsupported encoding
+    return
+}
+// payload is the raw JSON body the server signed
+```
+
+If you want to handle decompression yourself, use the lower-level `DecompressWebhookBody` and then call `VerifyWebhook` on the result.
+
+#### SQS / SNS firehose
+
+When the same compressed events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Pass `"base64"` as the `payloadEncoding` argument and the helper handles both layers in the correct order (base64 first, then gunzip):
+
+```go
+// body: SQS Body / SNS Message bytes
+// signature: value from the message attribute
+// contentEncoding: "gzip" when compression is enabled, "" otherwise
+payload, err := client.VerifyAndDecodeWebhook(body, signature, contentEncoding, "base64")
+```
 
 ## Webhook types
 
