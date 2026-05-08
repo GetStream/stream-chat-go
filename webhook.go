@@ -18,16 +18,16 @@ import (
 // uncompressed JSON body.
 var ErrInvalidWebhookSignature = errors.New("invalid webhook signature")
 
-var gzipMagic = []byte{0x1f, 0x8b, 0x08}
+var gzipMagic = []byte{0x1f, 0x8b}
 
-// UngzipPayload returns body unchanged unless the first three bytes are
-// the gzip magic (1f 8b 08), in which case the gzip stream is inflated
-// and the decompressed bytes are returned.
+// UngzipPayload returns body unchanged unless the first two bytes are
+// the gzip magic (1f 8b, per RFC 1952), in which case the gzip stream
+// is inflated and the decompressed bytes are returned.
 //
 // Magic-byte detection lets the same handler stay correct when
 // middleware auto-decompresses the request before your code sees it.
 func UngzipPayload(body []byte) ([]byte, error) {
-	if len(body) < 3 || !bytes.Equal(body[:3], gzipMagic) {
+	if len(body) < 2 || !bytes.Equal(body[:2], gzipMagic) {
 		return body, nil
 	}
 	zr, err := gzip.NewReader(bytes.NewReader(body))
