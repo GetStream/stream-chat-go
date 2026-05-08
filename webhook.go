@@ -7,100 +7,134 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 )
 
-// ErrInvalidWebhookSignature is returned by VerifyAndDecodeWebhook when the
-// provided signature does not match the HMAC computed over the uncompressed
-// JSON body.
+// ErrInvalidWebhookSignature is returned by VerifyAndParse* helpers when
+// the supplied signature does not match the HMAC computed over the
+// uncompressed JSON body.
 var ErrInvalidWebhookSignature = errors.New("invalid webhook signature")
 
-// DecompressWebhookBody undoes the encoding wrappers Stream applies to
-// outbound webhook / SQS / SNS payloads, returning the raw JSON bytes
-// the server signed.
+var gzipMagic = []byte{0x1f, 0x8b, 0x08}
+
+// UngzipPayload returns body unchanged unless the first three bytes are
+// the gzip magic (1f 8b 08), in which case the gzip stream is inflated
+// and the decompressed bytes are returned.
 //
-//   - payloadEncoding: optional transport wrapper applied last by the
-//     server. Currently the only supported value is "base64" (used for
-//     SQS / SNS firehose so the message stays valid UTF-8). Pass "" for
-//     HTTP webhooks.
-//   - contentEncoding: optional compression. Currently the only
-//     supported value is "gzip". Pass "" when no compression is set.
-//
-// Decode order is the inverse of how the server built the message:
-// base64 first, then gunzip. Both are case-insensitive and trimmed.
-func (c *Client) DecompressWebhookBody(body []byte, contentEncoding, payloadEncoding string) ([]byte, error) {
-	out := body
-
-	if pe := strings.ToLower(strings.TrimSpace(payloadEncoding)); pe != "" {
-		switch pe {
-		case "base64", "b64":
-			decoded, err := decodeBase64(out)
-			if err != nil {
-				return nil, fmt.Errorf("decode webhook payload_encoding=base64: %w", err)
-			}
-			out = decoded
-		default:
-			return nil, fmt.Errorf("unsupported webhook payload_encoding: %s. This SDK only supports base64.", payloadEncoding)
-		}
+// Magic-byte detection lets the same handler stay correct when
+// middleware auto-decompresses the request before your code sees it.
+func UngzipPayload(body []byte) ([]byte, error) {
+	if len(body) < 3 || !bytes.Equal(body[:3], gzipMagic) {
+		return body, nil
 	}
-
-	if ce := strings.ToLower(strings.TrimSpace(contentEncoding)); ce != "" {
-		switch ce {
-		case "gzip":
-			decompressed, err := gunzip(out)
-			if err != nil {
-				return nil, fmt.Errorf("decompress webhook Content-Encoding=gzip: %w", err)
-			}
-			out = decompressed
-		default:
-			return nil, fmt.Errorf(`unsupported webhook Content-Encoding: %s. This SDK only supports gzip; set webhook_compression_algorithm to "gzip" on the app config.`, contentEncoding)
-		}
+	zr, err := gzip.NewReader(bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("decompress gzip payload: %w", err)
 	}
-
+	defer zr.Close()
+	out, err := io.ReadAll(zr)
+	if err != nil {
+		return nil, fmt.Errorf("read gzip payload: %w", err)
+	}
 	return out, nil
 }
 
-// VerifyAndDecodeWebhook decompresses (when needed), verifies the HMAC
-// signature, and returns the uncompressed JSON bytes. The signature is
-// always computed over the innermost (uncompressed, base64-decoded)
-// JSON, so the verification rule is invariant across HTTP webhooks and
-// SQS / SNS.
-//
-//   - body: raw HTTP request body / SQS Body / SNS Message bytes
-//   - signature: value of the X-Signature header / message attribute
-//   - contentEncoding: value of Content-Encoding header / attribute
-//   - payloadEncoding: "base64" for SQS / SNS firehose, "" for HTTP webhooks
-//
-// Returns ErrInvalidWebhookSignature when the signature does not match.
-func (c *Client) VerifyAndDecodeWebhook(body []byte, signature, contentEncoding, payloadEncoding string) ([]byte, error) {
-	decoded, err := c.DecompressWebhookBody(body, contentEncoding, payloadEncoding)
+// DecodeSqsPayload reverses the SQS firehose envelope: the message Body
+// is base64-decoded and, when the result begins with the gzip magic, it
+// is gzip-decompressed. The same call works whether or not Stream is
+// currently compressing payloads.
+func DecodeSqsPayload(body string) ([]byte, error) {
+	decoded, err := base64.StdEncoding.DecodeString(body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("base64-decode payload: %w", err)
 	}
+	return UngzipPayload(decoded)
+}
 
-	mac := hmac.New(sha256.New, c.apiSecret)
-	_, _ = mac.Write(decoded)
+// DecodeSnsPayload is byte-for-byte identical to DecodeSqsPayload;
+// exposed under both names so call sites read intent.
+func DecodeSnsPayload(message string) ([]byte, error) {
+	return DecodeSqsPayload(message)
+}
+
+// VerifySignature returns true when signature equals the hex-encoded
+// HMAC-SHA256 of body using secret as the key. The comparison is
+// constant-time. The signature is always computed over the
+// uncompressed JSON bytes, so callers that decoded a gzipped or
+// base64-wrapped payload must pass the inflated bytes here.
+func VerifySignature(body []byte, signature, secret string) bool {
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, _ = mac.Write(body)
 	expected := []byte(hex.EncodeToString(mac.Sum(nil)))
+	return hmac.Equal(expected, []byte(signature))
+}
 
-	if !hmac.Equal([]byte(signature), expected) {
+// ParseEvent decodes the JSON-encoded webhook payload into a typed
+// Event. Unknown event types still parse successfully because Event.Type
+// is a string alias.
+func ParseEvent(payload []byte) (*Event, error) {
+	var ev Event
+	if err := json.Unmarshal(payload, &ev); err != nil {
+		return nil, fmt.Errorf("parse webhook event: %w", err)
+	}
+	return &ev, nil
+}
+
+func verifyAndParse(payload []byte, signature, secret string) (*Event, error) {
+	if !VerifySignature(payload, signature, secret) {
 		return nil, ErrInvalidWebhookSignature
 	}
-
-	return decoded, nil
+	return ParseEvent(payload)
 }
 
-func decodeBase64(b []byte) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(string(b))
-}
-
-func gunzip(b []byte) ([]byte, error) {
-	zr, err := gzip.NewReader(bytes.NewReader(b))
+// VerifyAndParseWebhook decompresses body when gzipped, verifies the
+// HMAC signature against secret, and returns the parsed Event. Returns
+// ErrInvalidWebhookSignature on mismatch and a wrapped error on any
+// decode failure.
+func VerifyAndParseWebhook(body []byte, signature, secret string) (*Event, error) {
+	inflated, err := UngzipPayload(body)
 	if err != nil {
 		return nil, err
 	}
-	defer zr.Close()
-	return io.ReadAll(zr)
+	return verifyAndParse(inflated, signature, secret)
+}
+
+// VerifyAndParseSqs decodes the SQS message Body, verifies the
+// X-Signature attribute against secret, and returns the parsed Event.
+func VerifyAndParseSqs(messageBody, signature, secret string) (*Event, error) {
+	inflated, err := DecodeSqsPayload(messageBody)
+	if err != nil {
+		return nil, err
+	}
+	return verifyAndParse(inflated, signature, secret)
+}
+
+// VerifyAndParseSns decodes the SNS notification Message, verifies the
+// X-Signature attribute against secret, and returns the parsed Event.
+func VerifyAndParseSns(message, signature, secret string) (*Event, error) {
+	inflated, err := DecodeSnsPayload(message)
+	if err != nil {
+		return nil, err
+	}
+	return verifyAndParse(inflated, signature, secret)
+}
+
+// VerifyAndParseWebhook is the client-bound form of the package-level
+// helper; it pulls the API secret from the receiver so call sites only
+// supply the request body and signature.
+func (c *Client) VerifyAndParseWebhook(body []byte, signature string) (*Event, error) {
+	return VerifyAndParseWebhook(body, signature, string(c.apiSecret))
+}
+
+// VerifyAndParseSqs is the client-bound form of the package-level helper.
+func (c *Client) VerifyAndParseSqs(messageBody, signature string) (*Event, error) {
+	return VerifyAndParseSqs(messageBody, signature, string(c.apiSecret))
+}
+
+// VerifyAndParseSns is the client-bound form of the package-level helper.
+func (c *Client) VerifyAndParseSns(message, signature string) (*Event, error) {
+	return VerifyAndParseSns(message, signature, string(c.apiSecret))
 }

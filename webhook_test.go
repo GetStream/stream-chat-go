@@ -28,12 +28,12 @@ func newWebhookTestClient(t *testing.T) *Client {
 	return c
 }
 
-func hmacHex(t *testing.T, secret, body []byte) []byte {
+func hmacHex(t *testing.T, secret, body []byte) string {
 	t.Helper()
 	mac := hmac.New(sha256.New, secret)
 	_, err := mac.Write(body)
 	require.NoError(t, err)
-	return []byte(hex.EncodeToString(mac.Sum(nil)))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 func gzipBytes(t *testing.T, src []byte) []byte {
@@ -46,230 +46,235 @@ func gzipBytes(t *testing.T, src []byte) []byte {
 	return buf.Bytes()
 }
 
-func base64Bytes(t *testing.T, src []byte) []byte {
+func base64String(t *testing.T, src []byte) string {
 	t.Helper()
-	return []byte(base64.StdEncoding.EncodeToString(src))
+	return base64.StdEncoding.EncodeToString(src)
 }
 
 func TestVerifyWebhook_BackwardCompatibility(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
-	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
+	sig := []byte(hmacHex(t, []byte(webhookTestAPISecret), body))
 
 	require.True(t, c.VerifyWebhook(body, sig), "valid signature must verify")
-	require.False(t, c.VerifyWebhook(body, []byte("not-a-valid-hex-signature")), "invalid signature must not verify")
-	require.False(t, c.VerifyWebhook([]byte("tampered"), sig), "tampered body must not verify")
+	require.False(t, c.VerifyWebhook(body, []byte("not-a-valid-hex-signature")))
+	require.False(t, c.VerifyWebhook([]byte("tampered"), sig))
 }
 
-func TestDecompressWebhookBody(t *testing.T) {
-	c := newWebhookTestClient(t)
+func TestUngzipPayload(t *testing.T) {
 	body := []byte(webhookTestFixture)
 
-	gzipped := gzipBytes(t, body)
-	b64Plain := base64Bytes(t, body)
-	b64Gzipped := base64Bytes(t, gzipped)
+	t.Run("passthrough plain bytes", func(t *testing.T) {
+		got, err := UngzipPayload(body)
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
 
-	tests := []struct {
-		name            string
-		body            []byte
-		contentEncoding string
-		payloadEncoding string
-		want            []byte
-	}{
-		{
-			name: "passthrough when both encodings empty",
-			body: body,
-			want: body,
-		},
-		{
-			name:            "passthrough when both encodings whitespace",
-			body:            body,
-			contentEncoding: "  ",
-			payloadEncoding: "\t",
-			want:            body,
-		},
-		{
-			name:            "gzip round-trip",
-			body:            gzipped,
-			contentEncoding: "gzip",
-			want:            body,
-		},
-		{
-			name:            "base64 round-trip without compression",
-			body:            b64Plain,
-			payloadEncoding: "base64",
-			want:            body,
-		},
-		{
-			name:            "base64 + gzip round-trip (SQS / SNS shape)",
-			body:            b64Gzipped,
-			contentEncoding: "gzip",
-			payloadEncoding: "base64",
-			want:            body,
-		},
-		{
-			name:            "case-insensitive GZIP",
-			body:            gzipped,
-			contentEncoding: "GZIP",
-			want:            body,
-		},
-		{
-			name:            "case-insensitive BASE64",
-			body:            b64Plain,
-			payloadEncoding: "BASE64",
-			want:            body,
-		},
-		{
-			name:            "b64 alias",
-			body:            b64Plain,
-			payloadEncoding: "b64",
-			want:            body,
-		},
-		{
-			name:            "b64 alias + gzip",
-			body:            b64Gzipped,
-			contentEncoding: "gzip",
-			payloadEncoding: "B64",
-			want:            body,
-		},
-	}
+	t.Run("inflates gzip bytes", func(t *testing.T) {
+		got, err := UngzipPayload(gzipBytes(t, body))
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.DecompressWebhookBody(tt.body, tt.contentEncoding, tt.payloadEncoding)
-			require.NoError(t, err)
-			require.Equal(t, tt.want, got)
-		})
-	}
+	t.Run("empty input returns empty", func(t *testing.T) {
+		got, err := UngzipPayload([]byte{})
+		require.NoError(t, err)
+		require.Equal(t, []byte{}, got)
+	})
+
+	t.Run("short input below magic length", func(t *testing.T) {
+		got, err := UngzipPayload([]byte("ab"))
+		require.NoError(t, err)
+		require.Equal(t, []byte("ab"), got)
+	})
+
+	t.Run("truncated gzip with magic returns error", func(t *testing.T) {
+		bad := append(append([]byte{}, gzipMagic...), 0, 0, 0)
+		got, err := UngzipPayload(bad)
+		require.Error(t, err)
+		require.Nil(t, got)
+		assert.Contains(t, err.Error(), "gzip")
+	})
 }
 
-func TestDecompressWebhookBody_RejectsUnsupportedContentEncoding(t *testing.T) {
-	c := newWebhookTestClient(t)
+func TestDecodeSqsPayload(t *testing.T) {
 	body := []byte(webhookTestFixture)
 
-	for _, ce := range []string{"br", "brotli", "zstd", "deflate", "compress", "lz4"} {
-		ce := ce
-		t.Run(ce, func(t *testing.T) {
-			got, err := c.DecompressWebhookBody(body, ce, "")
-			require.Error(t, err)
-			require.Nil(t, got)
-			msg := err.Error()
-			assert.Contains(t, msg, "unsupported")
-			assert.Contains(t, msg, "gzip")
-		})
-	}
+	t.Run("base64 only - no compression", func(t *testing.T) {
+		got, err := DecodeSqsPayload(base64String(t, body))
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
+
+	t.Run("base64 plus gzip", func(t *testing.T) {
+		got, err := DecodeSqsPayload(base64String(t, gzipBytes(t, body)))
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
+
+	t.Run("invalid base64 raises", func(t *testing.T) {
+		got, err := DecodeSqsPayload("!!!not-base64!!!")
+		require.Error(t, err)
+		require.Nil(t, got)
+		assert.Contains(t, err.Error(), "base64")
+	})
 }
 
-func TestDecompressWebhookBody_RejectsUnsupportedPayloadEncoding(t *testing.T) {
-	c := newWebhookTestClient(t)
+func TestDecodeSnsPayload(t *testing.T) {
 	body := []byte(webhookTestFixture)
+	wrapped := base64String(t, gzipBytes(t, body))
 
-	for _, pe := range []string{"hex", "url", "binary"} {
-		pe := pe
-		t.Run(pe, func(t *testing.T) {
-			got, err := c.DecompressWebhookBody(body, "", pe)
-			require.Error(t, err)
-			require.Nil(t, got)
-			assert.Contains(t, err.Error(), "unsupported")
-			assert.Contains(t, err.Error(), "payload_encoding")
-		})
-	}
+	sns, err := DecodeSnsPayload(wrapped)
+	require.NoError(t, err)
+	sqs, err := DecodeSqsPayload(wrapped)
+	require.NoError(t, err)
+	require.Equal(t, sqs, sns)
+	require.Equal(t, body, sns)
 }
 
-func TestDecompressWebhookBody_InvalidGzipBytes(t *testing.T) {
-	c := newWebhookTestClient(t)
+func TestVerifySignature(t *testing.T) {
+	body := []byte(webhookTestFixture)
+	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 
-	got, err := c.DecompressWebhookBody([]byte("not-actually-gzip"), "gzip", "")
-	require.Error(t, err)
-	require.Nil(t, got)
-	assert.Contains(t, err.Error(), "gzip")
+	require.True(t, VerifySignature(body, sig, webhookTestAPISecret))
+	require.False(t, VerifySignature(body, "0000000000000000000000000000000000000000000000000000000000000000", webhookTestAPISecret))
+	require.False(t, VerifySignature(body, sig, "different-secret"))
+
+	compressed := gzipBytes(t, body)
+	sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), compressed)
+	require.False(t, VerifySignature(body, sigOverCompressed, webhookTestAPISecret),
+		"signature must be computed over uncompressed bytes")
 }
 
-func TestDecompressWebhookBody_InvalidBase64Input(t *testing.T) {
-	c := newWebhookTestClient(t)
+func TestParseEvent(t *testing.T) {
+	t.Run("known event type", func(t *testing.T) {
+		got, err := ParseEvent([]byte(webhookTestFixture))
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+		require.NotNil(t, got.Message)
+		require.Equal(t, "the quick brown fox", got.Message.Text)
+	})
 
-	got, err := c.DecompressWebhookBody([]byte("!!!not base64!!!"), "", "base64")
-	require.Error(t, err)
-	require.Nil(t, got)
-	assert.Contains(t, err.Error(), "payload_encoding")
+	t.Run("unknown event type still parses", func(t *testing.T) {
+		got, err := ParseEvent([]byte(`{"type":"a.future.event","custom":42}`))
+		require.NoError(t, err)
+		require.Equal(t, EventType("a.future.event"), got.Type)
+	})
+
+	t.Run("malformed json returns error", func(t *testing.T) {
+		got, err := ParseEvent([]byte("not json"))
+		require.Error(t, err)
+		require.Nil(t, got)
+	})
 }
 
-func TestVerifyAndDecodeWebhook_Plain(t *testing.T) {
+func TestVerifyAndParseWebhook(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
 	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 
-	got, err := c.VerifyAndDecodeWebhook(body, string(sig), "", "")
-	require.NoError(t, err)
-	require.Equal(t, body, got)
+	t.Run("plain body via package", func(t *testing.T) {
+		got, err := VerifyAndParseWebhook(body, sig, webhookTestAPISecret)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("gzip body via package", func(t *testing.T) {
+		got, err := VerifyAndParseWebhook(gzipBytes(t, body), sig, webhookTestAPISecret)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("plain body via client", func(t *testing.T) {
+		got, err := c.VerifyAndParseWebhook(body, sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("gzip body via client", func(t *testing.T) {
+		got, err := c.VerifyAndParseWebhook(gzipBytes(t, body), sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("signature mismatch returns ErrInvalidWebhookSignature", func(t *testing.T) {
+		got, err := c.VerifyAndParseWebhook(body, strings.Repeat("0", 64))
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
+
+	t.Run("signature over compressed bytes rejected", func(t *testing.T) {
+		compressed := gzipBytes(t, body)
+		sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), compressed)
+		got, err := c.VerifyAndParseWebhook(compressed, sigOverCompressed)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
+
+	t.Run("propagates decompression error", func(t *testing.T) {
+		bogus := append(append([]byte{}, gzipMagic...), []byte("garbage")...)
+		got, err := c.VerifyAndParseWebhook(bogus, sig)
+		require.Error(t, err)
+		require.False(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
 }
 
-func TestVerifyAndDecodeWebhook_Gzip(t *testing.T) {
+func TestVerifyAndParseSqs(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
-	gzipped := gzipBytes(t, body)
 	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 
-	got, err := c.VerifyAndDecodeWebhook(gzipped, string(sig), "gzip", "")
-	require.NoError(t, err)
-	require.Equal(t, body, got)
+	t.Run("base64 only via client", func(t *testing.T) {
+		got, err := c.VerifyAndParseSqs(base64String(t, body), sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("base64 plus gzip via client", func(t *testing.T) {
+		wrapped := base64String(t, gzipBytes(t, body))
+		got, err := c.VerifyAndParseSqs(wrapped, sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("via package", func(t *testing.T) {
+		wrapped := base64String(t, gzipBytes(t, body))
+		got, err := VerifyAndParseSqs(wrapped, sig, webhookTestAPISecret)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("signature over wrapped bytes rejected", func(t *testing.T) {
+		wrapped := base64String(t, gzipBytes(t, body))
+		sigOverWrapped := hmacHex(t, []byte(webhookTestAPISecret), []byte(wrapped))
+		got, err := c.VerifyAndParseSqs(wrapped, sigOverWrapped)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
+
+	t.Run("invalid base64 surfaced as error", func(t *testing.T) {
+		got, err := c.VerifyAndParseSqs("!!!not-base64!!!", sig)
+		require.Error(t, err)
+		require.False(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
 }
 
-func TestVerifyAndDecodeWebhook_Base64Gzip(t *testing.T) {
+func TestVerifyAndParseSns(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
-	wrapped := base64Bytes(t, gzipBytes(t, body))
 	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
+	wrapped := base64String(t, gzipBytes(t, body))
 
-	got, err := c.VerifyAndDecodeWebhook(wrapped, string(sig), "gzip", "base64")
+	got, err := c.VerifyAndParseSns(wrapped, sig)
 	require.NoError(t, err)
-	require.Equal(t, body, got)
-}
+	require.Equal(t, EventMessageNew, got.Type)
 
-func TestVerifyAndDecodeWebhook_SignatureMismatch(t *testing.T) {
-	c := newWebhookTestClient(t)
-	body := []byte(webhookTestFixture)
-	wrongSig := hex.EncodeToString(make([]byte, sha256.Size))
-
-	got, err := c.VerifyAndDecodeWebhook(body, wrongSig, "", "")
-	require.Error(t, err)
-	require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
-	require.Nil(t, got)
-}
-
-func TestVerifyAndDecodeWebhook_RejectsSignatureOverCompressedBytes(t *testing.T) {
-	c := newWebhookTestClient(t)
-	body := []byte(webhookTestFixture)
-	gzipped := gzipBytes(t, body)
-	sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), gzipped)
-
-	got, err := c.VerifyAndDecodeWebhook(gzipped, string(sigOverCompressed), "gzip", "")
-	require.Error(t, err)
-	require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
-	require.Nil(t, got)
-}
-
-func TestVerifyAndDecodeWebhook_RejectsSignatureOverWrappedBytes(t *testing.T) {
-	c := newWebhookTestClient(t)
-	body := []byte(webhookTestFixture)
-	wrapped := base64Bytes(t, gzipBytes(t, body))
-	sigOverWrapped := hmacHex(t, []byte(webhookTestAPISecret), wrapped)
-
-	got, err := c.VerifyAndDecodeWebhook(wrapped, string(sigOverWrapped), "gzip", "base64")
-	require.Error(t, err)
-	require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
-	require.Nil(t, got)
-}
-
-func TestVerifyAndDecodeWebhook_PropagatesDecompressionError(t *testing.T) {
-	c := newWebhookTestClient(t)
-	bogus := []byte("definitely-not-gzip-bytes")
-	sig := hmacHex(t, []byte(webhookTestAPISecret), bogus)
-
-	got, err := c.VerifyAndDecodeWebhook(bogus, string(sig), "gzip", "")
-	require.Error(t, err)
-	require.False(t, errors.Is(err, ErrInvalidWebhookSignature))
-	require.Nil(t, got)
-	assert.True(t, strings.Contains(err.Error(), "gzip"))
+	pkg, err := VerifyAndParseSns(wrapped, sig, webhookTestAPISecret)
+	require.NoError(t, err)
+	require.Equal(t, got.Type, pkg.Type)
 }
