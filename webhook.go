@@ -57,10 +57,37 @@ func DecodeSqsPayload(body string) ([]byte, error) {
 	return UngzipPayload(decoded)
 }
 
-// DecodeSnsPayload is byte-for-byte identical to DecodeSqsPayload;
-// exposed under both names so call sites read intent.
-func DecodeSnsPayload(message string) ([]byte, error) {
-	return DecodeSqsPayload(message)
+// DecodeSnsPayload reverses an SNS HTTP notification envelope: when the
+// input is a JSON envelope ({"Type":"Notification","Message":"..."}),
+// the inner Message field is extracted and run through the SQS pipeline
+// (base64-decode, then gzip-if-magic). When the input is not a JSON
+// envelope it is treated as the already-extracted Message string, so
+// existing call sites that pre-unwrap continue to work.
+func DecodeSnsPayload(notificationBody string) ([]byte, error) {
+	if msg, ok := extractSnsMessage(notificationBody); ok {
+		return DecodeSqsPayload(msg)
+	}
+	return DecodeSqsPayload(notificationBody)
+}
+
+// extractSnsMessage returns the inner Message field from an SNS HTTP
+// notification envelope. The ok result is false when input is not a JSON
+// object with a string Message field.
+func extractSnsMessage(notificationBody string) (string, bool) {
+	trimmed := bytes.TrimLeft([]byte(notificationBody), " \t\r\n")
+	if len(trimmed) == 0 || trimmed[0] != '{' {
+		return "", false
+	}
+	var envelope struct {
+		Message *string `json:"Message"`
+	}
+	if err := json.Unmarshal(trimmed, &envelope); err != nil {
+		return "", false
+	}
+	if envelope.Message == nil {
+		return "", false
+	}
+	return *envelope.Message, true
 }
 
 // VerifySignature returns true when signature equals the hex-encoded

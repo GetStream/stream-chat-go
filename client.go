@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"bytes"
 	"context"
 	"crypto"
 	"crypto/hmac"
@@ -152,12 +151,13 @@ func (c *Client) createToken(claims jwt.Claims) (string, error) {
 }
 
 // VerifyWebhook validates if hmac signature is correct for message body.
+// The comparison is constant-time.
 func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
 	_, _ = mac.Write(body)
 
-	expectedMAC := hex.EncodeToString(mac.Sum(nil))
-	return bytes.Equal(signature, []byte(expectedMAC))
+	expectedMAC := []byte(hex.EncodeToString(mac.Sum(nil)))
+	return hmac.Equal(expectedMAC, signature)
 }
 
 // this makes possible to set content type.

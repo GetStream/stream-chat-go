@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -124,12 +125,51 @@ func TestDecodeSnsPayload(t *testing.T) {
 	body := []byte(webhookTestFixture)
 	wrapped := base64String(t, gzipBytes(t, body))
 
-	sns, err := DecodeSnsPayload(wrapped)
+	t.Run("pre-extracted message backward compat", func(t *testing.T) {
+		sns, err := DecodeSnsPayload(wrapped)
+		require.NoError(t, err)
+		sqs, err := DecodeSqsPayload(wrapped)
+		require.NoError(t, err)
+		require.Equal(t, sqs, sns)
+		require.Equal(t, body, sns)
+	})
+
+	t.Run("full SNS HTTP notification envelope", func(t *testing.T) {
+		envelope := snsEnvelope(t, wrapped)
+		got, err := DecodeSnsPayload(envelope)
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
+
+	t.Run("envelope with whitespace prefix", func(t *testing.T) {
+		envelope := "  \n" + snsEnvelope(t, wrapped)
+		got, err := DecodeSnsPayload(envelope)
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+	})
+}
+
+// snsEnvelope returns a realistic SNS HTTP POST notification body that
+// wraps payload as the Message field. Matches the documented SNS schema.
+func snsEnvelope(t *testing.T, payload string) string {
+	t.Helper()
+	env := map[string]any{
+		"Type":             "Notification",
+		"MessageId":        "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+		"TopicArn":         "arn:aws:sns:us-east-1:123456789012:stream-webhooks",
+		"Message":          payload,
+		"Timestamp":        "2026-05-11T10:00:00.000Z",
+		"SignatureVersion": "1",
+		"MessageAttributes": map[string]any{
+			"X-Signature": map[string]string{
+				"Type":  "String",
+				"Value": "<signature placeholder>",
+			},
+		},
+	}
+	out, err := json.Marshal(env)
 	require.NoError(t, err)
-	sqs, err := DecodeSqsPayload(wrapped)
-	require.NoError(t, err)
-	require.Equal(t, sqs, sns)
-	require.Equal(t, body, sns)
+	return string(out)
 }
 
 func TestVerifySignature(t *testing.T) {
@@ -270,11 +310,29 @@ func TestVerifyAndParseSns(t *testing.T) {
 	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 	wrapped := base64String(t, gzipBytes(t, body))
 
-	got, err := c.VerifyAndParseSns(wrapped, sig)
-	require.NoError(t, err)
-	require.Equal(t, EventMessageNew, got.Type)
+	t.Run("pre-extracted message backward compat", func(t *testing.T) {
+		got, err := c.VerifyAndParseSns(wrapped, sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
 
-	pkg, err := VerifyAndParseSns(wrapped, sig, webhookTestAPISecret)
-	require.NoError(t, err)
-	require.Equal(t, got.Type, pkg.Type)
+		pkg, err := VerifyAndParseSns(wrapped, sig, webhookTestAPISecret)
+		require.NoError(t, err)
+		require.Equal(t, got.Type, pkg.Type)
+	})
+
+	t.Run("full SNS HTTP notification envelope", func(t *testing.T) {
+		envelope := snsEnvelope(t, wrapped)
+		got, err := c.VerifyAndParseSns(envelope, sig)
+		require.NoError(t, err)
+		require.Equal(t, EventMessageNew, got.Type)
+	})
+
+	t.Run("envelope signature verifies against inner payload", func(t *testing.T) {
+		envelope := snsEnvelope(t, wrapped)
+		envelopeSig := hmacHex(t, []byte(webhookTestAPISecret), []byte(envelope))
+		got, err := c.VerifyAndParseSns(envelope, envelopeSig)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.Nil(t, got)
+	})
 }
