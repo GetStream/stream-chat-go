@@ -34,10 +34,13 @@ func UngzipPayload(body []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("decompress gzip payload: %w", err)
 	}
-	defer zr.Close()
 	out, err := io.ReadAll(zr)
 	if err != nil {
+		_ = zr.Close()
 		return nil, fmt.Errorf("read gzip payload: %w", err)
+	}
+	if err := zr.Close(); err != nil {
+		return nil, fmt.Errorf("finalize gzip payload: %w", err)
 	}
 	return out, nil
 }
