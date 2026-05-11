@@ -123,7 +123,7 @@ if err != nil {
 
 If you want to drive the steps yourself, the package exposes the building blocks:
 
-* `stream.UngzipPayload(body []byte) ([]byte, error)` - returns body unchanged unless it begins with the gzip magic, in which case it is inflated.
+* `stream.GunzipPayload(body []byte) ([]byte, error)` - returns body unchanged unless it begins with the gzip magic, in which case it is inflated.
 * `stream.VerifySignature(body []byte, signature, secret string) bool` - constant-time HMAC-SHA256 check against the uncompressed bytes.
 * `stream.ParseEvent(payload []byte) (*stream.Event, error)` - JSON decode into a typed event.
 

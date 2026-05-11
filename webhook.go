@@ -20,13 +20,13 @@ var ErrInvalidWebhookSignature = errors.New("invalid webhook signature")
 
 var gzipMagic = []byte{0x1f, 0x8b}
 
-// UngzipPayload returns body unchanged unless the first two bytes are
+// GunzipPayload returns body unchanged unless the first two bytes are
 // the gzip magic (1f 8b, per RFC 1952), in which case the gzip stream
 // is inflated and the decompressed bytes are returned.
 //
 // Magic-byte detection lets the same handler stay correct when
 // middleware auto-decompresses the request before your code sees it.
-func UngzipPayload(body []byte) ([]byte, error) {
+func GunzipPayload(body []byte) ([]byte, error) {
 	if len(body) < 2 || !bytes.Equal(body[:2], gzipMagic) {
 		return body, nil
 	}
@@ -54,7 +54,7 @@ func DecodeSqsPayload(body string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("base64-decode payload: %w", err)
 	}
-	return UngzipPayload(decoded)
+	return GunzipPayload(decoded)
 }
 
 // DecodeSnsPayload reverses an SNS HTTP notification envelope: when the
@@ -125,7 +125,7 @@ func verifyAndParse(payload []byte, signature, secret string) (*Event, error) {
 // ErrInvalidWebhookSignature on mismatch and a wrapped error on any
 // decode failure.
 func VerifyAndParseWebhook(body []byte, signature, secret string) (*Event, error) {
-	inflated, err := UngzipPayload(body)
+	inflated, err := GunzipPayload(body)
 	if err != nil {
 		return nil, err
 	}
