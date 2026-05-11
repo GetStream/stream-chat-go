@@ -103,37 +103,42 @@ Before enabling compression, make sure that:
 * If you don't use an official SDK, make sure that your code supports receiving compressed payloads
 * The payload signature check is done on the **uncompressed** payload
 
-Use `VerifyAndDecodeWebhook` to decompress and verify the signature in a single call. The signature is always computed over the uncompressed JSON, so this method works whether compression is on or off.
+Use `VerifyAndParseWebhook` to decompress, verify the signature, and parse the event in a single call. The body is detected as gzip via its 2-byte magic header (per RFC 1952), so the call works whether your HTTP framework already decompressed the body, the `Content-Encoding` header was stripped, or compression is disabled. The signature is always computed over the uncompressed JSON.
 
 ```go
 client, _ := stream.NewClient(APIKey, APISecret)
 
-// signature comes from the X-Signature header
-// contentEncoding comes from the Content-Encoding header (may be "" if your
-// HTTP framework already decompressed the body or compression is disabled)
-payload, err := client.VerifyAndDecodeWebhook(body, signature, contentEncoding, "")
+// body: raw request body bytes (do not parse JSON before this call)
+// signature: value of the X-Signature header
+event, err := client.VerifyAndParseWebhook(body, signature)
 if err != nil {
     if errors.Is(err, stream.ErrInvalidWebhookSignature) {
         // signature did not match - reject the request
     }
-    // decompression error or unsupported encoding
+    // decompression or JSON parse error
     return
 }
-// payload is the raw JSON body the server signed
+// event is *stream.Event - inspect event.Type, event.Message, etc.
 ```
 
-If you want to handle decompression yourself, use the lower-level `DecompressWebhookBody` and then call `VerifyWebhook` on the result.
+If you want to drive the steps yourself, the package exposes the building blocks:
+
+* `stream.UngzipPayload(body []byte) ([]byte, error)` - returns body unchanged unless it begins with the gzip magic, in which case it is inflated.
+* `stream.VerifySignature(body []byte, signature, secret string) bool` - constant-time HMAC-SHA256 check against the uncompressed bytes.
+* `stream.ParseEvent(payload []byte) (*stream.Event, error)` - JSON decode into a typed event.
 
 #### SQS / SNS firehose
 
-When the same compressed events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Pass `"base64"` as the `payloadEncoding` argument and the helper handles both layers in the correct order (base64 first, then gunzip):
+When the same events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Use the firehose helpers - they base64-decode, gunzip when needed, then verify and parse in the correct order:
 
 ```go
-// body: SQS Body / SNS Message bytes
-// signature: value from the message attribute
-// contentEncoding: "gzip" when compression is enabled, "" otherwise
-payload, err := client.VerifyAndDecodeWebhook(body, signature, contentEncoding, "base64")
+// messageBody: the SQS Body / SNS Message field as a string
+// signature: value from the X-Signature message attribute
+event, err := client.VerifyAndParseSqs(messageBody, signature) // SQS
+event, err = client.VerifyAndParseSns(messageBody, signature)  // SNS
 ```
+
+Stateless package-level forms are also available for callers that do not hold a `*Client`: `stream.VerifyAndParseWebhook(body, signature, secret)`, `stream.VerifyAndParseSqs(messageBody, signature, secret)`, `stream.VerifyAndParseSns(message, signature, secret)`.
 
 ## Webhook types
 
