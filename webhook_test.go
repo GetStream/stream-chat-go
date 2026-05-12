@@ -62,36 +62,36 @@ func TestVerifyWebhook_BackwardCompatibility(t *testing.T) {
 	require.False(t, c.VerifyWebhook([]byte("tampered"), sig))
 }
 
-func TestUngzipPayload(t *testing.T) {
+func TestGunzipPayload(t *testing.T) {
 	body := []byte(webhookTestFixture)
 
 	t.Run("passthrough plain bytes", func(t *testing.T) {
-		got, err := UngzipPayload(body)
+		got, err := GunzipPayload(body)
 		require.NoError(t, err)
 		require.Equal(t, body, got)
 	})
 
 	t.Run("inflates gzip bytes", func(t *testing.T) {
-		got, err := UngzipPayload(gzipBytes(t, body))
+		got, err := GunzipPayload(gzipBytes(t, body))
 		require.NoError(t, err)
 		require.Equal(t, body, got)
 	})
 
 	t.Run("empty input returns empty", func(t *testing.T) {
-		got, err := UngzipPayload([]byte{})
+		got, err := GunzipPayload([]byte{})
 		require.NoError(t, err)
 		require.Equal(t, []byte{}, got)
 	})
 
 	t.Run("short input below magic length", func(t *testing.T) {
-		got, err := UngzipPayload([]byte("ab"))
+		got, err := GunzipPayload([]byte("ab"))
 		require.NoError(t, err)
 		require.Equal(t, []byte("ab"), got)
 	})
 
 	t.Run("gunzipPayload returns ErrInvalidWebhook on corrupt gzip", func(t *testing.T) {
 		bad := append(append([]byte{}, gzipMagic...), 0, 0, 0)
-		got, err := UngzipPayload(bad)
+		got, err := GunzipPayload(bad)
 		require.Error(t, err)
 		require.Nil(t, got)
 		require.True(t, errors.Is(err, ErrInvalidWebhook))
@@ -101,7 +101,7 @@ func TestUngzipPayload(t *testing.T) {
 	t.Run("decompresses helloworld fixture", func(t *testing.T) {
 		compressed, err := base64.StdEncoding.DecodeString("H4sIAGrYAWoAA8tIzcnJL88vykkBAK0g6/kKAAAA")
 		require.NoError(t, err)
-		got, err := UngzipPayload(compressed)
+		got, err := GunzipPayload(compressed)
 		require.NoError(t, err)
 		require.Equal(t, []byte("helloworld"), got)
 	})
