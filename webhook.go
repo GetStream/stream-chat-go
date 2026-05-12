@@ -13,10 +13,9 @@ import (
 	"io"
 )
 
-// ErrInvalidWebhookSignature is returned by VerifyAndParse* helpers when
-// the supplied signature does not match the HMAC computed over the
-// uncompressed JSON body.
-var ErrInvalidWebhookSignature = errors.New("invalid webhook signature")
+// ErrInvalidWebhook is the sentinel wrapped by every malformed-webhook /
+// verification error from this package so callers can use errors.Is with a single check.
+var ErrInvalidWebhook = errors.New("invalid webhook")
 
 var gzipMagic = []byte{0x1f, 0x8b}
 
@@ -32,15 +31,15 @@ func UngzipPayload(body []byte) ([]byte, error) {
 	}
 	zr, err := gzip.NewReader(bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("decompress gzip payload: %w", err)
+		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
 	}
 	out, err := io.ReadAll(zr)
 	if err != nil {
 		_ = zr.Close()
-		return nil, fmt.Errorf("read gzip payload: %w", err)
+		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
 	}
 	if err := zr.Close(); err != nil {
-		return nil, fmt.Errorf("finalize gzip payload: %w", err)
+		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
 	}
 	return out, nil
 }
@@ -52,7 +51,7 @@ func UngzipPayload(body []byte) ([]byte, error) {
 func DecodeSqsPayload(body string) ([]byte, error) {
 	decoded, err := base64.StdEncoding.DecodeString(body)
 	if err != nil {
-		return nil, fmt.Errorf("base64-decode payload: %w", err)
+		return nil, fmt.Errorf("invalid base64 encoding: %w", ErrInvalidWebhook)
 	}
 	return UngzipPayload(decoded)
 }
@@ -90,16 +89,22 @@ func extractSnsMessage(notificationBody string) (string, bool) {
 	return *envelope.Message, true
 }
 
-// VerifySignature returns true when signature equals the hex-encoded
-// HMAC-SHA256 of body using secret as the key. The comparison is
-// constant-time. The signature is always computed over the
-// uncompressed JSON bytes, so callers that decoded a gzipped or
-// base64-wrapped payload must pass the inflated bytes here.
-func VerifySignature(body []byte, signature, secret string) bool {
+func signatureMatch(body []byte, signature, secret string) bool {
 	mac := hmac.New(sha256.New, []byte(secret))
 	_, _ = mac.Write(body)
 	expected := []byte(hex.EncodeToString(mac.Sum(nil)))
-	return hmac.Equal(expected, []byte(signature))
+	return len(signature) == len(expected) && hmac.Equal(expected, []byte(signature))
+}
+
+// VerifySignature compares the hex-encoded HMAC-SHA256 of body (using secret as the key)
+// to signature with a constant-time comparison. It returns nil on match.
+// On mismatch it returns an error wrapping ErrInvalidWebhook (message contains
+// "signature mismatch"). The digest is always over uncompressed JSON bytes.
+func VerifySignature(body []byte, signature, secret string) error {
+	if !signatureMatch(body, signature, secret) {
+		return fmt.Errorf("signature mismatch: %w", ErrInvalidWebhook)
+	}
+	return nil
 }
 
 // ParseEvent decodes the JSON-encoded webhook payload into a typed
@@ -108,22 +113,20 @@ func VerifySignature(body []byte, signature, secret string) bool {
 func ParseEvent(payload []byte) (*Event, error) {
 	var ev Event
 	if err := json.Unmarshal(payload, &ev); err != nil {
-		return nil, fmt.Errorf("parse webhook event: %w", err)
+		return nil, fmt.Errorf("invalid JSON payload: %w", ErrInvalidWebhook)
 	}
 	return &ev, nil
 }
 
 func verifyAndParse(payload []byte, signature, secret string) (*Event, error) {
-	if !VerifySignature(payload, signature, secret) {
-		return nil, ErrInvalidWebhookSignature
+	if err := VerifySignature(payload, signature, secret); err != nil {
+		return nil, err
 	}
 	return ParseEvent(payload)
 }
 
 // VerifyAndParseWebhook decompresses body when gzipped, verifies the
-// HMAC signature against secret, and returns the parsed Event. Returns
-// ErrInvalidWebhookSignature on mismatch and a wrapped error on any
-// decode failure.
+// HMAC signature against secret, and returns the parsed Event.
 func VerifyAndParseWebhook(body []byte, signature, secret string) (*Event, error) {
 	inflated, err := UngzipPayload(body)
 	if err != nil {

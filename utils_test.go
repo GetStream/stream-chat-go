@@ -3,6 +3,7 @@ package stream_chat
 import (
 	"context"
 	"math/rand"
+	"os"
 	"testing"
 	"time"
 
@@ -12,6 +13,9 @@ import (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
+	if os.Getenv("STREAM_KEY") == "" || os.Getenv("STREAM_SECRET") == "" {
+		return
+	}
 	if err := clearOldChannelTypes(); err != nil {
 		panic(err) // app has bad data from previous runs
 	}
