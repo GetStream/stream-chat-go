@@ -126,7 +126,7 @@ If you want to drive the steps yourself, the package exposes the building blocks
 * `stream.VerifySignature(body []byte, signature, secret string) error` - constant-time HMAC-SHA256 check against the uncompressed bytes; returns `nil` on match or an error wrapping `stream.ErrInvalidWebhook` on mismatch.
 * `stream.ParseEvent(payload []byte) (*stream.Event, error)` - JSON decode into a typed event.
 
-All webhook failure paths (`VerifyAndParseWebhook`, `VerifyAndParseSqs`, `VerifyAndParseSns`, `VerifySignature`, `GunzipPayload`, `DecodeSqsPayload`, `ParseEvent`) wrap a single sentinel `stream.ErrInvalidWebhook`, so a single `errors.Is(err, stream.ErrInvalidWebhook)` check covers signature mismatch, base64 decode, gzip decompression, and JSON parse failures. To distinguish the failure mode, match a substring of the error message (`"signature mismatch"`, `"invalid base64 encoding"`, `"gzip decompression failed"`, `"invalid JSON payload"`).
+All webhook failure paths (`VerifyAndParseWebhook`, `ParseSqs`, `ParseSns`, `VerifySignature`, `GunzipPayload`, `DecodeSqsPayload`, `DecodeSnsPayload`, `ParseEvent`) wrap a single sentinel `stream.ErrInvalidWebhook`, so a single `errors.Is(err, stream.ErrInvalidWebhook)` check covers signature mismatch, base64 decode, gzip decompression, and JSON parse failures. To distinguish the failure mode, match a substring of the error message (`"signature mismatch"`, `"invalid base64 encoding"`, `"gzip decompression failed"`, `"invalid JSON payload"`).
 
 
 #### SQS / SNS firehose
@@ -134,29 +134,30 @@ All webhook failure paths (`VerifyAndParseWebhook`, `VerifyAndParseSqs`, `Verify
 When the same events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Use the firehose helpers - they base64-decode, gunzip when needed, then parse in the correct order:
 
 ```go
-// messageBody:   the SQS message Body as a string
-// envelopeBody:  the raw SNS HTTP notification body (or the pre-extracted Message field)
-event, err := client.VerifyAndParseSqs(messageBody)   // SQS
-event, err = client.VerifyAndParseSns(envelopeBody)   // SNS
+// messageBody:    the SQS message Body as a string
+// envelopeBody:   the raw SNS HTTP notification body (or the pre-extracted Message field)
+event, err := client.ParseSqs(messageBody)   // SQS
+event, err = client.ParseSns(envelopeBody)   // SNS
 ```
 
-Stream does not ship an `X-Signature` on SQS or SNS deliveries: those transports ride AWS-internal infrastructure (IAM-authenticated queues and AWS-signed SNS notifications), which is the auth layer. The signature argument is optional and only needed if you have set up out-of-band signing in front of these helpers; in that case pass it as a second argument and the client will HMAC-verify against its own API secret:
+`ParseSqs` and `ParseSns` are pure decode-and-parse helpers — there is no HMAC step. Stream does not ship an `X-Signature` on SQS or SNS deliveries: those transports ride AWS-internal infrastructure (IAM-authenticated queues and AWS-signed SNS notifications), which is the authentication layer. The HTTP webhook flow (`VerifyAndParseWebhook`) is unchanged and still HMAC-verifies the body against your API secret.
+
+Arguments:
+
+| Helper                  | Argument        | Description                                                                                  |
+| ----------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `client.ParseSqs`       | `messageBody`   | The SQS message `Body` field as a string (base64-encoded, gzip-wrapped when compression is on). |
+| `client.ParseSns`       | `envelopeBody`  | The raw SNS HTTP notification body, or the pre-extracted `Message` field as a string.        |
+
+Stateless package-level forms are available for callers that do not hold a `*Client`:
 
 ```go
-event, err := client.VerifyAndParseSqs(messageBody, signature) // opt-in HMAC verification
-event, err = client.VerifyAndParseSns(envelopeBody, signature)
+event, err := stream.VerifyAndParseWebhook(body, signature, secret) // HTTP webhook: HMAC-verified
+event, err = stream.ParseSqs(messageBody)                            // SQS: decode + parse
+event, err = stream.ParseSns(envelopeBody)                           // SNS: unwrap + decode + parse
 ```
 
-Stateless package-level forms are also available for callers that do not hold a `*Client`. Pass empty strings for `signature` and `secret` to skip verification, or pass both to run the HMAC check:
-
-```go
-event, err := stream.VerifyAndParseWebhook(body, signature, secret)
-event, err = stream.VerifyAndParseSqs(messageBody, "", "")          // skip verification
-event, err = stream.VerifyAndParseSqs(messageBody, signature, secret) // verify
-event, err = stream.VerifyAndParseSns(envelopeBody, "", "")
-```
-
-Passing exactly one of `signature` or `secret` returns an error wrapping `stream.ErrInvalidWebhook` with the message `"signature and secret must both be provided"` - it is treated as a programmer error rather than a silent skip.
+Every failure (base64 decode, gzip inflate, JSON parse) wraps `stream.ErrInvalidWebhook`, so the same `errors.Is(err, stream.ErrInvalidWebhook)` check used for the HTTP webhook covers the firehose helpers as well.
 
 ## Webhook types
 

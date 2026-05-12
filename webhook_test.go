@@ -306,43 +306,34 @@ func TestVerifyAndParseWebhook(t *testing.T) {
 	})
 }
 
-func TestVerifyAndParseSqs(t *testing.T) {
+func TestParseSqs(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
-	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 
 	t.Run("base64 only via client", func(t *testing.T) {
-		got, err := c.VerifyAndParseSqs(base64String(t, body), sig)
+		got, err := c.ParseSqs(base64String(t, body))
 		require.NoError(t, err)
 		require.Equal(t, EventMessageNew, got.Type)
+		require.NotNil(t, got.Message)
+		require.Equal(t, "the quick brown fox", got.Message.Text)
 	})
 
 	t.Run("base64 plus gzip via client", func(t *testing.T) {
 		wrapped := base64String(t, gzipBytes(t, body))
-		got, err := c.VerifyAndParseSqs(wrapped, sig)
+		got, err := c.ParseSqs(wrapped)
 		require.NoError(t, err)
 		require.Equal(t, EventMessageNew, got.Type)
 	})
 
 	t.Run("via package", func(t *testing.T) {
 		wrapped := base64String(t, gzipBytes(t, body))
-		got, err := VerifyAndParseSqs(wrapped, sig, webhookTestAPISecret)
+		got, err := ParseSqs(wrapped)
 		require.NoError(t, err)
 		require.Equal(t, EventMessageNew, got.Type)
 	})
 
-	t.Run("signature over wrapped bytes rejected", func(t *testing.T) {
-		wrapped := base64String(t, gzipBytes(t, body))
-		sigOverWrapped := hmacHex(t, []byte(webhookTestAPISecret), []byte(wrapped))
-		got, err := c.VerifyAndParseSqs(wrapped, sigOverWrapped)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhook))
-		assert.Contains(t, err.Error(), "signature mismatch")
-		require.Nil(t, got)
-	})
-
 	t.Run("invalid base64 surfaced as ErrInvalidWebhook", func(t *testing.T) {
-		got, err := c.VerifyAndParseSqs("!!!not-base64!!!", sig)
+		got, err := c.ParseSqs("!!!not-base64!!!")
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrInvalidWebhook))
 		assert.Contains(t, err.Error(), "invalid base64 encoding")
@@ -350,160 +341,35 @@ func TestVerifyAndParseSqs(t *testing.T) {
 	})
 }
 
-func TestVerifyAndParseSns(t *testing.T) {
+func TestParseSns(t *testing.T) {
 	c := newWebhookTestClient(t)
 	body := []byte(webhookTestFixture)
-	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 	wrapped := base64String(t, gzipBytes(t, body))
 
 	t.Run("pre-extracted message backward compat", func(t *testing.T) {
-		got, err := c.VerifyAndParseSns(wrapped, sig)
+		got, err := c.ParseSns(wrapped)
 		require.NoError(t, err)
 		require.Equal(t, EventMessageNew, got.Type)
 
-		pkg, err := VerifyAndParseSns(wrapped, sig, webhookTestAPISecret)
+		pkg, err := ParseSns(wrapped)
 		require.NoError(t, err)
 		require.Equal(t, got.Type, pkg.Type)
 	})
 
 	t.Run("full SNS HTTP notification envelope", func(t *testing.T) {
 		envelope := snsEnvelope(t, wrapped)
-		got, err := c.VerifyAndParseSns(envelope, sig)
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-	})
-
-	t.Run("envelope signature verifies against inner payload", func(t *testing.T) {
-		envelope := snsEnvelope(t, wrapped)
-		envelopeSig := hmacHex(t, []byte(webhookTestAPISecret), []byte(envelope))
-		got, err := c.VerifyAndParseSns(envelope, envelopeSig)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhook))
-		assert.Contains(t, err.Error(), "signature mismatch")
-		require.Nil(t, got)
-	})
-}
-
-func TestVerifyAndParseSqs_NoSignature(t *testing.T) {
-	body := []byte(webhookTestFixture)
-
-	t.Run("plain base64 body", func(t *testing.T) {
-		got, err := VerifyAndParseSqs(base64String(t, body), "", "")
+		got, err := c.ParseSns(envelope)
 		require.NoError(t, err)
 		require.Equal(t, EventMessageNew, got.Type)
 		require.NotNil(t, got.Message)
 		require.Equal(t, "the quick brown fox", got.Message.Text)
 	})
 
-	t.Run("base64 plus gzip body", func(t *testing.T) {
-		got, err := VerifyAndParseSqs(base64String(t, gzipBytes(t, body)), "", "")
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-	})
-
-	t.Run("invalid base64 still surfaces as ErrInvalidWebhook", func(t *testing.T) {
-		got, err := VerifyAndParseSqs("!!!not-base64!!!", "", "")
+	t.Run("invalid base64 surfaced as ErrInvalidWebhook", func(t *testing.T) {
+		got, err := c.ParseSns("!!!not-base64!!!")
 		require.Error(t, err)
-		require.Nil(t, got)
 		require.True(t, errors.Is(err, ErrInvalidWebhook))
 		assert.Contains(t, err.Error(), "invalid base64 encoding")
-	})
-}
-
-func TestVerifyAndParseSns_NoSignature(t *testing.T) {
-	body := []byte(webhookTestFixture)
-	wrapped := base64String(t, gzipBytes(t, body))
-
-	t.Run("pre-extracted Message", func(t *testing.T) {
-		got, err := VerifyAndParseSns(wrapped, "", "")
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-	})
-
-	t.Run("full SNS HTTP notification envelope", func(t *testing.T) {
-		envelope := snsEnvelope(t, wrapped)
-		got, err := VerifyAndParseSns(envelope, "", "")
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-		require.NotNil(t, got.Message)
-		require.Equal(t, "the quick brown fox", got.Message.Text)
-	})
-}
-
-func TestClient_VerifyAndParseSqs_NoSignature(t *testing.T) {
-	c := newWebhookTestClient(t)
-	body := []byte(webhookTestFixture)
-	wrapped := base64String(t, gzipBytes(t, body))
-
-	t.Run("zero signature args skips verification", func(t *testing.T) {
-		got, err := c.VerifyAndParseSqs(wrapped)
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-	})
-
-	t.Run("one signature arg verifies against client secret", func(t *testing.T) {
-		sig := hmacHex(t, []byte(webhookTestAPISecret), body)
-		got, err := c.VerifyAndParseSqs(wrapped, sig)
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-	})
-
-	t.Run("more than one signature arg is rejected", func(t *testing.T) {
-		got, err := c.VerifyAndParseSqs(wrapped, "sig-a", "sig-b")
-		require.Error(t, err)
 		require.Nil(t, got)
-		require.True(t, errors.Is(err, ErrInvalidWebhook))
-		assert.Contains(t, err.Error(), "accepts at most one signature argument")
 	})
-
-	t.Run("variadic form on Sns mirrors Sqs", func(t *testing.T) {
-		envelope := snsEnvelope(t, wrapped)
-		got, err := c.VerifyAndParseSns(envelope)
-		require.NoError(t, err)
-		require.Equal(t, EventMessageNew, got.Type)
-
-		got, err = c.VerifyAndParseSns(envelope, "sig-a", "sig-b")
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.True(t, errors.Is(err, ErrInvalidWebhook))
-		assert.Contains(t, err.Error(), "accepts at most one signature argument")
-	})
-}
-
-func TestVerifyAndParseSqs_RejectsPartialCreds(t *testing.T) {
-	body := []byte(webhookTestFixture)
-	wrapped := base64String(t, gzipBytes(t, body))
-	envelope := snsEnvelope(t, wrapped)
-
-	cases := []struct {
-		name string
-		call func() (*Event, error)
-	}{
-		{
-			name: "sqs signature only",
-			call: func() (*Event, error) { return VerifyAndParseSqs(wrapped, "sig", "") },
-		},
-		{
-			name: "sqs secret only",
-			call: func() (*Event, error) { return VerifyAndParseSqs(wrapped, "", "sec") },
-		},
-		{
-			name: "sns signature only",
-			call: func() (*Event, error) { return VerifyAndParseSns(envelope, "sig", "") },
-		},
-		{
-			name: "sns secret only",
-			call: func() (*Event, error) { return VerifyAndParseSns(envelope, "", "sec") },
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := tc.call()
-			require.Error(t, err)
-			require.Nil(t, got)
-			require.True(t, errors.Is(err, ErrInvalidWebhook))
-			assert.Contains(t, err.Error(), "signature and secret must both be provided")
-		})
-	}
 }

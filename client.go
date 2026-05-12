@@ -335,32 +335,17 @@ func (c *Client) ChannelBatchUpdater() *ChannelBatchUpdater {
 	return &ChannelBatchUpdater{client: c}
 }
 
-// VerifyAndParseSqs is the client-bound form of the package-level
-// helper. Signature is variadic to make verification opt-in: omit it
-// for the default AWS-transport-is-the-auth-layer behavior (decode +
-// parse), or pass exactly one signature string to also run the HMAC
-// check against the client's API secret.
-func (c *Client) VerifyAndParseSqs(body string, signature ...string) (*Event, error) {
-	switch len(signature) {
-	case 0:
-		return VerifyAndParseSqs(body, "", "")
-	case 1:
-		return VerifyAndParseSqs(body, signature[0], string(c.apiSecret))
-	default:
-		return nil, fmt.Errorf("VerifyAndParseSqs accepts at most one signature argument: %w", ErrInvalidWebhook)
-	}
+// ParseSqs is the client-bound form of the package-level ParseSqs
+// helper. SQS deliveries from Stream are not HMAC-signed (the queue
+// itself is the authentication layer via IAM), so this is a pure
+// decode-and-parse call.
+func (c *Client) ParseSqs(body string) (*Event, error) {
+	return ParseSqs(body)
 }
 
-// VerifyAndParseSns is the client-bound form of the package-level
-// helper. Signature is variadic; see VerifyAndParseSqs for the
-// behavior matrix.
-func (c *Client) VerifyAndParseSns(notificationBody string, signature ...string) (*Event, error) {
-	switch len(signature) {
-	case 0:
-		return VerifyAndParseSns(notificationBody, "", "")
-	case 1:
-		return VerifyAndParseSns(notificationBody, signature[0], string(c.apiSecret))
-	default:
-		return nil, fmt.Errorf("VerifyAndParseSns accepts at most one signature argument: %w", ErrInvalidWebhook)
-	}
+// ParseSns is the client-bound form of the package-level ParseSns
+// helper. SNS deliveries from Stream are not HMAC-signed (AWS signs
+// the notification envelope), so this is a pure decode-and-parse call.
+func (c *Client) ParseSns(body string) (*Event, error) {
+	return ParseSns(body)
 }
