@@ -89,12 +89,13 @@ func TestGunzipPayload(t *testing.T) {
 		require.Equal(t, []byte("ab"), got)
 	})
 
-	t.Run("truncated gzip with magic returns error", func(t *testing.T) {
+	t.Run("gunzipPayload returns ErrInvalidWebhook on corrupt gzip", func(t *testing.T) {
 		bad := append(append([]byte{}, gzipMagic...), 0, 0, 0)
 		got, err := GunzipPayload(bad)
 		require.Error(t, err)
 		require.Nil(t, got)
-		assert.Contains(t, err.Error(), "gzip")
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "gzip decompression failed")
 	})
 
 	t.Run("decompresses helloworld fixture", func(t *testing.T) {
@@ -121,11 +122,12 @@ func TestDecodeSqsPayload(t *testing.T) {
 		require.Equal(t, body, got)
 	})
 
-	t.Run("invalid base64 raises", func(t *testing.T) {
+	t.Run("decodeSqsPayload returns ErrInvalidWebhook on invalid base64", func(t *testing.T) {
 		got, err := DecodeSqsPayload("!!!not-base64!!!")
 		require.Error(t, err)
 		require.Nil(t, got)
-		assert.Contains(t, err.Error(), "base64")
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "invalid base64 encoding")
 	})
 
 	t.Run("helloworld base64 fixture", func(t *testing.T) {
@@ -196,14 +198,31 @@ func TestVerifySignature(t *testing.T) {
 	body := []byte(webhookTestFixture)
 	sig := hmacHex(t, []byte(webhookTestAPISecret), body)
 
-	require.True(t, VerifySignature(body, sig, webhookTestAPISecret))
-	require.False(t, VerifySignature(body, "0000000000000000000000000000000000000000000000000000000000000000", webhookTestAPISecret))
-	require.False(t, VerifySignature(body, sig, "different-secret"))
+	t.Run("valid signature returns nil", func(t *testing.T) {
+		require.NoError(t, VerifySignature(body, sig, webhookTestAPISecret))
+	})
 
-	compressed := gzipBytes(t, body)
-	sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), compressed)
-	require.False(t, VerifySignature(body, sigOverCompressed, webhookTestAPISecret),
-		"signature must be computed over uncompressed bytes")
+	t.Run("verifySignature returns ErrInvalidWebhook on mismatch", func(t *testing.T) {
+		err := VerifySignature(body, "0000000000000000000000000000000000000000000000000000000000000000", webhookTestAPISecret)
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
+	})
+
+	t.Run("wrong secret rejected", func(t *testing.T) {
+		err := VerifySignature(body, sig, "different-secret")
+		require.Error(t, err)
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
+	})
+
+	t.Run("signature over compressed bytes rejected", func(t *testing.T) {
+		compressed := gzipBytes(t, body)
+		sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), compressed)
+		err := VerifySignature(body, sigOverCompressed, webhookTestAPISecret)
+		require.Error(t, err, "signature must be computed over uncompressed bytes")
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+	})
 }
 
 func TestParseEvent(t *testing.T) {
@@ -221,10 +240,12 @@ func TestParseEvent(t *testing.T) {
 		require.Equal(t, EventType("a.future.event"), got.Type)
 	})
 
-	t.Run("malformed json returns error", func(t *testing.T) {
+	t.Run("parseEvent returns ErrInvalidWebhook on invalid JSON", func(t *testing.T) {
 		got, err := ParseEvent([]byte("not json"))
 		require.Error(t, err)
 		require.Nil(t, got)
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "invalid JSON payload")
 	})
 }
 
@@ -257,10 +278,11 @@ func TestVerifyAndParseWebhook(t *testing.T) {
 		require.Equal(t, EventMessageNew, got.Type)
 	})
 
-	t.Run("signature mismatch returns ErrInvalidWebhookSignature", func(t *testing.T) {
+	t.Run("signature mismatch returns ErrInvalidWebhook", func(t *testing.T) {
 		got, err := c.VerifyAndParseWebhook(body, strings.Repeat("0", 64))
 		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
 		require.Nil(t, got)
 	})
 
@@ -269,15 +291,17 @@ func TestVerifyAndParseWebhook(t *testing.T) {
 		sigOverCompressed := hmacHex(t, []byte(webhookTestAPISecret), compressed)
 		got, err := c.VerifyAndParseWebhook(compressed, sigOverCompressed)
 		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
 		require.Nil(t, got)
 	})
 
-	t.Run("propagates decompression error", func(t *testing.T) {
+	t.Run("propagates decompression error as ErrInvalidWebhook", func(t *testing.T) {
 		bogus := append(append([]byte{}, gzipMagic...), []byte("garbage")...)
 		got, err := c.VerifyAndParseWebhook(bogus, sig)
 		require.Error(t, err)
-		require.False(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "gzip decompression failed")
 		require.Nil(t, got)
 	})
 }
@@ -312,14 +336,16 @@ func TestVerifyAndParseSqs(t *testing.T) {
 		sigOverWrapped := hmacHex(t, []byte(webhookTestAPISecret), []byte(wrapped))
 		got, err := c.VerifyAndParseSqs(wrapped, sigOverWrapped)
 		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
 		require.Nil(t, got)
 	})
 
-	t.Run("invalid base64 surfaced as error", func(t *testing.T) {
+	t.Run("invalid base64 surfaced as ErrInvalidWebhook", func(t *testing.T) {
 		got, err := c.VerifyAndParseSqs("!!!not-base64!!!", sig)
 		require.Error(t, err)
-		require.False(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "invalid base64 encoding")
 		require.Nil(t, got)
 	})
 }
@@ -352,7 +378,8 @@ func TestVerifyAndParseSns(t *testing.T) {
 		envelopeSig := hmacHex(t, []byte(webhookTestAPISecret), []byte(envelope))
 		got, err := c.VerifyAndParseSns(envelope, envelopeSig)
 		require.Error(t, err)
-		require.True(t, errors.Is(err, ErrInvalidWebhookSignature))
+		require.True(t, errors.Is(err, ErrInvalidWebhook))
+		assert.Contains(t, err.Error(), "signature mismatch")
 		require.Nil(t, got)
 	})
 }

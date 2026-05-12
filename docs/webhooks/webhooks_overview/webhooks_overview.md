@@ -112,10 +112,9 @@ client, _ := stream.NewClient(APIKey, APISecret)
 // signature: value of the X-Signature header
 event, err := client.VerifyAndParseWebhook(body, signature)
 if err != nil {
-    if errors.Is(err, stream.ErrInvalidWebhookSignature) {
-        // signature did not match - reject the request
+    if errors.Is(err, stream.ErrInvalidWebhook) {
+        // reject the request - signature mismatch, base64/gzip decode, or JSON parse
     }
-    // decompression or JSON parse error
     return
 }
 // event is *stream.Event - inspect event.Type, event.Message, etc.
@@ -124,8 +123,11 @@ if err != nil {
 If you want to drive the steps yourself, the package exposes the building blocks:
 
 * `stream.GunzipPayload(body []byte) ([]byte, error)` - returns body unchanged unless it begins with the gzip magic, in which case it is inflated.
-* `stream.VerifySignature(body []byte, signature, secret string) bool` - constant-time HMAC-SHA256 check against the uncompressed bytes.
+* `stream.VerifySignature(body []byte, signature, secret string) error` - constant-time HMAC-SHA256 check against the uncompressed bytes; returns `nil` on match or an error wrapping `stream.ErrInvalidWebhook` on mismatch.
 * `stream.ParseEvent(payload []byte) (*stream.Event, error)` - JSON decode into a typed event.
+
+All webhook failure paths (`VerifyAndParseWebhook`, `VerifyAndParseSqs`, `VerifyAndParseSns`, `VerifySignature`, `GunzipPayload`, `DecodeSqsPayload`, `ParseEvent`) wrap a single sentinel `stream.ErrInvalidWebhook`, so a single `errors.Is(err, stream.ErrInvalidWebhook)` check covers signature mismatch, base64 decode, gzip decompression, and JSON parse failures. To distinguish the failure mode, match a substring of the error message (`"signature mismatch"`, `"invalid base64 encoding"`, `"gzip decompression failed"`, `"invalid JSON payload"`).
+
 
 #### SQS / SNS firehose
 
