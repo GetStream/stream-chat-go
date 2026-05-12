@@ -180,8 +180,9 @@ func assertAllMetricsExact(t *testing.T, team *TeamUsageStats, teamName string) 
 	require.Equal(t, int64(100), team.MessagesMonthToDate.Total, "%s messages_month_to_date", teamName)
 }
 
-// findTeamAcrossPages searches for a team across multiple pages using pagination.
-func findTeamAcrossPages(t *testing.T, c *Client, teamName string) *TeamUsageStats {
+// findTeamAcrossPagesForMonth searches for a team across paginated results for a
+// given month. Pass "" to query the backend-default window (current month).
+func findTeamAcrossPagesForMonth(t *testing.T, c *Client, teamName, month string) *TeamUsageStats {
 	t.Helper()
 
 	ctx := context.Background()
@@ -193,6 +194,7 @@ func findTeamAcrossPages(t *testing.T, c *Client, teamName string) *TeamUsageSta
 		req := &QueryTeamUsageStatsRequest{
 			Limit: &limit,
 			Next:  nextCursor,
+			Month: month,
 		}
 
 		resp, err := c.QueryTeamUsageStats(ctx, req)
@@ -211,13 +213,23 @@ func findTeamAcrossPages(t *testing.T, c *Client, teamName string) *TeamUsageSta
 	return nil
 }
 
+// seedMonth is the single source of truth for the month the multi-tenant test
+// app is seeded with. When the seed pipeline rotates the fixture window, update
+// this constant. The no-parameter default of QueryTeamUsageStats is the current
+// month, which only overlaps the seed when CI runs during seedMonth — so the
+// integration / data-correctness subtests pass an explicit Month here instead
+// of relying on the default window.
+const seedMonth = "2026-02"
+
 func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	c := initMultiTenantClient(t)
 	skipIfNoMultiTenant(t, c)
 	ctx := context.Background()
 
-	t.Run("No parameters returns teams", func(t *testing.T) {
-		resp, err := c.QueryTeamUsageStats(ctx, nil)
+	t.Run("Seed month returns teams", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		require.NotNil(t, resp.Teams)
@@ -226,7 +238,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 
 	t.Run("Month parameter returns teams", func(t *testing.T) {
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
-			Month: "2026-02",
+			Month: seedMonth,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp.Teams)
@@ -246,6 +258,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	t.Run("Limit returns correct count", func(t *testing.T) {
 		limit := 3
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
 			Limit: &limit,
 		})
 		require.NoError(t, err)
@@ -255,6 +268,7 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	t.Run("Limit returns next cursor", func(t *testing.T) {
 		limit := 2
 		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
 			Limit: &limit,
 		})
 		require.NoError(t, err)
@@ -264,11 +278,14 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	t.Run("Pagination returns different teams", func(t *testing.T) {
 		limit := 2
 		page1, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
 			Limit: &limit,
 		})
 		require.NoError(t, err)
+		require.NotEmpty(t, page1.Teams, "page1 should be non-empty so overlap check is meaningful")
 
 		page2, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
 			Limit: &limit,
 			Next:  page1.Next,
 		})
@@ -283,17 +300,21 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	})
 
 	t.Run("Teams have team field", func(t *testing.T) {
-		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
+		})
 		require.NoError(t, err)
-		require.Greater(t, len(resp.Teams), 0)
+		require.NotEmpty(t, resp.Teams)
 		// team field exists (may be empty string for default team)
 		_ = resp.Teams[0].Team
 	})
 
 	t.Run("All metrics present", func(t *testing.T) {
-		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
+		})
 		require.NoError(t, err)
-		require.Greater(t, len(resp.Teams), 0)
+		require.NotEmpty(t, resp.Teams)
 
 		team := resp.Teams[0]
 
@@ -321,8 +342,11 @@ func TestQueryTeamUsageStats_Integration(t *testing.T) {
 	})
 
 	t.Run("Metric totals non-negative", func(t *testing.T) {
-		resp, err := c.QueryTeamUsageStats(ctx, nil)
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
+		})
 		require.NoError(t, err)
+		require.NotEmpty(t, resp.Teams, "seed month should return non-empty teams so the loop has something to assert")
 
 		for _, team := range resp.Teams {
 			require.GreaterOrEqual(t, team.MessagesTotal.Total, int64(0), "messages_total should be >= 0")
@@ -367,13 +391,15 @@ func TestQueryTeamUsageStats_DataCorrectness(t *testing.T) {
 		}
 	})
 
-	t.Run("No params query returns test teams with valid metrics", func(t *testing.T) {
-		resp, err := c.QueryTeamUsageStats(ctx, nil)
+	t.Run("Seed month query returns test teams with valid metrics", func(t *testing.T) {
+		resp, err := c.QueryTeamUsageStats(ctx, &QueryTeamUsageStatsRequest{
+			Month: seedMonth,
+		})
 		require.NoError(t, err)
 
 		for _, teamName := range testTeams {
 			team := findTeamByName(resp.Teams, teamName)
-			require.NotNil(t, team, "%s should exist", teamName)
+			require.NotNil(t, team, "%s should exist in seed month", teamName)
 			require.GreaterOrEqual(t, team.UsersTotal.Total, int64(0), "%s users_total", teamName)
 			require.GreaterOrEqual(t, team.MessagesTotal.Total, int64(0), "%s messages_total", teamName)
 		}
@@ -381,8 +407,8 @@ func TestQueryTeamUsageStats_DataCorrectness(t *testing.T) {
 
 	t.Run("Pagination finds test teams with valid metrics", func(t *testing.T) {
 		for _, teamName := range testTeams {
-			team := findTeamAcrossPages(t, c, teamName)
-			require.NotNil(t, team, "%s should exist across paginated results", teamName)
+			team := findTeamAcrossPagesForMonth(t, c, teamName, seedMonth)
+			require.NotNil(t, team, "%s should be reachable via paginated seed-month query", teamName)
 			require.GreaterOrEqual(t, team.UsersTotal.Total, int64(0), "%s users_total", teamName)
 			require.GreaterOrEqual(t, team.MessagesTotal.Total, int64(0), "%s messages_total", teamName)
 		}
