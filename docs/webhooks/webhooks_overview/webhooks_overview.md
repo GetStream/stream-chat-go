@@ -131,16 +131,32 @@ All webhook failure paths (`VerifyAndParseWebhook`, `VerifyAndParseSqs`, `Verify
 
 #### SQS / SNS firehose
 
-When the same events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Use the firehose helpers - they base64-decode, gunzip when needed, then verify and parse in the correct order:
+When the same events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Use the firehose helpers - they base64-decode, gunzip when needed, then parse in the correct order:
 
 ```go
-// messageBody: the SQS Body / SNS Message field as a string
-// signature: value from the X-Signature message attribute
-event, err := client.VerifyAndParseSqs(messageBody, signature) // SQS
-event, err = client.VerifyAndParseSns(messageBody, signature)  // SNS
+// messageBody:   the SQS message Body as a string
+// envelopeBody:  the raw SNS HTTP notification body (or the pre-extracted Message field)
+event, err := client.VerifyAndParseSqs(messageBody)   // SQS
+event, err = client.VerifyAndParseSns(envelopeBody)   // SNS
 ```
 
-Stateless package-level forms are also available for callers that do not hold a `*Client`: `stream.VerifyAndParseWebhook(body, signature, secret)`, `stream.VerifyAndParseSqs(messageBody, signature, secret)`, `stream.VerifyAndParseSns(message, signature, secret)`.
+Stream does not ship an `X-Signature` on SQS or SNS deliveries: those transports ride AWS-internal infrastructure (IAM-authenticated queues and AWS-signed SNS notifications), which is the auth layer. The signature argument is optional and only needed if you have set up out-of-band signing in front of these helpers; in that case pass it as a second argument and the client will HMAC-verify against its own API secret:
+
+```go
+event, err := client.VerifyAndParseSqs(messageBody, signature) // opt-in HMAC verification
+event, err = client.VerifyAndParseSns(envelopeBody, signature)
+```
+
+Stateless package-level forms are also available for callers that do not hold a `*Client`. Pass empty strings for `signature` and `secret` to skip verification, or pass both to run the HMAC check:
+
+```go
+event, err := stream.VerifyAndParseWebhook(body, signature, secret)
+event, err = stream.VerifyAndParseSqs(messageBody, "", "")          // skip verification
+event, err = stream.VerifyAndParseSqs(messageBody, signature, secret) // verify
+event, err = stream.VerifyAndParseSns(envelopeBody, "", "")
+```
+
+Passing exactly one of `signature` or `secret` returns an error wrapping `stream.ErrInvalidWebhook` with the message `"signature and secret must both be provided"` - it is treated as a programmer error rather than a silent skip.
 
 ## Webhook types
 

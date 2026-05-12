@@ -148,24 +148,41 @@ func VerifyAndParseWebhook(body []byte, signature, secret string) (*Event, error
 	return verifyAndParse(inflated, signature, secret)
 }
 
-// VerifyAndParseSqs decodes the SQS message Body, verifies the
-// X-Signature attribute against secret, and returns the parsed Event.
+// VerifyAndParseSqs decodes the SQS message Body and returns the parsed
+// Event. Signature verification is opt-in: pass both signature and
+// secret as non-empty strings to run the full HMAC check, or pass both
+// as empty strings to skip verification (the default for AWS-transport
+// deliveries, where the queue itself is the authentication layer).
+// Passing exactly one of the two is treated as a programmer error.
 // Every failure path wraps ErrInvalidWebhook.
 func VerifyAndParseSqs(messageBody, signature, secret string) (*Event, error) {
 	inflated, err := DecodeSqsPayload(messageBody)
 	if err != nil {
 		return nil, err
 	}
+	if signature == "" && secret == "" {
+		return ParseEvent(inflated)
+	}
+	if signature == "" || secret == "" {
+		return nil, fmt.Errorf("signature and secret must both be provided to verify the SQS/SNS payload: %w", ErrInvalidWebhook)
+	}
 	return verifyAndParse(inflated, signature, secret)
 }
 
-// VerifyAndParseSns decodes the SNS notification Message, verifies the
-// X-Signature attribute against secret, and returns the parsed Event.
-// Every failure path wraps ErrInvalidWebhook.
+// VerifyAndParseSns decodes the SNS notification Message and returns
+// the parsed Event. Signature verification follows the same opt-in
+// rules as VerifyAndParseSqs: both empty skips, both set runs the HMAC
+// check, exactly one set returns an error wrapping ErrInvalidWebhook.
 func VerifyAndParseSns(message, signature, secret string) (*Event, error) {
 	inflated, err := DecodeSnsPayload(message)
 	if err != nil {
 		return nil, err
+	}
+	if signature == "" && secret == "" {
+		return ParseEvent(inflated)
+	}
+	if signature == "" || secret == "" {
+		return nil, fmt.Errorf("signature and secret must both be provided to verify the SQS/SNS payload: %w", ErrInvalidWebhook)
 	}
 	return verifyAndParse(inflated, signature, secret)
 }
@@ -175,14 +192,4 @@ func VerifyAndParseSns(message, signature, secret string) (*Event, error) {
 // supply the request body and signature.
 func (c *Client) VerifyAndParseWebhook(body []byte, signature string) (*Event, error) {
 	return VerifyAndParseWebhook(body, signature, string(c.apiSecret))
-}
-
-// VerifyAndParseSqs is the client-bound form of the package-level helper.
-func (c *Client) VerifyAndParseSqs(messageBody, signature string) (*Event, error) {
-	return VerifyAndParseSqs(messageBody, signature, string(c.apiSecret))
-}
-
-// VerifyAndParseSns is the client-bound form of the package-level helper.
-func (c *Client) VerifyAndParseSns(message, signature string) (*Event, error) {
-	return VerifyAndParseSns(message, signature, string(c.apiSecret))
 }

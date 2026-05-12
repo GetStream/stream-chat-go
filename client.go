@@ -334,3 +334,33 @@ func (c *Client) UpdateChannelsBatch(ctx context.Context, options *ChannelsBatch
 func (c *Client) ChannelBatchUpdater() *ChannelBatchUpdater {
 	return &ChannelBatchUpdater{client: c}
 }
+
+// VerifyAndParseSqs is the client-bound form of the package-level
+// helper. Signature is variadic to make verification opt-in: omit it
+// for the default AWS-transport-is-the-auth-layer behavior (decode +
+// parse), or pass exactly one signature string to also run the HMAC
+// check against the client's API secret.
+func (c *Client) VerifyAndParseSqs(body string, signature ...string) (*Event, error) {
+	switch len(signature) {
+	case 0:
+		return VerifyAndParseSqs(body, "", "")
+	case 1:
+		return VerifyAndParseSqs(body, signature[0], string(c.apiSecret))
+	default:
+		return nil, fmt.Errorf("VerifyAndParseSqs accepts at most one signature argument: %w", ErrInvalidWebhook)
+	}
+}
+
+// VerifyAndParseSns is the client-bound form of the package-level
+// helper. Signature is variadic; see VerifyAndParseSqs for the
+// behavior matrix.
+func (c *Client) VerifyAndParseSns(notificationBody string, signature ...string) (*Event, error) {
+	switch len(signature) {
+	case 0:
+		return VerifyAndParseSns(notificationBody, "", "")
+	case 1:
+		return VerifyAndParseSns(notificationBody, signature[0], string(c.apiSecret))
+	default:
+		return nil, fmt.Errorf("VerifyAndParseSns accepts at most one signature argument: %w", ErrInvalidWebhook)
+	}
+}
