@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.6.0](https://github.com/GetStream/stream-chat-go/compare/v8.5.0...v8.6.0) (2026-05-13)
+
+
+### Features
+
+* **webhooks:** verifyAndParse* API for compressed payloads (CHA-3071) ([#391](https://github.com/GetStream/stream-chat-go/issues/391)) ([35a8e9a](https://github.com/GetStream/stream-chat-go/commit/35a8e9a2185a17e552f57d1b7fe0ee9a084805c0))
+
 ## [8.5.0](https://github.com/GetStream/stream-chat-go/compare/v8.4.2...v8.5.0) (2026-03-26)
 
 
