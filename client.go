@@ -1,7 +1,6 @@
 package stream_chat
 
 import (
-	"bytes"
 	"context"
 	"crypto"
 	"crypto/hmac"
@@ -152,12 +151,13 @@ func (c *Client) createToken(claims jwt.Claims) (string, error) {
 }
 
 // VerifyWebhook validates if hmac signature is correct for message body.
+// The comparison is constant-time.
 func (c *Client) VerifyWebhook(body, signature []byte) (valid bool) {
 	mac := hmac.New(crypto.SHA256.New, c.apiSecret)
 	_, _ = mac.Write(body)
 
-	expectedMAC := hex.EncodeToString(mac.Sum(nil))
-	return bytes.Equal(signature, []byte(expectedMAC))
+	expectedMAC := []byte(hex.EncodeToString(mac.Sum(nil)))
+	return hmac.Equal(expectedMAC, signature)
 }
 
 // this makes possible to set content type.
@@ -333,4 +333,19 @@ func (c *Client) UpdateChannelsBatch(ctx context.Context, options *ChannelsBatch
 // ChannelBatchUpdater returns a ChannelBatchUpdater instance for batch channel operations.
 func (c *Client) ChannelBatchUpdater() *ChannelBatchUpdater {
 	return &ChannelBatchUpdater{client: c}
+}
+
+// ParseSqs is the client-bound form of the package-level ParseSqs
+// helper. SQS deliveries from Stream are not HMAC-signed (the queue
+// itself is the authentication layer via IAM), so this is a pure
+// decode-and-parse call.
+func (c *Client) ParseSqs(body string) (*Event, error) {
+	return ParseSqs(body)
+}
+
+// ParseSns is the client-bound form of the package-level ParseSns
+// helper. SNS deliveries from Stream are not HMAC-signed (AWS signs
+// the notification envelope), so this is a pure decode-and-parse call.
+func (c *Client) ParseSns(body string) (*Event, error) {
+	return ParseSns(body)
 }

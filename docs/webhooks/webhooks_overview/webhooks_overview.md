@@ -89,6 +89,75 @@ All webhook requests contain these headers:
 | X-Webhook-Attempt | Number of webhook request attempt starting from 1                                                                    | 1                                                                |
 | X-Api-Key         | Your application’s API key. Should be used to validate request signature                                             | a1b23cdefgh4                                                     |
 | X-Signature       | HMAC signature of the request body. See Signature section                                                            | ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb |
+| Content-Encoding  | Compression algorithm used for the body. Only set when payload compression is enabled (currently `gzip`)             | gzip                                                             |
+
+### Compressed webhook bodies
+
+GZIP compression can be enabled for hooks payloads from the Dashboard. Enabling compression reduces the payload size significantly (often 70–90% smaller) reducing your bandwidth usage on Stream. The computation overhead introduced by the decompression step is usually negligible and offset by the much smaller payload.
+
+When payload compression is enabled, webhook HTTP requests will include the `Content-Encoding: gzip` header and the request body will be compressed with GZIP. Some HTTP servers and middleware (Rails, Django, Laravel, Spring Boot, ASP.NET) handle this transparently and strip the header before your handler runs — in that case the body you see is already raw JSON.
+
+Before enabling compression, make sure that:
+
+* Your backend integration is using a recent version of our official SDKs with compression support
+* If you don't use an official SDK, make sure that your code supports receiving compressed payloads
+* The payload signature check is done on the **uncompressed** payload
+
+Use `VerifyAndParseWebhook` to decompress, verify the signature, and parse the event in a single call. The body is detected as gzip via its 2-byte magic header (per RFC 1952), so the call works whether your HTTP framework already decompressed the body, the `Content-Encoding` header was stripped, or compression is disabled. The signature is always computed over the uncompressed JSON.
+
+```go
+client, _ := stream.NewClient(APIKey, APISecret)
+
+// body: raw request body bytes (do not parse JSON before this call)
+// signature: value of the X-Signature header
+event, err := client.VerifyAndParseWebhook(body, signature)
+if err != nil {
+    if errors.Is(err, stream.ErrInvalidWebhook) {
+        // reject the request - signature mismatch, base64/gzip decode, or JSON parse
+    }
+    return
+}
+// event is *stream.Event - inspect event.Type, event.Message, etc.
+```
+
+If you want to drive the steps yourself, the package exposes the building blocks:
+
+* `stream.GunzipPayload(body []byte) ([]byte, error)` - returns body unchanged unless it begins with the gzip magic, in which case it is inflated.
+* `stream.VerifySignature(body []byte, signature, secret string) error` - constant-time HMAC-SHA256 check against the uncompressed bytes; returns `nil` on match or an error wrapping `stream.ErrInvalidWebhook` on mismatch.
+* `stream.ParseEvent(payload []byte) (*stream.Event, error)` - JSON decode into a typed event.
+
+All webhook failure paths (`VerifyAndParseWebhook`, `ParseSqs`, `ParseSns`, `VerifySignature`, `GunzipPayload`, `DecodeSqsPayload`, `DecodeSnsPayload`, `ParseEvent`) wrap a single sentinel `stream.ErrInvalidWebhook`, so a single `errors.Is(err, stream.ErrInvalidWebhook)` check covers signature mismatch, base64 decode, gzip decompression, and JSON parse failures. To distinguish the failure mode, match a substring of the error message (`"signature mismatch"`, `"invalid base64 encoding"`, `"gzip decompression failed"`, `"invalid JSON payload"`).
+
+
+#### SQS / SNS firehose
+
+When the same events are delivered through SQS or SNS, Stream additionally base64-wraps the bytes so the message stays valid UTF-8 over the queue. Use the firehose helpers - they base64-decode, gunzip when needed, then parse in the correct order:
+
+```go
+// messageBody:    the SQS message Body as a string
+// envelopeBody:   the raw SNS HTTP notification body (or the pre-extracted Message field)
+event, err := client.ParseSqs(messageBody)   // SQS
+event, err = client.ParseSns(envelopeBody)   // SNS
+```
+
+`ParseSqs` and `ParseSns` are pure decode-and-parse helpers — there is no HMAC step. Stream does not ship an `X-Signature` on SQS or SNS deliveries: those transports ride AWS-internal infrastructure (IAM-authenticated queues and AWS-signed SNS notifications), which is the authentication layer. The HTTP webhook flow (`VerifyAndParseWebhook`) is unchanged and still HMAC-verifies the body against your API secret.
+
+Arguments:
+
+| Helper                  | Argument        | Description                                                                                  |
+| ----------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `client.ParseSqs`       | `messageBody`   | The SQS message `Body` field as a string (base64-encoded, gzip-wrapped when compression is on). |
+| `client.ParseSns`       | `envelopeBody`  | The raw SNS HTTP notification body, or the pre-extracted `Message` field as a string.        |
+
+Stateless package-level forms are available for callers that do not hold a `*Client`:
+
+```go
+event, err := stream.VerifyAndParseWebhook(body, signature, secret) // HTTP webhook: HMAC-verified
+event, err = stream.ParseSqs(messageBody)                            // SQS: decode + parse
+event, err = stream.ParseSns(envelopeBody)                           // SNS: unwrap + decode + parse
+```
+
+Every failure (base64 decode, gzip inflate, JSON parse) wraps `stream.ErrInvalidWebhook`, so the same `errors.Is(err, stream.ErrInvalidWebhook)` check used for the HTTP webhook covers the firehose helpers as well.
 
 ## Webhook types
 
