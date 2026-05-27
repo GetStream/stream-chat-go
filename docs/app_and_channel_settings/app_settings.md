@@ -77,6 +77,7 @@ These 2 settings are important. Never run with disable_auth_checks or disable_pe
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ------- |
 | custom_action_handler_url    | This webhook reacts to custom /slash commands and actions on those commands/                                    | -       |
 | before_message_send_hook_url | This webhook allows you to modify or moderate message content before sending it to the chat for everyone to see | -       |
+| before_message_send_hook_attempt_timeout_ms | Optional per-attempt HTTP timeout (ms) for the before-message-send hook. `0`/unset = default (1500 ms attempt / 2000 ms overall). Integer **1–5000** sets the attempt timeout; overall envelope is value + 500 ms. | -       |
 
 ### Webhooks, SQS, SNS, and pending messages
 

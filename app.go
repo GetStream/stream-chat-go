@@ -31,8 +31,9 @@ type AppSettings struct {
 	SnsTopicArn              *string                `json:"sns_topic_arn,omitempty"`
 	SnsKey                   *string                `json:"sns_key,omitempty"`
 	SnsSecret                *string                `json:"sns_secret,omitempty"`
-	BeforeMessageSendHookURL *string                `json:"before_message_send_hook_url,omitempty"`
-	CustomActionHandlerURL   *string                `json:"custom_action_handler_url,omitempty"`
+	BeforeMessageSendHookURL *string `json:"before_message_send_hook_url,omitempty"`
+	BeforeMessageSendHookAttemptTimeoutMs *int `json:"before_message_send_hook_attempt_timeout_ms,omitempty"`
+	CustomActionHandlerURL   *string `json:"custom_action_handler_url,omitempty"`
 
 	FileUploadConfig       *FileUploadConfig `json:"file_upload_config,omitempty"`
 	ImageUploadConfig      *FileUploadConfig `json:"image_upload_config,omitempty"`
@@ -109,6 +110,11 @@ func (a *AppSettings) SetSharedLocationsEnabled(b bool) *AppSettings {
 
 func (a *AppSettings) SetUserResponseTimeEnabled(b bool) *AppSettings {
 	a.UserResponseTimeEnabled = &b
+	return a
+}
+
+func (a *AppSettings) SetBeforeMessageSendHookAttemptTimeoutMs(ms int) *AppSettings {
+	a.BeforeMessageSendHookAttemptTimeoutMs = &ms
 	return a
 }
 

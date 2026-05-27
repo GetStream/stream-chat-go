@@ -14,6 +14,15 @@ settings := &AppSettings{
 client.UpdateAppSettings(ctx, settings)
 ```
 
+## Per-attempt HTTP timeout
+
+You can optionally set `before_message_send_hook_attempt_timeout_ms` (milliseconds) when updating app settings. **Omitted or `0`** keeps the Stream default (**1500 ms** per HTTP attempt on this hook and **2000 ms** overall for the request envelope). Values from **1** through **5000** set that per-attempt timeout; the overall envelope is the configured value **plus 500 ms**. The API rejects values outside **0–5000**.
+
+```go
+_, err := client.UpdateAppSettings(ctx, NewAppSettings().
+	SetBeforeMessageSendHookAttemptTimeoutMs(2000))
+```
+
 ## Use-cases
 
 You can use this webhook to enforce any of these rules:
@@ -157,7 +166,9 @@ Not all message fields can be rewritten by your hook handler, fields such as cre
 
 ## Performance considerations
 
-Your webhook endpoint will be part of the send message transaction, so you should avoid performing any remote calls or potentially slow operations while processing the request. Stream Chat will give your endpoint 1 second of time to reply. If your endpoint is not available (ie. returns a response with status codes 4xx or 5xx) or takes too long, Stream Chat will continue with the execution and save the message as usual.
+Your webhook endpoint will be part of the send message transaction, so you should avoid performing any remote calls or potentially slow operations while processing the request.
+
+**Timeouts:** By default, Stream allows **1500 ms** for your HTTP handler to start returning a response (per-attempt timeout), with **2000 ms** for the overall before-message-send request including internal overhead. You can raise the per-attempt budget up to **5000 ms** using `before_message_send_hook_attempt_timeout_ms` (see [Per-attempt HTTP timeout](/chat/docs/go-golang/before_message_send_webhook/#per-attempt-http-timeout)); the overall envelope is always **500 ms** above that per-attempt value. If your endpoint is unavailable (for example HTTP **4xx** or **5xx**) or too slow, Stream **fails open** for this hook: processing continues and the message is stored as usual unless your handler returns a structured rejection.
 
 To make sure that an outage on the hook does not impact your application, Stream will pause your webhook once it is considered unreachable and it will automatically resume once the webhook is found to be healthy again.
 
