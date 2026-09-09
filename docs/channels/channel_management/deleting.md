@@ -11,6 +11,17 @@ channel.delete(ctx);
 > [!NOTE]
 > If you recreate this channel, it will show up empty. Recovering old messages is not supported. Use the disable method if you want a reversible change.
 
+### Keeping the messages
+
+Pass `DeleteWithSkipTruncate()` to keep the messages of a soft deleted channel, so recreating the channel with the same ID restores its history. It cannot be combined with a hard delete, and only distinct channels are eligible.
+
+```go
+channel.Delete(ctx, stream_chat.DeleteWithSkipTruncate())
+
+// same option on the batch endpoint
+taskID, _ := client.DeleteChannels(ctx, []string{cid1, cid2}, false, stream_chat.DeleteWithSkipTruncate())
+```
+
 
 ## Deleting Many Channels
 
