@@ -298,7 +298,7 @@ func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) (*Re
 }
 
 type deleteOptions struct {
-	SkipTruncate bool `json:"skip_truncate,omitempty"`
+	SkipTruncate bool
 }
 
 type DeleteOption func(*deleteOptions)
