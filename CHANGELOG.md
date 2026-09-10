@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.6.0](https://github.com/GetStream/stream-chat-go/compare/v8.5.0...v8.6.0) (2026-09-10)
+
+
+### Features
+
+* add skip_truncate option to channel delete ([#398](https://github.com/GetStream/stream-chat-go/issues/398)) ([4f7de60](https://github.com/GetStream/stream-chat-go/commit/4f7de603cd11c03bb9de56f41b93d69200e47af5))
+* **app:** expose before_message_send_hook_attempt_timeout_ms (CHA-3267) ([#394](https://github.com/GetStream/stream-chat-go/issues/394)) ([75fda2d](https://github.com/GetStream/stream-chat-go/commit/75fda2d1d98f76bbb6e5df287ddd448b71fd7656)), closes [GetStream/chat#13541](https://github.com/GetStream/chat/issues/13541)
+* **webhooks:** verifyAndParse* API for compressed payloads (CHA-3071) ([#391](https://github.com/GetStream/stream-chat-go/issues/391)) ([35a8e9a](https://github.com/GetStream/stream-chat-go/commit/35a8e9a2185a17e552f57d1b7fe0ee9a084805c0))
+
 ## [8.5.0](https://github.com/GetStream/stream-chat-go/compare/v8.4.2...v8.5.0) (2026-03-26)
 
 
