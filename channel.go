@@ -297,12 +297,38 @@ func (ch *Channel) PartialUpdate(ctx context.Context, update PartialUpdate) (*Re
 	return &resp, err
 }
 
+type deleteOptions struct {
+	SkipTruncate bool
+}
+
+type DeleteOption func(*deleteOptions)
+
+// DeleteWithSkipTruncate keeps the messages of a soft deleted channel, so a
+// channel recreated with the same ID comes back with its history. It is
+// rejected together with a hard delete, and only distinct channels are eligible.
+func DeleteWithSkipTruncate() DeleteOption {
+	return func(o *deleteOptions) {
+		o.SkipTruncate = true
+	}
+}
+
 // Delete removes the channel. Messages are permanently removed.
-func (ch *Channel) Delete(ctx context.Context) (*Response, error) {
+func (ch *Channel) Delete(ctx context.Context, options ...DeleteOption) (*Response, error) {
+	option := &deleteOptions{}
+
+	for _, fn := range options {
+		fn(option)
+	}
+
 	p := path.Join("channels", url.PathEscape(ch.Type), url.PathEscape(ch.ID))
 
+	var params url.Values
+	if option.SkipTruncate {
+		params = url.Values{"skip_truncate": []string{"true"}}
+	}
+
 	var resp Response
-	err := ch.client.makeRequest(ctx, http.MethodDelete, p, nil, nil, &resp)
+	err := ch.client.makeRequest(ctx, http.MethodDelete, p, params, nil, &resp)
 	return &resp, err
 }
 

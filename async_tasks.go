@@ -51,17 +51,25 @@ type AsyncTaskResponse struct {
 // DeleteChannels deletes channels asynchronously.
 // Channels and messages will be hard deleted if hardDelete is true.
 // It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
-func (c *Client) DeleteChannels(ctx context.Context, cids []string, hardDelete bool) (*AsyncTaskResponse, error) {
+func (c *Client) DeleteChannels(ctx context.Context, cids []string, hardDelete bool, options ...DeleteOption) (*AsyncTaskResponse, error) {
 	if len(cids) == 0 {
 		return nil, errors.New("cids parameter should not be empty")
 	}
 
+	option := &deleteOptions{}
+
+	for _, fn := range options {
+		fn(option)
+	}
+
 	data := struct {
-		CIDs       []string `json:"cids"`
-		HardDelete bool     `json:"hard_delete"`
+		CIDs         []string `json:"cids"`
+		HardDelete   bool     `json:"hard_delete"`
+		SkipTruncate bool     `json:"skip_truncate,omitempty"`
 	}{
-		CIDs:       cids,
-		HardDelete: hardDelete,
+		CIDs:         cids,
+		HardDelete:   hardDelete,
+		SkipTruncate: option.SkipTruncate,
 	}
 
 	var resp AsyncTaskResponse
