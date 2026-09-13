@@ -21,7 +21,8 @@ func TestClient_UpdateAppSettings(t *testing.T) {
 
 	settings := NewAppSettings().
 		SetDisableAuth(true).
-		SetDisablePermissions(true)
+		SetDisablePermissions(true).
+		SetEnforceUniqueUsernames(No)
 
 	_, err := c.UpdateAppSettings(ctx, settings)
 	require.NoError(t, err)
