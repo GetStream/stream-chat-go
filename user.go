@@ -325,7 +325,7 @@ type ReviewFlagReportResponse struct {
 // ReviewFlagReports sends a review of the flag report ID.
 func (c *Client) ReviewFlagReport(ctx context.Context, reportID string, req *ReviewFlagReportRequest) (*ReviewFlagReportResponse, error) {
 	resp := &ReviewFlagReportResponse{}
-	err := c.makeRequest(ctx, http.MethodPatch, "moderation/reports/"+reportID, nil, req, resp)
+	err := c.makeRequest(ctx, http.MethodPatch, "moderation/reports/"+url.PathEscape(reportID), nil, req, resp)
 	return resp, err
 }
 
