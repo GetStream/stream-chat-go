@@ -33,7 +33,7 @@ func scheduleTestMessage(t *testing.T, c *stream_chat.Client) (*stream_chat.Chan
 	return ch, user, resp.ScheduledMessage
 }
 
-func TestClient_ScheduledMessages(t *testing.T) {
+func TestClient_ScheduledMessagesLifecycle(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 	ch, user, sm := scheduleTestMessage(t, c)
@@ -78,7 +78,7 @@ func TestClient_ScheduledMessages(t *testing.T) {
 	})
 }
 
-func TestClient_SendScheduledMessageNow(t *testing.T) {
+func TestClient_ScheduledMessagesSendNow(t *testing.T) {
 	c := initClient(t)
 	ctx := context.Background()
 	_, _, sm := scheduleTestMessage(t, c)
