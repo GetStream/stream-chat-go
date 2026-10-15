@@ -8,6 +8,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// taskWaitBudget is how long waitForTask polls before failing. The shared CI
+// app sometimes takes well over 10s to pick up async tasks.
+const taskWaitBudget = 60 * time.Second
+
+// waitForTask polls get until the task completes and returns it. It fails the
+// test right away if the task reports failed, and on timeout, in both cases
+// including the last seen status and result so a slow task can be told apart
+// from a failed one.
+func waitForTask(t *testing.T, get func(context.Context, string) (*TaskResponse, error), taskID string) *TaskResponse {
+	t.Helper()
+	ctx := context.Background()
+
+	var last *TaskResponse
+	for deadline := time.Now().Add(taskWaitBudget); time.Now().Before(deadline); time.Sleep(time.Second) {
+		task, err := get(ctx, taskID)
+		require.NoError(t, err)
+		require.Equal(t, taskID, task.TaskID)
+		last = task
+
+		switch task.Status {
+		case TaskStatusCompleted:
+			return task
+		case TaskStatusFailed:
+			require.FailNowf(t, "task failed", "task %s: status=%q result=%v", taskID, task.Status, task.Result)
+		}
+	}
+
+	require.FailNowf(t, "task did not complete", "task %s after %s: last status=%q result=%v", taskID, taskWaitBudget, last.Status, last.Result)
+	return nil
+}
+
 func TestClient_DeleteChannels(t *testing.T) {
 	c := initClient(t)
 	ch := initChannel(t, c)
@@ -26,18 +57,8 @@ func TestClient_DeleteChannels(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 60; i++ {
-		resp2, err := c.GetTask(ctx, resp1.TaskID)
-		require.NoError(t, err)
-		require.Equal(t, resp1.TaskID, resp2.TaskID)
-
-		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[ch.CID])
-			return
-		}
-
-		time.Sleep(time.Second)
-	}
+	task := waitForTask(t, c.GetTask, resp1.TaskID)
+	require.Equal(t, map[string]interface{}{"status": "ok"}, task.Result[ch.CID])
 }
 
 func TestClient_DeleteUsers(t *testing.T) {
@@ -65,20 +86,8 @@ func TestClient_DeleteUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 60; i++ {
-		resp2, err := c.GetTask(ctx, resp1.TaskID)
-		require.NoError(t, err)
-		require.Equal(t, resp1.TaskID, resp2.TaskID)
-
-		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[user.ID])
-			return
-		}
-
-		time.Sleep(time.Second)
-	}
-
-	require.True(t, false, "task did not succeed")
+	task := waitForTask(t, c.GetTask, resp1.TaskID)
+	require.Equal(t, map[string]interface{}{"status": "ok"}, task.Result[user.ID])
 }
 
 func TestClient_ExportChannels(t *testing.T) {
@@ -110,18 +119,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp1.TaskID)
 
-		for i := 0; i < 60; i++ {
-			task, err := c.GetExportChannelsTask(ctx, resp1.TaskID)
-			require.NoError(t, err)
-			require.Equal(t, resp1.TaskID, task.TaskID)
-			require.NotEmpty(t, task.Status)
-
-			if task.Status == TaskStatusCompleted {
-				break
-			}
-
-			time.Sleep(time.Second)
-		}
+		waitForTask(t, c.GetExportChannelsTask, resp1.TaskID)
 	})
 }
 
@@ -140,18 +138,7 @@ func TestClient_ExportUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.TaskID)
 
-		for i := 0; i < 60; i++ {
-			task, err := c.GetTask(ctx, resp.TaskID)
-			require.NoError(t, err)
-			require.Equal(t, resp.TaskID, task.TaskID)
-			require.NotEmpty(t, task.Status)
-
-			if task.Status == TaskStatusCompleted {
-				require.Contains(t, task.Result["url"], "/exports/users/")
-				break
-			}
-
-			time.Sleep(time.Second)
-		}
+		task := waitForTask(t, c.GetTask, resp.TaskID)
+		require.Contains(t, task.Result["url"], "/exports/users/")
 	})
 }
