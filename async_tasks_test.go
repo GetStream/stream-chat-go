@@ -26,7 +26,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 60; i++ {
 		resp2, err := c.GetTask(ctx, resp1.TaskID)
 		require.NoError(t, err)
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
@@ -65,7 +65,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 60; i++ {
 		resp2, err := c.GetTask(ctx, resp1.TaskID)
 		require.NoError(t, err)
 		require.Equal(t, resp1.TaskID, resp2.TaskID)
@@ -110,7 +110,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp1.TaskID)
 
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 60; i++ {
 			task, err := c.GetExportChannelsTask(ctx, resp1.TaskID)
 			require.NoError(t, err)
 			require.Equal(t, resp1.TaskID, task.TaskID)
@@ -140,7 +140,7 @@ func TestClient_ExportUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.TaskID)
 
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 60; i++ {
 			task, err := c.GetTask(ctx, resp.TaskID)
 			require.NoError(t, err)
 			require.Equal(t, resp.TaskID, task.TaskID)
