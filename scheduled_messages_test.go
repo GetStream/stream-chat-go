@@ -19,7 +19,7 @@ func scheduleTestMessage(t *testing.T, c *stream_chat.Client) (*stream_chat.Chan
 	ctx := context.Background()
 	ch, user := createTestChannel(t, c)
 
-	resp, err := ch.SendMessage(ctx, &stream_chat.Message{Text: "scheduled hello"}, user.ID,
+	resp, err := ch.SendMessage(ctx, &stream_chat.Message{Text: "scheduled hello", ExtraData: map[string]interface{}{"mood": "happy"}}, user.ID,
 		stream_chat.WithScheduledAt(time.Now().Add(time.Hour)))
 	var apiErr stream_chat.Error
 	if errors.As(err, &apiErr) && apiErr.ExceptionFields["reason"] == "scheduled_messages_disabled" {
@@ -43,6 +43,7 @@ func TestClient_ScheduledMessagesLifecycle(t *testing.T) {
 	assert.Equal(t, user.ID, sm.User.ID)
 	assert.Equal(t, stream_chat.ScheduledMessageStatusScheduled, sm.Status)
 	assert.Equal(t, "scheduled hello", sm.Message.Text)
+	assert.Equal(t, "happy", sm.Message.ExtraData["mood"])
 
 	t.Run("Query", func(t *testing.T) {
 		resp, err := c.QueryScheduledMessages(ctx, &stream_chat.QueryScheduledMessagesOptions{
@@ -54,6 +55,7 @@ func TestClient_ScheduledMessagesLifecycle(t *testing.T) {
 		assert.Equal(t, sm.ID, resp.ScheduledMessages[0].ID)
 		require.NotNil(t, resp.ScheduledMessages[0].Channel)
 		assert.Equal(t, ch.CID, resp.ScheduledMessages[0].Channel.CID)
+		assert.Equal(t, "happy", resp.ScheduledMessages[0].Message.ExtraData["mood"])
 	})
 
 	t.Run("Update", func(t *testing.T) {

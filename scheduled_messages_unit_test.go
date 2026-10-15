@@ -19,7 +19,7 @@ const scheduledMessageJSON = `{
 	"message": {
 		"text": "hello later",
 		"mentioned_users": ["user-2"],
-		"custom": {"mood": "happy"}
+		"mood": "happy"
 	},
 	"scheduled_at": "2030-01-02T03:04:05Z",
 	"status": "scheduled",
@@ -76,7 +76,15 @@ func TestChannel_SendMessageWithScheduledAt(t *testing.T) {
 	assert.Equal(t, time.Date(2030, 1, 2, 3, 4, 5, 0, time.UTC), sm.ScheduledAt.UTC())
 	assert.Equal(t, "hello later", sm.Message.Text)
 	assert.Equal(t, []string{"user-2"}, sm.Message.MentionedUsers)
-	assert.Equal(t, "happy", sm.Message.Custom["mood"])
+	assert.Equal(t, map[string]interface{}{"mood": "happy"}, sm.Message.ExtraData)
+
+	// Custom fields stay top-level when the content is encoded again.
+	b, err := json.Marshal(sm.Message)
+	require.NoError(t, err)
+	var encoded map[string]interface{}
+	require.NoError(t, json.Unmarshal(b, &encoded))
+	assert.Equal(t, "happy", encoded["mood"])
+	assert.NotContains(t, encoded, "custom")
 	assert.Equal(t, "sm-1", resp.Message.ID)
 }
 

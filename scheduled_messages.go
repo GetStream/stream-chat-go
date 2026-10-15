@@ -2,6 +2,7 @@ package stream_chat
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -48,26 +49,51 @@ const (
 // no ID: the ID of the sent message is only known once it is sent (see the
 // scheduled_message.sent event).
 type ScheduledMessageContent struct {
-	Text                 string                 `json:"text"`
-	MML                  string                 `json:"mml,omitempty"`
-	HTML                 string                 `json:"html,omitempty"`
-	Type                 MessageType            `json:"type,omitempty"`
-	Attachments          []*Attachment          `json:"attachments,omitempty"`
-	ParentID             string                 `json:"parent_id,omitempty"`
-	ShowInChannel        bool                   `json:"show_in_channel,omitempty"`
-	QuotedMessageID      string                 `json:"quoted_message_id,omitempty"`
-	MentionedUsers       []string               `json:"mentioned_users,omitempty"` // IDs of the mentioned users
-	MentionedRoles       []string               `json:"mentioned_roles,omitempty"`
-	MentionedGroupIDs    []string               `json:"mentioned_group_ids,omitempty"`
-	MentionedChannel     bool                   `json:"mentioned_channel,omitempty"`
-	MentionedHere        bool                   `json:"mentioned_here,omitempty"`
-	RestrictedVisibility []string               `json:"restricted_visibility,omitempty"`
-	Silent               bool                   `json:"silent,omitempty"`
-	Pinned               bool                   `json:"pinned,omitempty"`
-	PinExpires           *time.Time             `json:"pin_expires,omitempty"`
-	PollID               string                 `json:"poll_id,omitempty"`
-	SharedLocation       *SharedLocation        `json:"shared_location,omitempty"`
-	Custom               map[string]interface{} `json:"custom,omitempty"`
+	Text                 string          `json:"text"`
+	MML                  string          `json:"mml,omitempty"`
+	HTML                 string          `json:"html,omitempty"`
+	Type                 MessageType     `json:"type,omitempty"`
+	Attachments          []*Attachment   `json:"attachments,omitempty"`
+	ParentID             string          `json:"parent_id,omitempty"`
+	ShowInChannel        bool            `json:"show_in_channel,omitempty"`
+	QuotedMessageID      string          `json:"quoted_message_id,omitempty"`
+	MentionedUsers       []string        `json:"mentioned_users,omitempty"` // IDs of the mentioned users
+	MentionedRoles       []string        `json:"mentioned_roles,omitempty"`
+	MentionedGroupIDs    []string        `json:"mentioned_group_ids,omitempty"`
+	MentionedChannel     bool            `json:"mentioned_channel,omitempty"`
+	MentionedHere        bool            `json:"mentioned_here,omitempty"`
+	RestrictedVisibility []string        `json:"restricted_visibility,omitempty"`
+	Silent               bool            `json:"silent,omitempty"`
+	Pinned               bool            `json:"pinned,omitempty"`
+	PinExpires           *time.Time      `json:"pin_expires,omitempty"`
+	PollID               string          `json:"poll_id,omitempty"`
+	SharedLocation       *SharedLocation `json:"shared_location,omitempty"`
+
+	// ExtraData holds the custom fields of the message. As on Message, they are
+	// top-level keys of the message object.
+	ExtraData map[string]interface{} `json:"-"`
+}
+
+type scheduledMessageContentForJSON ScheduledMessageContent
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (m *ScheduledMessageContent) UnmarshalJSON(data []byte) error {
+	var m2 scheduledMessageContentForJSON
+	if err := json.Unmarshal(data, &m2); err != nil {
+		return err
+	}
+	*m = ScheduledMessageContent(m2)
+
+	if err := json.Unmarshal(data, &m.ExtraData); err != nil {
+		return err
+	}
+	removeFromMap(m.ExtraData, *m)
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (m ScheduledMessageContent) MarshalJSON() ([]byte, error) {
+	return addToMapAndMarshal(m.ExtraData, scheduledMessageContentForJSON(m))
 }
 
 // ScheduledMessageChannel identifies the channel of a scheduled message. It is
