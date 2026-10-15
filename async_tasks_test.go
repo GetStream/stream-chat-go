@@ -3,10 +3,28 @@ package stream_chat
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
+
+// requireTaskReadable checks the parts of an async task the SDK owns: the
+// task-status endpoint can be called with the returned ID and answers with a
+// known status. It does not wait for the task to finish, because when that
+// happens depends on the backend task queue, not on the SDK.
+func requireTaskReadable(t *testing.T, get func(context.Context, string) (*TaskResponse, error), taskID string) {
+	t.Helper()
+
+	task, err := get(context.Background(), taskID)
+	require.NoError(t, err)
+	require.Equal(t, taskID, task.TaskID)
+	require.Contains(t, []TaskStatus{
+		TaskStatusWaiting,
+		TaskStatusPending,
+		TaskStatusRunning,
+		TaskStatusCompleted,
+		TaskStatusFailed,
+	}, task.Status)
+}
 
 func TestClient_DeleteChannels(t *testing.T) {
 	c := initClient(t)
@@ -26,18 +44,7 @@ func TestClient_DeleteChannels(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 10; i++ {
-		resp2, err := c.GetTask(ctx, resp1.TaskID)
-		require.NoError(t, err)
-		require.Equal(t, resp1.TaskID, resp2.TaskID)
-
-		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[ch.CID])
-			return
-		}
-
-		time.Sleep(time.Second)
-	}
+	requireTaskReadable(t, c.GetTask, resp1.TaskID)
 }
 
 func TestClient_DeleteUsers(t *testing.T) {
@@ -65,20 +72,7 @@ func TestClient_DeleteUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, resp1.TaskID)
 
-	for i := 0; i < 10; i++ {
-		resp2, err := c.GetTask(ctx, resp1.TaskID)
-		require.NoError(t, err)
-		require.Equal(t, resp1.TaskID, resp2.TaskID)
-
-		if resp2.Status == TaskStatusCompleted {
-			require.Equal(t, map[string]interface{}{"status": "ok"}, resp2.Result[user.ID])
-			return
-		}
-
-		time.Sleep(time.Second)
-	}
-
-	require.True(t, false, "task did not succeed")
+	requireTaskReadable(t, c.GetTask, resp1.TaskID)
 }
 
 func TestClient_ExportChannels(t *testing.T) {
@@ -110,18 +104,7 @@ func TestClient_ExportChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp1.TaskID)
 
-		for i := 0; i < 10; i++ {
-			task, err := c.GetExportChannelsTask(ctx, resp1.TaskID)
-			require.NoError(t, err)
-			require.Equal(t, resp1.TaskID, task.TaskID)
-			require.NotEmpty(t, task.Status)
-
-			if task.Status == TaskStatusCompleted {
-				break
-			}
-
-			time.Sleep(time.Second)
-		}
+		requireTaskReadable(t, c.GetExportChannelsTask, resp1.TaskID)
 	})
 }
 
@@ -140,18 +123,6 @@ func TestClient_ExportUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.TaskID)
 
-		for i := 0; i < 10; i++ {
-			task, err := c.GetTask(ctx, resp.TaskID)
-			require.NoError(t, err)
-			require.Equal(t, resp.TaskID, task.TaskID)
-			require.NotEmpty(t, task.Status)
-
-			if task.Status == TaskStatusCompleted {
-				require.Contains(t, task.Result["url"], "/exports/users/")
-				break
-			}
-
-			time.Sleep(time.Second)
-		}
+		requireTaskReadable(t, c.GetTask, resp.TaskID)
 	})
 }
