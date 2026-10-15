@@ -134,6 +134,7 @@ type messageRequest struct {
 	PendingMessageMetadata map[string]string     `json:"pending_message_metadata,omitempty"`
 	KeepChannelHidden      bool                  `json:"keep_channel_hidden,omitempty"`
 	ForceModeration        *bool                 `json:"force_moderation,omitempty"`
+	ScheduledAt            *time.Time            `json:"scheduled_at,omitempty"`
 }
 
 type messageRequestMessage struct {
@@ -278,6 +279,9 @@ func KeepChannelHidden(r *messageRequest) {
 type MessageResponse struct {
 	Message                *Message          `json:"message"`
 	PendingMessageMetadata map[string]string `json:"pending_message_metadata,omitempty"`
+	// ScheduledMessage is set only when the message was sent WithScheduledAt.
+	// Message then holds the content as it will be sent; it is not in the channel yet.
+	ScheduledMessage *ScheduledMessage `json:"scheduled_message,omitempty"`
 	Response
 }
 
