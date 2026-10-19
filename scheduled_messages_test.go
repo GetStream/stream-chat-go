@@ -26,9 +26,7 @@ func scheduleTestMessage(t *testing.T, c *stream_chat.Client) (*stream_chat.Chan
 		t.Skip("scheduled messages are not enabled for this app")
 	}
 	require.NoError(t, err)
-	if resp.ScheduledMessage == nil {
-		t.Skip("the API does not support scheduled messages yet; the message was sent immediately")
-	}
+	require.NotNil(t, resp.ScheduledMessage, "scheduled_at was ignored and the message was sent immediately")
 
 	return ch, user, resp.ScheduledMessage
 }
