@@ -3,6 +3,7 @@ package stream_chat
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -41,14 +42,14 @@ func (c *Client) CreateBlocklist(ctx context.Context, blocklist *BlocklistCreate
 // GetBlocklist gets a blocklist.
 func (c *Client) GetBlocklist(ctx context.Context, name string) (*GetBlocklistResponse, error) {
 	var resp GetBlocklistResponse
-	err := c.makeRequest(ctx, http.MethodGet, "blocklists/"+name, nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodGet, "blocklists/"+url.PathEscape(name), nil, nil, &resp)
 	return &resp, err
 }
 
 // UpdateBlocklist updates a blocklist.
 func (c *Client) UpdateBlocklist(ctx context.Context, name string, words []string) (*Response, error) {
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodPut, "blocklists/"+name, nil, map[string][]string{"words": words}, &resp)
+	err := c.makeRequest(ctx, http.MethodPut, "blocklists/"+url.PathEscape(name), nil, map[string][]string{"words": words}, &resp)
 	return &resp, err
 }
 
@@ -62,6 +63,6 @@ func (c *Client) ListBlocklists(ctx context.Context) (*ListBlocklistsResponse, e
 // DeleteBlocklist deletes a blocklist.
 func (c *Client) DeleteBlocklist(ctx context.Context, name string) (*Response, error) {
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, "blocklists/"+name, nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodDelete, "blocklists/"+url.PathEscape(name), nil, nil, &resp)
 	return &resp, err
 }
