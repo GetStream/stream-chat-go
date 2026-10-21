@@ -72,6 +72,14 @@ const (
 	EventUserUpdated         EventType = "user.updated"
 
 	EventUserUnreadMessageReminder EventType = "user.unread_message_reminder"
+
+	// Scheduled message events. Only failed and sent are delivered to webhooks;
+	// created, updated and deleted go to the scheduling user's connections only.
+	EventScheduledMessageCreated EventType = "scheduled_message.created"
+	EventScheduledMessageUpdated EventType = "scheduled_message.updated"
+	EventScheduledMessageDeleted EventType = "scheduled_message.deleted"
+	EventScheduledMessageSent    EventType = "scheduled_message.sent"
+	EventScheduledMessageFailed  EventType = "scheduled_message.failed"
 )
 
 // Event is received from a webhook, or sent with the SendEvent function.
@@ -88,6 +96,10 @@ type Event struct {
 	OwnUser      *User            `json:"me,omitempty"`
 	WatcherCount int              `json:"watcher_count,omitempty"`
 	DeletedForMe bool             `json:"deleted_for_me,omitempty"`
+
+	// ScheduledMessage is set on scheduled_message.* events. On
+	// scheduled_message.sent, the ID of the sent message is in ExtraData["message_id"].
+	ScheduledMessage *ScheduledMessage `json:"scheduled_message,omitempty"`
 
 	ExtraData map[string]interface{} `json:"-"`
 
