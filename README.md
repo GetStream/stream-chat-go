@@ -1,19 +1,19 @@
-> **Note:** [`getstream-go`](https://github.com/GetStream/getstream-go) is the new full-product SDK for Stream, covering Chat, Video, Moderation, and Feeds with long-term support.
+> [!CAUTION]
+> ## ⚠️ This is a legacy SDK. It is deprecated.
 >
-> **`stream-chat-go` is now in maintenance mode.** It will continue to receive critical fixes and requested features, so it is safe to keep using. However, we encourage existing users to migrate when convenient and strongly recommend that new projects start with `getstream-go`.
+> 🚫 **Do not start new projects with `stream-chat-go`.**
 >
-> Check out the [Migration Guide](https://github.com/GetStream/getstream-go/blob/5838a1075c07fa5188e954ffd3024844665159a3/docs/migration-from-stream-chat-go/README.md) for side-by-side examples covering common use cases.
+> ✅ **Use [`getstream-go`](https://github.com/GetStream/getstream-go) instead.** It covers Chat, Video, Moderation and Feeds in one SDK.
+>
+> 🔁 **Already using `stream-chat-go`?** Follow the [migration guide](https://github.com/GetStream/getstream-go/tree/main/docs/migration-from-stream-chat-go) to move your code.
 
-# Official Go SDK for [Stream Chat](https://getstream.io/chat/)
+# Legacy Go SDK for [Stream Chat](https://getstream.io/chat/)
 
 [![build](https://github.com/GetStream/stream-chat-go/workflows/build/badge.svg)](https://github.com/GetStream/stream-chat-go/actions)
 [![godoc](https://pkg.go.dev/badge/GetStream/stream-chat-go)](https://pkg.go.dev/github.com/GetStream/stream-chat-go/v8?tab=doc)
 
 <p align="center">
-    <img src="./assets/logo.svg" width="50%" height="50%">
-</p>
-<p align="center">
-    Official Go API client for Stream Chat, a service for building chat applications.
+    Legacy Go API client for Stream Chat, a service for building chat applications.
     <br />
     <a href="https://getstream.io/chat/docs/"><strong>Explore the docs »</strong></a>
     <br />
