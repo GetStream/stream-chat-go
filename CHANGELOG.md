@@ -5,9 +5,20 @@ All notable changes to this project will be documented in this file. See [standa
 ## [8.7.0](https://github.com/GetStream/stream-chat-go/compare/v8.6.0...v8.7.0) (2026-10-29)
 
 
+### Features
+
+* add scheduled messages (CHA-5933) ([#404](https://github.com/GetStream/stream-chat-go/issues/404)) ([beda923](https://github.com/GetStream/stream-chat-go/commit/beda923671fe3c723afbe307694c2ae65a750782))
+
+
 ### Bug Fixes
 
 * **ci:** grant contents write to the release job ([#400](https://github.com/GetStream/stream-chat-go/issues/400)) ([00ef2f5](https://github.com/GetStream/stream-chat-go/commit/00ef2f53efd2d630325d032fb922803aef2b16a5))
+
+
+### Other
+
+* wait up to 60s for async tasks ([#405](https://github.com/GetStream/stream-chat-go/issues/405)) ([b0c0ccd](https://github.com/GetStream/stream-chat-go/commit/b0c0ccdb561f6eced51a2861ab2263430eb502d6))
+* run scheduled message tests unconditionally ([#406](https://github.com/GetStream/stream-chat-go/issues/406)) ([f2b555f](https://github.com/GetStream/stream-chat-go/commit/f2b555ff5da9ca8107d9f7152e80b41e8ee695cd))
 
 ## [8.6.0](https://github.com/GetStream/stream-chat-go/compare/v8.5.0...v8.6.0) (2026-09-10)
 
