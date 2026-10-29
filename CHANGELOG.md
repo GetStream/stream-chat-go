@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.7.0](https://github.com/GetStream/stream-chat-go/compare/v8.6.0...v8.7.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **ci:** grant contents write to the release job ([#400](https://github.com/GetStream/stream-chat-go/issues/400)) ([00ef2f5](https://github.com/GetStream/stream-chat-go/commit/00ef2f53efd2d630325d032fb922803aef2b16a5))
+
 ## [8.6.0](https://github.com/GetStream/stream-chat-go/compare/v8.5.0...v8.6.0) (2026-09-10)
 
 
