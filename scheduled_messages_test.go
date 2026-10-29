@@ -2,7 +2,6 @@ package stream_chat_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -11,8 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// scheduleTestMessage schedules a message in a new channel, skipping the test
-// when the app does not have scheduled messages enabled.
+// scheduleTestMessage schedules a message in a new channel.
 func scheduleTestMessage(t *testing.T, c *stream_chat.Client) (*stream_chat.Channel, *stream_chat.User, *stream_chat.ScheduledMessage) {
 	t.Helper()
 
@@ -21,10 +19,6 @@ func scheduleTestMessage(t *testing.T, c *stream_chat.Client) (*stream_chat.Chan
 
 	resp, err := ch.SendMessage(ctx, &stream_chat.Message{Text: "scheduled hello", ExtraData: map[string]interface{}{"mood": "happy"}}, user.ID,
 		stream_chat.WithScheduledAt(time.Now().Add(time.Hour)))
-	var apiErr stream_chat.Error
-	if errors.As(err, &apiErr) && apiErr.ExceptionFields["reason"] == "scheduled_messages_disabled" {
-		t.Skip("scheduled messages are not enabled for this app")
-	}
 	require.NoError(t, err)
 	require.NotNil(t, resp.ScheduledMessage, "scheduled_at was ignored and the message was sent immediately")
 
@@ -57,7 +51,9 @@ func TestClient_ScheduledMessagesLifecycle(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		at := time.Now().Add(2 * time.Hour).Truncate(time.Second)
+		// The server rounds scheduled_at up to the next whole minute, so use a
+		// time already on a whole minute to get it back unchanged.
+		at := time.Now().Add(2 * time.Hour).Truncate(time.Minute)
 		resp, err := c.UpdateScheduledMessage(ctx, sm.ID, &stream_chat.Message{Text: "edited"}, &at)
 		require.NoError(t, err)
 		assert.Equal(t, "edited", resp.ScheduledMessage.Message.Text)
