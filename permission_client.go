@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"path"
 	"time"
 )
@@ -51,7 +52,7 @@ func (p *PermissionClient) DeleteRole(ctx context.Context, name string) (*Respon
 		return nil, errors.New("name is required")
 	}
 
-	uri := path.Join("roles", name)
+	uri := path.Join("roles", url.PathEscape(name))
 
 	var resp Response
 	err := p.client.makeRequest(ctx, http.MethodDelete, uri, nil, nil, &resp)
@@ -88,7 +89,7 @@ func (p *PermissionClient) GetPermission(ctx context.Context, id string) (*GetPe
 		return nil, errors.New("id is required")
 	}
 
-	uri := path.Join("permissions", id)
+	uri := path.Join("permissions", url.PathEscape(id))
 
 	var perm GetPermissionResponse
 	err := p.client.makeRequest(ctx, http.MethodGet, uri, nil, nil, &perm)
@@ -101,7 +102,7 @@ func (p *PermissionClient) UpdatePermission(ctx context.Context, id string, perm
 		return nil, errors.New("id is required")
 	}
 
-	uri := path.Join("permissions", id)
+	uri := path.Join("permissions", url.PathEscape(id))
 
 	var resp Response
 	err := p.client.makeRequest(ctx, http.MethodPut, uri, nil, perm, &resp)
@@ -126,7 +127,7 @@ func (p *PermissionClient) DeletePermission(ctx context.Context, id string) (*Re
 		return nil, errors.New("id is required")
 	}
 
-	uri := path.Join("permissions", id)
+	uri := path.Join("permissions", url.PathEscape(id))
 
 	var resp Response
 	err := p.client.makeRequest(ctx, http.MethodDelete, uri, nil, nil, &resp)
