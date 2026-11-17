@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.7.1](https://github.com/GetStream/stream-chat-go/compare/v8.7.0...v8.7.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* limit decompressed webhook payloads to 10 MiB ([#409](https://github.com/GetStream/stream-chat-go/issues/409)) ([ead272b](https://github.com/GetStream/stream-chat-go/commit/ead272ba4708102ab5f7a658d2a00bafb9db9f04))
+
 ## [8.7.0](https://github.com/GetStream/stream-chat-go/compare/v8.6.0...v8.7.0) (2026-10-29)
 
 
