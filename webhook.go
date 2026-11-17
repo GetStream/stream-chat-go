@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 )
 
 // ErrInvalidWebhook is the sentinel wrapped by every malformed-webhook /
@@ -42,7 +43,11 @@ func GunzipPayload(body []byte) ([]byte, error) {
 		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
 	}
 	limit := MaxWebhookPayloadBytes
-	out, err := io.ReadAll(io.LimitReader(zr, limit+1))
+	var r io.Reader = zr
+	if limit < math.MaxInt64 {
+		r = io.LimitReader(zr, limit+1)
+	}
+	out, err := io.ReadAll(r)
 	if err != nil {
 		_ = zr.Close()
 		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)

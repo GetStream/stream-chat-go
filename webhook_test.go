@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math"
 	"strings"
 	"testing"
 
@@ -130,6 +131,11 @@ func TestGunzipPayloadLimit(t *testing.T) {
 		require.Nil(t, got)
 		require.ErrorIs(t, err, ErrInvalidWebhook)
 		require.EqualError(t, err, want)
+
+		got, err = ParseSns(base64String(t, bomb))
+		require.Nil(t, got)
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		require.EqualError(t, err, want)
 	})
 
 	t.Run("does not limit uncompressed body", func(t *testing.T) {
@@ -169,6 +175,11 @@ func TestGunzipPayloadLimit(t *testing.T) {
 
 		MaxWebhookPayloadBytes = 1
 		got, err = GunzipPayload(body)
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+
+		MaxWebhookPayloadBytes = math.MaxInt64
+		got, err = GunzipPayload(gzipBytes(t, body))
 		require.NoError(t, err)
 		require.Equal(t, body, got)
 	})
