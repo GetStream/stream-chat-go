@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 )
 
 // ErrInvalidWebhook is the sentinel wrapped by every malformed-webhook /
@@ -19,12 +20,20 @@ var ErrInvalidWebhook = errors.New("invalid webhook")
 
 var gzipMagic = []byte{0x1f, 0x8b}
 
+// MaxWebhookPayloadBytes caps the decompressed size of a gzip webhook body.
+// GunzipPayload runs before the signature check, so without a cap an
+// unsigned gzip bomb could exhaust memory. Raise it if your events are larger.
+var MaxWebhookPayloadBytes int64 = 10 << 20
+
 // GunzipPayload returns body unchanged unless the first two bytes are
 // the gzip magic (1f 8b, per RFC 1952), in which case the gzip stream
 // is inflated and the decompressed bytes are returned.
 //
 // Magic-byte detection lets the same handler stay correct when
 // middleware auto-decompresses the request before your code sees it.
+//
+// Returns an error wrapping ErrInvalidWebhook when the gzip stream is
+// malformed or decompresses to more than MaxWebhookPayloadBytes.
 func GunzipPayload(body []byte) ([]byte, error) {
 	if len(body) < 2 || !bytes.Equal(body[:2], gzipMagic) {
 		return body, nil
@@ -33,10 +42,19 @@ func GunzipPayload(body []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
 	}
-	out, err := io.ReadAll(zr)
+	limit := MaxWebhookPayloadBytes
+	var r io.Reader = zr
+	if limit < math.MaxInt64 {
+		r = io.LimitReader(zr, limit+1)
+	}
+	out, err := io.ReadAll(r)
 	if err != nil {
 		_ = zr.Close()
 		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)
+	}
+	if int64(len(out)) > limit {
+		_ = zr.Close()
+		return nil, fmt.Errorf("gzip decompression failed: payload exceeds %d bytes: %w", limit, ErrInvalidWebhook)
 	}
 	if err := zr.Close(); err != nil {
 		return nil, fmt.Errorf("gzip decompression failed: %w", ErrInvalidWebhook)

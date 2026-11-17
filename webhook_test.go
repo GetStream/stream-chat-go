@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math"
 	"strings"
 	"testing"
 
@@ -104,6 +105,83 @@ func TestGunzipPayload(t *testing.T) {
 		got, err := GunzipPayload(compressed)
 		require.NoError(t, err)
 		require.Equal(t, []byte("helloworld"), got)
+	})
+}
+
+func TestGunzipPayloadLimit(t *testing.T) {
+	limit := MaxWebhookPayloadBytes
+	require.Equal(t, int64(10*1024*1024), limit)
+
+	t.Run("inflates body at limit", func(t *testing.T) {
+		got, err := GunzipPayload(gzipBytes(t, make([]byte, limit)))
+		require.NoError(t, err)
+		require.Len(t, got, int(limit))
+	})
+
+	t.Run("rejects gzip bomb before signature check", func(t *testing.T) {
+		bomb := gzipBytes(t, make([]byte, limit+1))
+		want := "gzip decompression failed: payload exceeds 10485760 bytes: invalid webhook"
+
+		got, err := VerifyAndParseWebhook(bomb, "deadbeef", webhookTestAPISecret)
+		require.Nil(t, got)
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		require.EqualError(t, err, want)
+
+		got, err = ParseSqs(base64String(t, bomb))
+		require.Nil(t, got)
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		require.EqualError(t, err, want)
+
+		got, err = ParseSns(base64String(t, bomb))
+		require.Nil(t, got)
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		require.EqualError(t, err, want)
+	})
+
+	t.Run("does not limit uncompressed body", func(t *testing.T) {
+		body := make([]byte, limit+1)
+		got, err := GunzipPayload(body)
+		require.NoError(t, err)
+		require.Len(t, got, len(body))
+	})
+
+	t.Run("inflates multiple members", func(t *testing.T) {
+		got, err := GunzipPayload(append(gzipBytes(t, []byte("ab")), gzipBytes(t, []byte("cd"))...))
+		require.NoError(t, err)
+		require.Equal(t, []byte("abcd"), got)
+	})
+
+	t.Run("corrupt deflate data still errors", func(t *testing.T) {
+		bad := gzipBytes(t, []byte(webhookTestFixture))
+		copy(bad[10:14], []byte{0xff, 0xff, 0xff, 0xff})
+		_, err := GunzipPayload(bad)
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		require.EqualError(t, err, "gzip decompression failed: invalid webhook")
+	})
+
+	t.Run("honours custom limit", func(t *testing.T) {
+		t.Cleanup(func() { MaxWebhookPayloadBytes = limit })
+		body := []byte(webhookTestFixture)
+
+		MaxWebhookPayloadBytes = int64(len(body) - 1)
+		_, err := GunzipPayload(gzipBytes(t, body))
+		require.ErrorIs(t, err, ErrInvalidWebhook)
+		assert.Contains(t, err.Error(), "payload exceeds")
+
+		MaxWebhookPayloadBytes = int64(len(body))
+		got, err := GunzipPayload(gzipBytes(t, body))
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+
+		MaxWebhookPayloadBytes = 1
+		got, err = GunzipPayload(body)
+		require.NoError(t, err)
+		require.Equal(t, body, got)
+
+		MaxWebhookPayloadBytes = math.MaxInt64
+		got, err = GunzipPayload(gzipBytes(t, body))
+		require.NoError(t, err)
+		require.Equal(t, body, got)
 	})
 }
 
