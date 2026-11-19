@@ -77,10 +77,7 @@ func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, erro
 		timeout = time.Duration(i) * time.Second
 	}
 
-	tr := http.DefaultTransport.(*http.Transport).Clone() //nolint:forcetypeassert
-	tr.MaxIdleConnsPerHost = 5
-	tr.IdleConnTimeout = 59 * time.Second // load balancer's idle timeout is 60 sec
-	tr.ExpectContinueTimeout = 2 * time.Second
+	tr := defaultTransport()
 
 	client := &Client{
 		apiKey:    apiKey,
@@ -104,6 +101,30 @@ func NewClient(apiKey, apiSecret string, options ...ClientOption) (*Client, erro
 	client.authToken = token
 
 	return client, nil
+}
+
+// defaultTransport returns a copy of http.DefaultTransport tuned for the API.
+// When http.DefaultTransport has been replaced with a different RoundTripper
+// (for example an instrumented one), it falls back to a fresh http.Transport
+// that keeps the same defaults instead of panicking.
+func defaultTransport() *http.Transport {
+	var tr *http.Transport
+	if dt, ok := http.DefaultTransport.(*http.Transport); ok {
+		tr = dt.Clone()
+	} else {
+		tr = &http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		}
+	}
+	tr.MaxIdleConnsPerHost = 5
+	tr.IdleConnTimeout = 59 * time.Second // load balancer's idle timeout is 60 sec
+	tr.ExpectContinueTimeout = 2 * time.Second
+
+	return tr
 }
 
 // SetClient sets a new underlying HTTP client.
