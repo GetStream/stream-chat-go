@@ -3,6 +3,7 @@ package stream_chat
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -409,7 +410,7 @@ func (c *Client) UpsertPushProvider(ctx context.Context, provider *PushProvider)
 // DeletePushProvider deletes a push provider.
 func (c *Client) DeletePushProvider(ctx context.Context, providerType, name string) (*Response, error) {
 	var resp Response
-	err := c.makeRequest(ctx, http.MethodDelete, "push_providers/"+providerType+"/"+name, nil, nil, &resp)
+	err := c.makeRequest(ctx, http.MethodDelete, "push_providers/"+url.PathEscape(providerType)+"/"+url.PathEscape(name), nil, nil, &resp)
 	return &resp, err
 }
 
