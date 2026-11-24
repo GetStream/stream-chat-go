@@ -15,7 +15,7 @@ permissions:
 jobs:
   test-build:
     name: 👷 Test & Build
-    runs-on: { group: github-public-ubuntu-static }
+    runs-on: { group: github-public-amd64 }
     strategy:
       max-parallel: 3
       fail-fast: false
