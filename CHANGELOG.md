@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.7.2](https://github.com/GetStream/stream-chat-go/compare/v8.7.1...v8.7.2) (2026-11-25)
+
+
+### Features
+
+* add channel type ban and unban options ([#414](https://github.com/GetStream/stream-chat-go/issues/414)) ([dd2f304](https://github.com/GetStream/stream-chat-go/commit/dd2f304bfd1cc42666791b2807113becf6593baf))
+
 ### [8.7.1](https://github.com/GetStream/stream-chat-go/compare/v8.7.0...v8.7.1) (2026-11-17)
 
 
