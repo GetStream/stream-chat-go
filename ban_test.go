@@ -195,6 +195,49 @@ func TestBanWithDeleteReactions(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestChannelTypeBanUnban(t *testing.T) {
+	c := initClient(t)
+	target := randomUser(t, c)
+	user := randomUser(t, c)
+	messaging := initChannelWithType(t, c, "messaging", user.ID, target.ID)
+	livestream := initChannelWithType(t, c, "livestream", user.ID, target.ID)
+	ctx := context.Background()
+
+	_, err := c.BanUser(ctx, target.ID, user.ID, BanWithChannelType("messaging"), BanWithReason("spammer"))
+	require.NoError(t, err)
+
+	_, err = messaging.SendMessage(ctx, &Message{Text: "blocked"}, target.ID)
+	require.Error(t, err, "banned from every messaging channel")
+	_, err = livestream.SendMessage(ctx, &Message{Text: "allowed"}, target.ID)
+	require.NoError(t, err, "other channel types are not affected")
+
+	_, err = c.UnBanUser(ctx, target.ID, UnbanWithChannelType("messaging"))
+	require.NoError(t, err)
+
+	_, err = messaging.SendMessage(ctx, &Message{Text: "allowed again"}, target.ID)
+	require.NoError(t, err)
+}
+
+func TestChannelTypeShadowBan(t *testing.T) {
+	c := initClient(t)
+	target := randomUser(t, c)
+	user := randomUser(t, c)
+	ch := initChannelWithType(t, c, "messaging", user.ID, target.ID)
+	ctx := context.Background()
+
+	_, err := c.ShadowBan(ctx, target.ID, user.ID, BanWithChannelType("messaging"))
+	require.NoError(t, err)
+
+	sent, err := ch.SendMessage(ctx, &Message{Text: "hidden"}, target.ID)
+	require.NoError(t, err)
+	got, err := c.GetMessage(ctx, sent.Message.ID)
+	require.NoError(t, err)
+	require.True(t, got.Message.Shadowed)
+
+	_, err = c.UnBanUser(ctx, target.ID, UnbanWithChannelType("messaging"))
+	require.NoError(t, err)
+}
+
 func ExampleClient_BanUser() {
 	client, _ := NewClient("XXXX", "XXXX")
 	ctx := context.Background()
@@ -209,6 +252,12 @@ func ExampleClient_BanUser() {
 	// remove ban from channel
 	channel = client.Channel("livestream", "fortnite")
 	_, _ = channel.UnBanUser(ctx, "eviluser")
+
+	// ban a user from every livestream channel, including ones created later
+	_, _ = client.BanUser(ctx, "eviluser", "modUser", BanWithChannelType("livestream"))
+
+	// remove the livestream channel type ban
+	_, _ = client.UnBanUser(ctx, "eviluser", UnbanWithChannelType("livestream"))
 
 	// remove global ban
 	_, _ = client.UnBanUser(ctx, "eviluser")

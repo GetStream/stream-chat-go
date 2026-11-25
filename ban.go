@@ -51,6 +51,9 @@ func (c *Client) UnBanUser(ctx context.Context, targetID string, options ...Unba
 	if opts.CreatedBy != "" {
 		params.Set("created_by", opts.CreatedBy)
 	}
+	if opts.ChannelType != "" {
+		params.Set("channel_type", opts.ChannelType)
+	}
 
 	var resp Response
 	err := c.makeRequest(ctx, http.MethodDelete, "moderation/ban", params, nil, &resp)
@@ -154,6 +157,7 @@ type banOptions struct {
 	Shadow                bool   `json:"shadow"`
 	BanFromFutureChannels bool   `json:"ban_from_future_channels,omitempty"`
 	DeleteReactions       bool   `json:"delete_reactions,omitempty"`
+	ChannelType           string `json:"channel_type,omitempty"`
 
 	// ID and Type of the channel when acting on a channel member.
 	ID   string `json:"id"`
@@ -163,6 +167,7 @@ type banOptions struct {
 type unbanOptions struct {
 	RemoveFutureChannelsBan bool   `json:"remove_future_channels_ban,omitempty"`
 	CreatedBy               string `json:"created_by,omitempty"`
+	ChannelType             string `json:"channel_type,omitempty"`
 }
 
 type BanOption func(*banOptions)
@@ -220,6 +225,16 @@ func BanWithChannel(channelType, channelID string) func(*banOptions) {
 	}
 }
 
+// BanWithChannelType bans the user from every channel of channelType,
+// including channels of that type created later, instead of the whole app.
+// It cannot be combined with BanWithChannel, BanWithBanFromFutureChannels or
+// BanWithDeleteReactions, and it is not supported on Channel.BanUser.
+func BanWithChannelType(channelType string) func(*banOptions) {
+	return func(opt *banOptions) {
+		opt.ChannelType = channelType
+	}
+}
+
 type UnbanOption func(*unbanOptions)
 
 // UnbanWithRemoveFutureChannelsBan when set to true, also removes the future
@@ -236,6 +251,15 @@ func UnbanWithRemoveFutureChannelsBan() func(*unbanOptions) {
 func UnbanWithCreatedBy(userID string) func(*unbanOptions) {
 	return func(opt *unbanOptions) {
 		opt.CreatedBy = userID
+	}
+}
+
+// UnbanWithChannelType lifts the user's ban from every channel of
+// channelType, set with BanWithChannelType. It cannot be combined with
+// UnbanWithRemoveFutureChannelsBan.
+func UnbanWithChannelType(channelType string) func(*unbanOptions) {
+	return func(opt *unbanOptions) {
+		opt.ChannelType = channelType
 	}
 }
 
